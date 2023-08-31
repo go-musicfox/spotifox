@@ -1,0 +1,430 @@
+# capnproto.org/go/capnp/v3 v3.0.0-alpha-29
+## explicit; go 1.19
+capnproto.org/go/capnp/v3
+capnproto.org/go/capnp/v3/encoding/text
+capnproto.org/go/capnp/v3/exc
+capnproto.org/go/capnp/v3/exp/bufferpool
+capnproto.org/go/capnp/v3/flowcontrol
+capnproto.org/go/capnp/v3/internal/nodemap
+capnproto.org/go/capnp/v3/internal/schema
+capnproto.org/go/capnp/v3/internal/str
+capnproto.org/go/capnp/v3/internal/strquote
+capnproto.org/go/capnp/v3/packed
+capnproto.org/go/capnp/v3/schemas
+# github.com/anhoder/foxful-cli v0.1.1
+## explicit; go 1.20
+github.com/anhoder/foxful-cli/model
+github.com/anhoder/foxful-cli/util
+# github.com/arcspace/go-arc-sdk v0.0.0-20230811172934-db6c05cc94b2
+## explicit; go 1.18
+github.com/arcspace/go-arc-sdk/apis/arc
+github.com/arcspace/go-arc-sdk/stdlib/bufs
+github.com/arcspace/go-arc-sdk/stdlib/errors
+github.com/arcspace/go-arc-sdk/stdlib/generics
+github.com/arcspace/go-arc-sdk/stdlib/log
+github.com/arcspace/go-arc-sdk/stdlib/symbol
+github.com/arcspace/go-arc-sdk/stdlib/task
+github.com/arcspace/go-arc-sdk/stdlib/utils
+# github.com/arcspace/go-librespot v0.0.0-20230811173922-2e901b172fbe => ../go-librespot
+## explicit; go 1.18
+github.com/arcspace/go-librespot/Spotify
+github.com/arcspace/go-librespot/librespot/api-respot
+github.com/arcspace/go-librespot/librespot/api-respot/blob
+github.com/arcspace/go-librespot/librespot/asset
+github.com/arcspace/go-librespot/librespot/core
+github.com/arcspace/go-librespot/librespot/core/connection
+github.com/arcspace/go-librespot/librespot/core/crypto
+github.com/arcspace/go-librespot/librespot/mercury
+# github.com/atotto/clipboard v0.1.4
+## explicit
+github.com/atotto/clipboard
+# github.com/aymanbagabas/go-osc52/v2 v2.0.1
+## explicit; go 1.16
+github.com/aymanbagabas/go-osc52/v2
+# github.com/brynbellomy/klog v0.0.0-20200414031930-87fbf2e555ae
+## explicit
+github.com/brynbellomy/klog
+# github.com/buger/jsonparser v1.1.1
+## explicit; go 1.13
+github.com/buger/jsonparser
+# github.com/charmbracelet/bubbles v0.16.1
+## explicit; go 1.17
+github.com/charmbracelet/bubbles/cursor
+github.com/charmbracelet/bubbles/key
+github.com/charmbracelet/bubbles/runeutil
+github.com/charmbracelet/bubbles/textinput
+# github.com/charmbracelet/bubbletea v0.24.2 => github.com/go-musicfox/bubbletea v0.24.1
+## explicit; go 1.17
+github.com/charmbracelet/bubbletea
+# github.com/charmbracelet/lipgloss v0.8.0
+## explicit; go 1.17
+github.com/charmbracelet/lipgloss
+# github.com/cnsilvan/UnblockNeteaseMusic v0.0.0-20230310083816-92b59c95a366 => github.com/go-musicfox/UnblockNeteaseMusic v0.1.2
+## explicit; go 1.16
+github.com/cnsilvan/UnblockNeteaseMusic/cache
+github.com/cnsilvan/UnblockNeteaseMusic/common
+github.com/cnsilvan/UnblockNeteaseMusic/config
+github.com/cnsilvan/UnblockNeteaseMusic/cookiestxt
+github.com/cnsilvan/UnblockNeteaseMusic/network
+github.com/cnsilvan/UnblockNeteaseMusic/pool
+github.com/cnsilvan/UnblockNeteaseMusic/processor
+github.com/cnsilvan/UnblockNeteaseMusic/processor/crypto
+github.com/cnsilvan/UnblockNeteaseMusic/provider
+github.com/cnsilvan/UnblockNeteaseMusic/provider/base
+github.com/cnsilvan/UnblockNeteaseMusic/provider/kugou
+github.com/cnsilvan/UnblockNeteaseMusic/provider/kuwo
+github.com/cnsilvan/UnblockNeteaseMusic/provider/migu
+github.com/cnsilvan/UnblockNeteaseMusic/provider/qq
+github.com/cnsilvan/UnblockNeteaseMusic/utils
+github.com/cnsilvan/UnblockNeteaseMusic/version
+# github.com/cocoonlife/goflac v0.0.0-20170210142907-50ea06ed5a9d => github.com/go-musicfox/goflac v0.1.5
+## explicit
+github.com/cocoonlife/goflac
+# github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81
+## explicit; go 1.13
+github.com/containerd/console
+# github.com/ebitengine/purego v0.4.0
+## explicit; go 1.18
+github.com/ebitengine/purego
+github.com/ebitengine/purego/internal/abi
+github.com/ebitengine/purego/internal/cgo
+github.com/ebitengine/purego/internal/fakecgo
+github.com/ebitengine/purego/internal/strings
+github.com/ebitengine/purego/objc
+# github.com/faiface/beep v1.1.0 => github.com/go-musicfox/beep v1.2.4
+## explicit; go 1.14
+github.com/faiface/beep
+github.com/faiface/beep/effects
+github.com/faiface/beep/flac
+github.com/faiface/beep/minimp3
+github.com/faiface/beep/mp3
+github.com/faiface/beep/speaker
+github.com/faiface/beep/vorbis
+github.com/faiface/beep/wav
+# github.com/fhs/gompd/v2 v2.3.0
+## explicit; go 1.11
+github.com/fhs/gompd/v2/mpd
+# github.com/fogleman/ease v0.0.0-20170301025033-8da417bf1776
+## explicit
+github.com/fogleman/ease
+# github.com/forgoer/openssl v1.6.0
+## explicit; go 1.13
+github.com/forgoer/openssl
+# github.com/go-musicfox/netease-music v1.4.1
+## explicit; go 1.12
+github.com/go-musicfox/netease-music/service
+github.com/go-musicfox/netease-music/util
+# github.com/go-musicfox/notificator v0.1.0
+## explicit; go 1.16
+github.com/go-musicfox/notificator
+# github.com/go-musicfox/requests v0.2.0
+## explicit; go 1.13
+github.com/go-musicfox/requests
+# github.com/godbus/dbus/v5 v5.1.0
+## explicit; go 1.12
+github.com/godbus/dbus/v5
+github.com/godbus/dbus/v5/introspect
+github.com/godbus/dbus/v5/prop
+# github.com/gogo/protobuf v1.3.2
+## explicit; go 1.15
+github.com/gogo/protobuf/proto
+# github.com/golang/protobuf v1.5.3
+## explicit; go 1.9
+github.com/golang/protobuf/jsonpb
+github.com/golang/protobuf/proto
+github.com/golang/protobuf/ptypes
+github.com/golang/protobuf/ptypes/any
+github.com/golang/protobuf/ptypes/duration
+github.com/golang/protobuf/ptypes/timestamp
+# github.com/google/uuid v1.3.1
+## explicit
+github.com/google/uuid
+# github.com/gookit/color v1.5.3
+## explicit; go 1.18
+github.com/gookit/color
+# github.com/gookit/gcli/v2 v2.3.4 => github.com/anhoder/gcli/v2 v2.3.5
+## explicit; go 1.12
+github.com/gookit/gcli/v2
+github.com/gookit/gcli/v2/helper
+github.com/gookit/gcli/v2/progress
+# github.com/gookit/goutil v0.6.10
+## explicit; go 1.18
+github.com/gookit/goutil
+github.com/gookit/goutil/arrutil
+github.com/gookit/goutil/basefn
+github.com/gookit/goutil/byteutil
+github.com/gookit/goutil/cliutil/cmdline
+github.com/gookit/goutil/comdef
+github.com/gookit/goutil/envutil
+github.com/gookit/goutil/errorx
+github.com/gookit/goutil/fmtutil
+github.com/gookit/goutil/internal/comfunc
+github.com/gookit/goutil/maputil
+github.com/gookit/goutil/mathutil
+github.com/gookit/goutil/reflects
+github.com/gookit/goutil/stdio
+github.com/gookit/goutil/stdutil
+github.com/gookit/goutil/structs
+github.com/gookit/goutil/strutil
+github.com/gookit/goutil/strutil/textscan
+github.com/gookit/goutil/strutil/textutil
+github.com/gookit/goutil/sysutil
+github.com/gookit/goutil/sysutil/cmdr
+github.com/gookit/goutil/timex
+# github.com/gookit/ini/v2 v2.2.2
+## explicit; go 1.18
+github.com/gookit/ini/v2
+github.com/gookit/ini/v2/parser
+# github.com/hajimehoshi/go-mp3 v0.3.4 => github.com/go-musicfox/go-mp3 v0.3.3
+## explicit; go 1.14
+github.com/hajimehoshi/go-mp3
+github.com/hajimehoshi/go-mp3/internal/bits
+github.com/hajimehoshi/go-mp3/internal/consts
+github.com/hajimehoshi/go-mp3/internal/frame
+github.com/hajimehoshi/go-mp3/internal/frameheader
+github.com/hajimehoshi/go-mp3/internal/huffman
+github.com/hajimehoshi/go-mp3/internal/imdct
+github.com/hajimehoshi/go-mp3/internal/maindata
+github.com/hajimehoshi/go-mp3/internal/sideinfo
+# github.com/hajimehoshi/oto v1.0.1 => github.com/go-musicfox/oto v1.0.3
+## explicit; go 1.13
+github.com/hajimehoshi/oto
+github.com/hajimehoshi/oto/internal/mux
+# github.com/icza/bitio v1.1.0
+## explicit; go 1.13
+github.com/icza/bitio
+# github.com/jfreymuth/oggvorbis v1.0.5
+## explicit; go 1.15
+github.com/jfreymuth/oggvorbis
+# github.com/jfreymuth/vorbis v1.0.2
+## explicit; go 1.15
+github.com/jfreymuth/vorbis
+# github.com/lucasb-eyer/go-colorful v1.2.0
+## explicit; go 1.12
+github.com/lucasb-eyer/go-colorful
+# github.com/mattn/go-isatty v0.0.19
+## explicit; go 1.15
+github.com/mattn/go-isatty
+# github.com/mattn/go-localereader v0.0.1
+## explicit
+github.com/mattn/go-localereader
+# github.com/mattn/go-runewidth v0.0.15
+## explicit; go 1.9
+github.com/mattn/go-runewidth
+# github.com/mewkiz/flac v1.0.8
+## explicit; go 1.14
+github.com/mewkiz/flac
+github.com/mewkiz/flac/frame
+github.com/mewkiz/flac/internal/bits
+github.com/mewkiz/flac/internal/hashutil
+github.com/mewkiz/flac/internal/hashutil/crc16
+github.com/mewkiz/flac/internal/hashutil/crc8
+github.com/mewkiz/flac/internal/ioutilx
+github.com/mewkiz/flac/internal/utf8
+github.com/mewkiz/flac/meta
+# github.com/mewkiz/pkg v0.0.0-20230226050401-4010bf0fec14
+## explicit; go 1.12
+github.com/mewkiz/pkg/errutil
+github.com/mewkiz/pkg/term
+# github.com/mitchellh/mapstructure v1.5.0
+## explicit; go 1.14
+github.com/mitchellh/mapstructure
+# github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6
+## explicit; go 1.17
+github.com/muesli/ansi
+github.com/muesli/ansi/compressor
+# github.com/muesli/cancelreader v0.2.2
+## explicit; go 1.17
+github.com/muesli/cancelreader
+# github.com/muesli/reflow v0.3.0
+## explicit; go 1.13
+github.com/muesli/reflow/ansi
+github.com/muesli/reflow/truncate
+github.com/muesli/reflow/wordwrap
+github.com/muesli/reflow/wrap
+# github.com/muesli/termenv v0.15.2
+## explicit; go 1.17
+github.com/muesli/termenv
+# github.com/pkg/errors v0.9.1
+## explicit
+github.com/pkg/errors
+# github.com/rivo/uniseg v0.4.4
+## explicit; go 1.18
+github.com/rivo/uniseg
+# github.com/rs/cors v1.9.0
+## explicit; go 1.13
+github.com/rs/cors
+# github.com/sahilm/fuzzy v0.1.0
+## explicit
+github.com/sahilm/fuzzy
+# github.com/shkh/lastfm-go v0.0.0-20191215035245-89a801c244e0 => github.com/go-musicfox/lastfm-go v0.0.2
+## explicit; go 1.19
+github.com/shkh/lastfm-go
+# github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
+## explicit
+github.com/skratchdot/open-golang/open
+# github.com/tosone/minimp3 v1.0.2
+## explicit; go 1.18
+github.com/tosone/minimp3
+# github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
+## explicit; go 1.19
+github.com/xo/terminfo
+# go.etcd.io/bbolt v1.3.7
+## explicit; go 1.17
+go.etcd.io/bbolt
+# golang.org/x/crypto v0.12.0
+## explicit; go 1.17
+golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/ssh/terminal
+# golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
+## explicit; go 1.20
+# golang.org/x/exp/shiny v0.0.0-20230522175609-2e198f4a06a1
+## explicit; go 1.18
+golang.org/x/exp/shiny/driver/gldriver
+golang.org/x/exp/shiny/driver/internal/drawer
+golang.org/x/exp/shiny/driver/internal/errscreen
+golang.org/x/exp/shiny/driver/internal/event
+golang.org/x/exp/shiny/driver/internal/lifecycler
+golang.org/x/exp/shiny/driver/internal/win32
+golang.org/x/exp/shiny/driver/internal/x11key
+golang.org/x/exp/shiny/screen
+# golang.org/x/image v0.8.0
+## explicit; go 1.12
+golang.org/x/image/math/f64
+# golang.org/x/mobile v0.0.0-20230531173138-3c911d8e3eda
+## explicit; go 1.17
+golang.org/x/mobile/app
+golang.org/x/mobile/app/internal/callfn
+golang.org/x/mobile/event/key
+golang.org/x/mobile/event/lifecycle
+golang.org/x/mobile/event/mouse
+golang.org/x/mobile/event/paint
+golang.org/x/mobile/event/size
+golang.org/x/mobile/event/touch
+golang.org/x/mobile/geom
+golang.org/x/mobile/gl
+golang.org/x/mobile/internal/mobileinit
+# golang.org/x/mod v0.12.0
+## explicit; go 1.17
+golang.org/x/mod/semver
+# golang.org/x/net v0.14.0
+## explicit; go 1.17
+golang.org/x/net/http/httpguts
+golang.org/x/net/http2
+golang.org/x/net/http2/hpack
+golang.org/x/net/idna
+golang.org/x/net/internal/timeseries
+golang.org/x/net/trace
+# golang.org/x/sync v0.3.0
+## explicit; go 1.17
+golang.org/x/sync/errgroup
+golang.org/x/sync/semaphore
+# golang.org/x/sys v0.11.0
+## explicit; go 1.17
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/plan9
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# golang.org/x/term v0.11.0
+## explicit; go 1.17
+golang.org/x/term
+# golang.org/x/text v0.12.0
+## explicit; go 1.17
+golang.org/x/text/secure/bidirule
+golang.org/x/text/transform
+golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
+golang.org/x/text/width
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d
+## explicit; go 1.19
+google.golang.org/genproto/googleapis/rpc/status
+# google.golang.org/grpc v1.57.0
+## explicit; go 1.17
+google.golang.org/grpc
+google.golang.org/grpc/attributes
+google.golang.org/grpc/backoff
+google.golang.org/grpc/balancer
+google.golang.org/grpc/balancer/base
+google.golang.org/grpc/balancer/grpclb/state
+google.golang.org/grpc/balancer/roundrobin
+google.golang.org/grpc/binarylog/grpc_binarylog_v1
+google.golang.org/grpc/channelz
+google.golang.org/grpc/codes
+google.golang.org/grpc/connectivity
+google.golang.org/grpc/credentials
+google.golang.org/grpc/credentials/insecure
+google.golang.org/grpc/encoding
+google.golang.org/grpc/encoding/proto
+google.golang.org/grpc/grpclog
+google.golang.org/grpc/internal
+google.golang.org/grpc/internal/backoff
+google.golang.org/grpc/internal/balancer/gracefulswitch
+google.golang.org/grpc/internal/balancerload
+google.golang.org/grpc/internal/binarylog
+google.golang.org/grpc/internal/buffer
+google.golang.org/grpc/internal/channelz
+google.golang.org/grpc/internal/credentials
+google.golang.org/grpc/internal/envconfig
+google.golang.org/grpc/internal/grpclog
+google.golang.org/grpc/internal/grpcrand
+google.golang.org/grpc/internal/grpcsync
+google.golang.org/grpc/internal/grpcutil
+google.golang.org/grpc/internal/metadata
+google.golang.org/grpc/internal/pretty
+google.golang.org/grpc/internal/resolver
+google.golang.org/grpc/internal/resolver/dns
+google.golang.org/grpc/internal/resolver/passthrough
+google.golang.org/grpc/internal/resolver/unix
+google.golang.org/grpc/internal/serviceconfig
+google.golang.org/grpc/internal/status
+google.golang.org/grpc/internal/syscall
+google.golang.org/grpc/internal/transport
+google.golang.org/grpc/internal/transport/networktype
+google.golang.org/grpc/keepalive
+google.golang.org/grpc/metadata
+google.golang.org/grpc/peer
+google.golang.org/grpc/resolver
+google.golang.org/grpc/serviceconfig
+google.golang.org/grpc/stats
+google.golang.org/grpc/status
+google.golang.org/grpc/tap
+# google.golang.org/protobuf v1.31.0
+## explicit; go 1.11
+google.golang.org/protobuf/encoding/protojson
+google.golang.org/protobuf/encoding/prototext
+google.golang.org/protobuf/encoding/protowire
+google.golang.org/protobuf/internal/descfmt
+google.golang.org/protobuf/internal/descopts
+google.golang.org/protobuf/internal/detrand
+google.golang.org/protobuf/internal/encoding/defval
+google.golang.org/protobuf/internal/encoding/json
+google.golang.org/protobuf/internal/encoding/messageset
+google.golang.org/protobuf/internal/encoding/tag
+google.golang.org/protobuf/internal/encoding/text
+google.golang.org/protobuf/internal/errors
+google.golang.org/protobuf/internal/filedesc
+google.golang.org/protobuf/internal/filetype
+google.golang.org/protobuf/internal/flags
+google.golang.org/protobuf/internal/genid
+google.golang.org/protobuf/internal/impl
+google.golang.org/protobuf/internal/order
+google.golang.org/protobuf/internal/pragma
+google.golang.org/protobuf/internal/set
+google.golang.org/protobuf/internal/strs
+google.golang.org/protobuf/internal/version
+google.golang.org/protobuf/proto
+google.golang.org/protobuf/reflect/protodesc
+google.golang.org/protobuf/reflect/protoreflect
+google.golang.org/protobuf/reflect/protoregistry
+google.golang.org/protobuf/runtime/protoiface
+google.golang.org/protobuf/runtime/protoimpl
+google.golang.org/protobuf/types/descriptorpb
+google.golang.org/protobuf/types/known/anypb
+google.golang.org/protobuf/types/known/durationpb
+google.golang.org/protobuf/types/known/timestamppb
+# zenhack.net/go/util v0.0.0-20230607025951-8b02fee814ae
+## explicit; go 1.19
+zenhack.net/go/util/sync/mutex
+# github.com/arcspace/go-librespot => ../go-librespot
+# github.com/frolovo22/tag v0.0.2 => github.com/go-musicfox/tag v1.0.2
+# github.com/shkh/lastfm-go => github.com/go-musicfox/lastfm-go v0.0.2

@@ -1,0 +1,83 @@
+name: release
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  push:
+    branches:
+      - master
+      - feature/*
+    tags:
+      - v*
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout...
+        uses: actions/checkout@v3
+
+      - run: git fetch --prune --unshallow
+
+      - name: Setup go...
+        uses: actions/setup-go@v3
+        with:
+          go-version: '^1.20.6'
+
+      - name: branch name
+        id: branch_name
+        run: |-
+          echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: setup release environment
+        run: |-
+          echo -e "HOMEBREW_TAP_TOKEN=${{secrets.ACCESS_TOKEN}}\nGITHUB_TOKEN=${{secrets.ACCESS_TOKEN}}\nLASTFM_KEY=${{secrets.LASTFM_KEY}}\nLASTFM_SECRET=${{secrets.LASTFM_SECRET}}" >> .release-env
+
+      - if: github.ref == 'refs/heads/master' || startsWith(github.ref,'refs/heads/feature/')
+        name: release dry-run GORELEASER_SKIP_VALIDATE=true
+        run: |- 
+          make release-dry-run GORELEASER_SKIP_VALIDATE=true
+          make scoop-config-gen
+
+#      - if: startsWith(github.ref,'refs/tags/v')
+#        name: release dry-run
+#        run: |-
+#          make release-dry-run
+#        env:
+#          RELEASE_TAG: ${{ steps.branch_name.outputs.RELEASE_TAG }}
+
+      - if: startsWith(github.ref,'refs/tags/v') && github.repository == 'go-musicfox/go-musicfox'
+        name: release publish
+        run: |-
+          sudo rm -rf dist
+          make release
+        env:
+          RELEASE_TAG: ${{ steps.branch_name.outputs.RELEASE_TAG }}
+
+      - if: startsWith(github.ref,'refs/tags/v') && github.repository == 'go-musicfox/go-musicfox'
+        name: Generate scoop config and commit
+        run: |-
+          make scoop-config-gen
+          git config --global user.email "anhoder@88.com"
+          git config --global user.name "anhoder"
+          git add .
+          git commit -m "feat: update scoop config" || true
+
+      - if: startsWith(github.ref,'refs/tags/v') && github.repository == 'go-musicfox/go-musicfox'
+        name: Push scoop config
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{secrets.ACCESS_TOKEN}}
+          branch: master

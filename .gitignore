@@ -1,0 +1,12 @@
+.idea/
+.Ds_Store
+.DS_Store
+bin/
+dist/
+.release-env
+go.work
+go.work.sum
+.vscode/
+.devenv/
+.envrc
+result/

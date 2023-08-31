@@ -1,0 +1,687 @@
+syntax = "proto3";
+
+// package arc is an implementation-independent API and support for a distributed
+// files, media, and communication system running a realtime 2D/3D/XR client.
+package arc;
+
+// https://stackoverflow.com/questions/43026449/gogo-proto-file-not-found
+// import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+option csharp_namespace = "Arcspace";
+
+
+// High-level channel repository RPC.
+service HostGrpc {
+
+    // HostSession is full duplex connected between two Planet hosts.
+    // The return stream reports completion or status of active requests and will remain open as long as the client stream remains open.
+    rpc HostSession(stream Msg) returns (stream Msg);
+    
+}
+
+
+
+enum Const {
+    Const_Defs = 0;
+
+    // TIDBinaryLen is the byte size of a Tx ID ("TID"), a hash with a leading big endian binary time index.
+    //
+    // This allows TIDs to be naturally sorted chronologically naturally.  
+    // This facilitates Tx storage and Tx syndication (time-ordered Tx playback).  This also improves performance.
+    // since most operations tend to be in the same time neighborhood, leveraging the db's cache.
+    //
+    // Byte layout is designed so that TIDs are sortable by their embedded timestamp:
+    //    0:6   - Standard UTC timestamp in unix seconds (big endian)
+    //    6:8   - Timestamp fraction (big endian)
+    //    8:32  - Signature/hash
+    Const_TIDBinaryLen = 32;
+
+    // TIDStringLen is the ASCII-compatible string length of a (binary) TID encoded into its base32 form.
+    // The encoding used is the geohash base32 alphabet, so that even ascii ordinal string comparisons will correctly sort encoded TIDs by time.
+    Const_TIDStringLen = 52;
+
+    // TIDTimestampSz is the number of left-hand bytes in a TID reserved for a time index value.
+    Const_TIDTimestampSz = 8;
+
+    // DefaultGrpcServicePort is the TCP port the service HostGrpc should run on by default.
+    Const_DefaultGrpcServicePort = 5192;
+    
+}
+
+// These are hard-wired symbol IDs are required to bootstrap a new connection.
+// After bootstrapping, the client uses RegisterDefs to register its symbols.
+enum ConstSymbol {
+    ConstSymbol_nil            = 0;
+
+    ConstSymbol_Err            = 10;
+    ConstSymbol_RegisterDefs   = 11;
+    ConstSymbol_HandleURI      = 12;
+    ConstSymbol_PinRequest     = 13;
+    
+    ConstSymbol_Login          = 20;
+    ConstSymbol_LoginChallenge = 21;
+    ConstSymbol_LoginResponse  = 22;
+    
+    // Minimum symbol ID that a client is allowed to issue
+    // This value sets a ceiling for the above hard-wired symbol IDs.
+    ConstSymbol_IssuerInitsAt  = 256; 
+}
+
+
+
+    // ValType_AttrSet            = 4; // .ValInt is a AttrSet CellID
+    // ValType_NameSet            = 5; // CellID+AttrID+NameID     => Msg.(Type)          Values only 
+    // ValType_CellSet            = 6; // CellID+AttrID+CellID     => Cell_NID            AttrSet NIDs only 
+    // ValType_Series             = 8; // CellID+AttrID+TSI+FromID => Msg.(Type)          Values only
+    // ValType_CellRef            = 20; // .FromID and .SI together identify a cell
+    // ValType_CellSetID          = 21; // .ValInt is a CellSet ID (used for SetValType_CellSet)
+
+
+enum ReqStatus {
+    ReqStatus_Syncing      = 0;
+    
+    // Sent by the host to signal that this ReqID up to date and the client state is stable / synchronized.
+    // This generally drives UI updates or other aggregate cell dependencies.
+    ReqStatus_Synced       = 0x01;
+    
+    // From the client to host, this signals to close / cancel the op associated with ReqID.
+    // From the host to client, this signals that the given request ID has been closed / discarded.
+    ReqStatus_Closed       = 0x10;
+}
+
+message Msg {
+
+    // ReqID names an originating request ID, issued by client using an atomic counter.
+    //
+    // When a client issues request-side MsgOp (e.g. ResolveCell, RegisterDefs), ReqID specifies a new and uniquely generated ID that is used in subsequent Msgs.
+    // If this msg is a reply to a request, ReqID identifies the originating request op.
+    uint64              ReqID           = 1;
+    
+    // Communicates request status / completion.
+    ReqStatus           Status          = 2;
+    
+    repeated CellTxPb   CellTxs         = 5;
+    
+}
+
+
+
+message CellTxPb {
+    CellTxOp            Op          = 1;
+       
+    fixed64             TID_UTC16   = 6;
+    fixed64             TID_HASH1   = 7;
+    fixed64             TID_HASH2   = 8;
+    fixed64             TID_HASH3   = 9;
+    
+
+
+    int64               TargetCell      = 3;
+    repeated AttrElemPb Elems           = 4;
+}
+
+
+enum CellTxOp {
+    CellTxOp_MetaAttr          = 0; // CellSpec and TargetCell are ignored
+    CellTxOp_UpsertCell        = 1; // If the first CellTx, this is the pinned cell, otherwise it is a child cell
+    CellTxOp_RemoveCell        = 3;
+}
+
+
+// Serialization helper for AttrElem
+message AttrElemPb {
+
+    // AttrID of the attr being updated (64 bits for future proofing)
+    uint64              AttrID          = 1;
+    
+    // Serialized value of the attr element -- IAW AttrID
+    bytes               ValBuf          = 2;
+    
+    // Series index (if applicable)  
+    int64               SI              = 3;  
+}
+
+
+message PlanetEpoch {
+
+    // EpochTID is the genesis Tx ID and is only known after this PlanetEpoch is sealed.
+    bytes               EpochTID        = 1;
+    
+    // EpochEntries contains the entries that bootstrap this epoch
+    repeated Msg        EpochEntries    = 2;
+    
+    // CommonName is the commonly used name for this planet
+    string              CommonName      = 3;
+    
+    // Points to the next
+    //PlanetEpoch         NextEpoch                   = 4;
+}
+
+
+
+message Login {
+
+    // A byte string identifying user who is logging in (lot limited to UTF8)
+    // This is typically a username or a persistent UID issued by the device OS when the app is (re)installed. 
+    string              UserUID         = 1;
+    
+    // HostAddr is network address of the server known to the client (e.g. IP address, localhost, domain name, etc)
+    // Archost uses this to as the host name when serving URLs for the client to consume.
+    string              HostAddr        = 2;
+    
+    string              DeviceLabel     = 8;
+    string              DeviceUID       = 9; 
+}
+
+// LoginChallenge is sent from host to client in response to a Login message
+message LoginChallenge {
+
+    bytes               Hash            = 1;
+}
+
+// LoginChallenge is sent from client to host in response to a LoginChallenge message
+message LoginResponse {
+
+    bytes               HashResp        = 1;
+}
+
+
+message Symbol {
+    // A symbol ID is 32 bits and corresponds to a real-world const byte strings.
+    // FUTURE: IDs are int64, where client symbols IDs are < 0 and native symbols are > 0.
+    uint32              ID              = 1;
+    bytes               Name            = 2;
+}
+
+
+message RegisterDefs {
+    repeated Symbol        Symbols      = 1;
+    repeated AttrSpec      Attrs        = 2;
+    repeated ItemSelector  Selectors    = 4;
+}
+
+
+
+// AttrSpec fully describes a cell attribute, specifying a name, element type, and series element type.
+message AttrSpec {
+
+    // Composite expression / invocation of this AttrSpec in the form: 
+    //      "[{SeriesSpec}]{ElemType}:{AttrName}"
+    //
+    // This the value is used for Msg.AttrID -- it references an AttrSpec.
+    // e.g. "AssetRef", "AssetRef:promo", "[UTC16]Position:past-promo-shoots",
+    uint32              DefID = 1;  
+    
+    // ElemType identifies this attr's element type and has a form like a subdomain:
+    //    "({subTypeName}.)*<typeName>"
+    //
+    // A particular ElemType corresponds to a serializable data type (typically a protobuf or capnp message)
+    // Valid chars are [A-Za-z0-9_-] in addition to '.' that separates identifiers..
+    // 
+    // e.g. 
+    //    "AssetRef", 
+    //    "GreetingAttr.tutorial_06.hello-world.learn.arcspace.systems", 
+    uint32              ElemType = 3;
+
+    // SeriesSpec specifies how to interpret an attr's SeriesIndex int64 value ("SI") and has the form:
+    //    "{SeriesName}[.{SeriesIndexType}]"
+    //
+    // A SeriesSpec includes its underlying SeriesType as a suffix, telling the host to perform necessary handling.
+    // If SeriesSpec is omitted, this attr is a scalar value (and SI is 0 assumed).
+    //
+    // UTC16 and Secs16 are 48.16 fixed signed fractional seconds (one second == 0x10000 ticks), naming a time duration or timestamp.
+    // When naming an absolute timestamp, unix UTC is assumed (0x10000 corresponds to 00:00:01, Jan 1 1970 GMT)
+    //
+    // e.g. "", "UTC16", "Secs16", "Int64", "Locale.Name" -- FUTURE "GeoHash", "NodeID", "TID" 
+    uint32              SeriesSpec = 4;
+    
+    // SeriesIndexType tells the host how to handle and process attr series index values.
+    // If SeriesSpec is omitted (SeriesSpec = 0), SI index values are considered literals (SeriesIndexType_Literal).
+    SeriesIndexType     SeriesIndexType = 5;
+    
+    // AttrName differentiates an attribute from others having the same ElemType and SeriesSpec
+    //   - Unnamed attrs are common and typically are used to denote a characterizing cell attribute.
+    //   - By convention, attr names of series are plural, and reflects that the attr is intended to contain multiple entries (e.g. "[Locale.Name]Labels")
+    //   - Valid chars consist of [A-Za-z0-9_-] ('.' is not allowed)
+    //
+    // e.g. "", "playable", "mini", "1440p"
+    uint32              AttrName = 6; 
+    
+
+}
+
+// enum AttrContext {
+//     AttrContext_Nil           = 0;
+//     //AttrContext_ChildOnly     = 0x01; // Attr appears only when cell is a child cell (rare)
+//     AttrContext_Pinned        = 0x02; // Attr appears only when cell is pinned 
+//     AttrContext_Common        = 0x03; // Attr appears when cell is a child *or* a pinned cell.
+//     AttrContext_PinnedSelf    = 0x08; // Attr appears only when a pinned cell is pinned again.
+
+// }
+
+// enum AttrContext {
+//     CellContext_Nil        = 0;
+//     CellContext_ParentCell = 1;
+//     CellContext_ChildCell  = 2; 
+// }
+
+
+enum SeriesIndexType  {
+    SeriesIndexType_Literal = 0; // SeriesSpec has no suffix:      SI values are literal values (Int64, UTC16, GeoHash)
+    SeriesIndexType_Name    = 1; // SeriesSpec ends with ".Name":  SI values are string symbol IDs
+    //SeriesIndexTypeCellID  = 2; // SI values correspond to Cell TIDs 
+}
+
+	
+enum PinFlags {
+    PinFlags_None             = 0;
+    
+    // If set, all symbol / attr ID are native symbol IDs.
+    // This is used for apps pinning cells and so are using native (not client) IDs.
+    PinFlags_UseNativeSymbols = 0x01; 
+
+	// If set, PinnedCell.ServeState() causes this request (PinContext) to automatically close once state is pushed and synchronized.
+	// Otherwise, the request remains open and the client will receive any state updates until closed.
+    // This is useful when only a snapshot of the cell is needed.
+    PinFlags_CloseOnSync      = 0x04;
+    
+    // If set, a pinned cell will not send any state updates to the client.
+    // This is useful when only writing to a cell and no state updates are needed.
+    PinFlags_NoSync           = 0x08;
+    
+}
+
+/*
+// A AttrSet specifies an ordered set of cell attrs.
+message AttrSet {
+
+    // DefID is used to reference this CellSpec and can be regarded as a type ID since it is a canonic descriptor.
+    // Composite expression / invocation of this CellSpec in the form:
+    //      "(Attrs[0],Attrs[1],..)" 
+    //
+    // e.g. "(CellHeader,CellText,ArtistTour)"
+    //      "(AssetRef:promoVideo,[UTC16]TourStop:summer-tour)"
+    uint32              DefID          = 1;
+    
+    // Attrs is an ordered sequence of AttrSpecs (attr descriptors)
+    repeated uint32     Attrs          = 4;
+}
+*/
+
+// SymbolSet
+// SymbolSelector?
+// ItemSelector selects / filters a srt of items (AttrSpec descriptors)
+message ItemSelector {
+
+    // Composite expression of this ItemSelector in the form:
+    //      "(Include[0],Include[1],..)~(Exclude[0],Exclude[1],..)" 
+    //
+    uint32              DefID       = 1;
+
+    // A set of descriptor IDs explicitly included
+    repeated uint32     Include     = 4;
+    
+    // A set of descriptor IDs explicitly excluded
+    repeated uint32     Exclude     = 5;
+    
+    
+    // ScopeID specifies an app or scope that should handle this schema's requests.
+    // The reserved value "." denotes the app / scope ID that has registered for AttrSchema.CellDataModel (typical).
+    //string              ScopeID = 1;
+    
+    // CellDataModel identifies a data model this schema conforms to, in effect it specifies a scope for the attached Attrs.
+    // This URI names a complete data protocol / specification that this collection of AttrSpecs conforms to (and is a subset of).
+    // To an implementing app on the Go side, this URI implies a family of valid possible AttrSpecs to choose from. 
+    //uint32              CellDataModel = 3;
+
+    // This describes this *particular* AttrSchema, a particular collection of Attrs (and is implicitly scoped within CellDataModel).
+    // The host (and its apps) generally don't even look at this field since "{CellDataModel}/{Attrs[i].AttrURI}" fully specifies each attr's data model URI.
+    // The can use this for internal identification, usually to link this schema to particular cell view binding.
+    //uint32              SelectorName = 4;
+    
+
+    // Attrs binds a set of AttrSpecs to this SchemaURI.
+    //repeated uint32     Attrs = 8;
+
+}
+
+/*
+message KwArg {
+    string              Key    = 1;
+    string              Val    = 5;
+    bytes               ValBuf = 6;
+}
+*/
+
+message HandleURI {
+    string              URI = 1;
+}
+
+
+// PinRequest is a client request to "pin" a cell, meaning selected attrs and child cells will be pushed to the client.  
+message PinRequest {
+
+    // ParentReqID, if set, provides context for this request and is typically needed when pinning a cell by ID alone.  
+    // Not set if PinURI and/or PinCellID implies that no parent req exists.
+    uint64              ParentReqID = 1;
+    
+    // URL specifying the cell to be pinned and whose child cells are to be pushed.
+    // Typically: [[arc://]arc-app-uri/]cell-uri..
+    string              PinURL = 2;
+        
+    // PinCellID is an explicit cell ID be pinned (or 0 if PinURI does not require a cell ID)
+    int64               PinCellID = 3;
+
+	// If set, specifies an ItemSelector that filters which attrs of the pinned cell are pushed to the client.
+	uint32              ParentAttrSelector = 5;
+	
+	// If set, specifies an ItemSelector that filters which child cells are pushed to the client.
+	uint32              ChildCellSelector = 6;
+	
+	// Flags specifies options.
+	PinFlags            Flags = 7;
+	
+}
+
+/*
+message AttrRange {
+    
+    // Explicit list of SI values to be pinned
+    //repeated uint64     ExplicitSIs     = 15;
+    
+    // If set, *all* Attr items are pinned.
+    //bool                AllItems        = 2;
+    
+    // Specifies the bounding attr SI range to consider (inclusive).
+    // Time series sequences are always emitted from highest (newest) to lowest (oldest).
+    // If both values are 0, no min/max limit is considered to be set.
+    // uint64              SI_Min          = 20;
+    // uint64              SI_Max          = 21;
+    
+    // Specifies what time series index to start and stop reading at (inclusive).
+    uint64              SI_SeekTo       = 24;
+    uint64              SI_StopAt       = 25;
+
+    // If set, this limits the number of entries returned for each unique from.cell.attr.  (0 denotes unlimited)
+    uint64              SI_BatchLimit   = 27;
+}
+
+*/
+
+// CordType describes how to interpret coordinates contained in a Position.
+enum CordType {
+    CordType_Unspecified     = 0;
+    CordType_Ordered         = 1;  // U is order ranking
+    CordType_Plane_Cartesian = 5;  // (U,V,W) are cartesian coordinates
+    CordType_Plane_HexEvenR  = 6;  // (U,V) are hexagonal "even-r" coordinates
+    CordType_Geoid_Sphere    = 10; // U is lat, V is long, W is altitude (m)
+    CordType_Geoid_WGS84     = 11; // U is lat, V is long, W is altitude (m)
+}
+
+// message GridPos {    
+//     int64               U           = 3; 
+//     int64               V           = 4;
+//     int64               W           = 5;
+// }
+// message GeoPos {
+// }
+
+// Position describes a position in space and/or time using a given coordinate system.
+message Position {
+    CordType            CordType    = 1; // CordType describing how to interpret U,V,W
+    
+    double              U           = 3; 
+    double              V           = 4;
+    double              W           = 5;
+    
+    float               ROU         = 6; // radius of uncertainty (meters)
+}
+
+
+// URIScheme is used to accompany a URI to specify a URI scheme without it being being a prefix of the URI .
+enum URIScheme {
+    URIScheme_Any           = 0;    // unspecified URI scheme
+    URIScheme_Data          = 1;    // [data:]<mimetype>[[;base64],<data>] 
+    URIScheme_HTTP          = 2;    // [http[s]://]<hostname>[:<port>]/<path>
+    URIScheme_File          = 5;    // [file://]<unix-pathname>
+    URIScheme_Arc           = 6;    // [arc://]<arc-app-uri/cell-uri..>
+    URIScheme_CrateAsset    = 2701; // [crate-asset://]<crate-asset-uri>
+}
+
+message AssetRef {
+    string              Label      = 1;  // Describes the asset (optional)
+    string              MediaType  = 3;  // Describes content of URI; MIME type (or '/' separated type pathname)
+    URIScheme           Scheme     = 5;  // Describes URI scheme such that the pa URL scheme is not required to prefix URI
+    string              URI        = 6;  // URI to the asset (has scheme prefix if URIScheme == URL, otherwise, scheme prefix is optional)
+    
+    int32               PixWidth   = 10; // Width in pixels  (0 -> not specified)
+    int32               PixHeight  = 11; // Height in pixels (0 -> not specified)
+    float               PhysWidth  = 12; // Width in mm      (0 -> not specified)
+    float               PhysHeight = 13; // Height in mm     (0 -> not specified)
+}
+
+
+/*
+// Content is an extensible content wrapper, offering an optional accompanying MIME type.
+message Content {
+
+    // uint64              ByteSz = 2;
+    // int64               BlobID = 3;
+    // uint64              TSI             = 2;
+    
+    bytes               ContentData     = 3;
+    string              ContentType     = 4; // MIME type (or '/' separated type pathname)
+    int64               ContentTypeID   = 5; // Symbol ID for ContentType
+    
+    int64               LinksCellID     = 10; // CellSetID with elements AttrSchemaID_CellBase (or nil)
+    
+    
+    //GeoFix              Location        = 11;
+    
+}
+*/
+
+// CryptoKitID identifies an encryption suite that implements ski.CryptoKit
+enum CryptoKitID {
+    CryptoKit_Nil             = 0;
+    CryptoKit_SecretBox_NaCl  = 100;
+    CryptoKit_AsymMsg_NaCl    = 101;
+    CryptoKit_Signing_NaCl    = 102;
+    CryptoKit_Signing_ED25519 = 202;
+
+}
+
+message CryptoKey {
+    CryptoKitID         CryptoKitID     = 1;
+    bytes               KeyBytes        = 4;
+}
+
+
+message CellHeader {
+    
+    // Problem 1: how does a plant cell (node) know its pinned attrs?
+    // Problem 2: if using an "AttrSet" model, what happens if the client hasn't registered one of the AttrSpec types?  
+    // uint32              PinnedAttrs    = 2;  // AttrSetID indicating the additional attrs this cell pushes if pinned (or 0 if none)
+
+    AssetRef            Icon           = 4;  // List items and icons -- resolution appropriate for ~10 sq mm
+    AssetRef            Icon720        = 5;  // Small screens -- vicinity of 1200x720 resolution
+    AssetRef            Icon1080       = 6;  // Tablets, laptops -- vicinity of 1920x1080
+    
+    // FUTURE: layout params?
+    // { }
+    
+    AssetRef            Link          = 10;  //  If 'arc://...', this denotes "pin this URI into a cell" -- but could be any URL or asset
+
+    int64               Created       = 20;  // Unix UTC16 timestamp (secs x 2^16) -- 0 if not set
+    int64               Modified      = 21;  // Unix UTC16 timestamp (secs x 2^16) -- 0 if not set
+    
+}
+
+// CellText is a standard attribute for a cell that can be listed or otherwise presented in a UI to the user.
+message CellText {
+    
+    string              Title         = 4;  // Title, name, or label
+    string              Subtitle      = 5;  // Synopsis phrase, tagline, or sub-label
+    string              About         = 6;  // Additional phase information about this item (html or rtf ok)
+
+
+}
+
+
+// AuthToken is an oauth token -- see oauth2.Token
+message AuthToken {
+    string              AccessToken  = 1;
+    string              TokenType    = 2;
+    string              RefreshToken = 3;
+    int64               Expiry       = 4; // Unix UTC
+}
+
+/*
+ 
+message SectionAttr {
+    //  No new fields needed 
+}
+ 
+ 
+message LabelAttr {
+    string              Main            = 1;
+    string              Subtext         = 2;
+}
+message SwitchAttr {
+    string              Label           = 1;
+    string              About           = 2;
+    bool                Enabled         = 2;
+}
+    
+message EditableTextAttr {
+    string              Label           = 1;
+    string              About           = 2;
+    string              Content         = 3;
+    int                 Flags           = 4;
+}
+    
+    */
+
+
+
+message TRS {
+
+    enum VisualScaleMode {
+        AutoScale  = 0;
+        FixedScale = 1;
+    }
+    
+    // X1, X2, and X3 are coordinates or values expressed in any unit.
+    // A channel client can later declare how to interpret these coordinates so that a channel server and provide indexed services.
+    // Shoutout to the 3 domains that reflect all theoretical completeness: alpha (finite), omega (unending), and the inaccessible cardinal(s).
+    // Special thanks to Michael at Vsauce: https://www.youtube.com/watch?v=SrU9YDoXE88
+    double              X1                          = 41;
+    double              X2                          = 42;
+    double              X3                          = 43;
+    
+    // Specifies how scale dynamically changes based on observer position.
+    VisualScaleMode     ScaleMode                   = 50;
+    
+    // Scale1..3 express the scale of this placement.
+    // If all three values are 0, they are all implicitly 1.
+    // If Scale2 or Scale3 == 0, then it is implicitly Scale1.
+    float               Scale1                      = 51;
+    float               Scale2                      = 52;
+    float               Scale3                      = 53;
+
+    // Rotate1 - Rotate3 the orientation of this placement using Euler angles.
+    float               Rotate1                     = 61;
+    float               Rotate2                     = 62;
+    float               Rotate3                     = 63;
+                
+}
+
+
+
+
+
+message FeedParams {
+    float              UpdateIntervalMin = 2;
+    float              UpdateIntervalMax = 3;
+}
+
+message DataSegment {
+
+
+    uint64              ByteOfs = 5;
+    uint64              ByteSz = 6;
+    bytes               InlineData = 7;
+    string              StreamURI  = 9;
+    
+    int64               BlobID = 10;
+
+
+}
+
+
+
+
+
+
+
+// ErrCode expresses status and error codes.
+enum ErrCode {
+    ErrCode_NoErr                       = 0;
+
+    ErrCode_UnnamedErr                  = 5000;
+    ErrCode_InternalErr                 = 5001;
+    ErrCode_UnsupportedOp               = 5002;
+    ErrCode_Unimplemented               = 5003;
+    ErrCode_Timeout                     = 5004;
+    ErrCode_ShuttingDown                = 5005;
+    ErrCode_NotConnected                = 5006;
+    ErrCode_AuthFailed                  = 5007;
+    ErrCode_LoginFailed                 = 5008;
+    ErrCode_SessionExpired              = 5009;
+    
+    ErrCode_ReqNotFound                 = 5010;
+    ErrCode_InvalidReq                  = 5020;
+    ErrCode_InvalidURI                  = 5021;
+    ErrCode_BadValue                    = 5022;
+
+    ErrCode_NothingToCommit             = 5030;
+    ErrCode_CommitFailed                = 5031;
+    ErrCode_PlanetNotFound              = 5032;
+    ErrCode_PlanetFailure               = 5033;
+    ErrCode_AppNotFound                 = 5034;
+    ErrCode_DefNotFound                 = 5036;
+    ErrCode_MalformedTx                 = 5040;
+
+    ErrCode_TypeNotFound                = 5050;
+    ErrCode_TypeNotRegistered           = 5051;
+    ErrCode_BadSchema                   = 5052;
+    ErrCode_DataFailure                 = 5053;
+    ErrCode_ExportErr                   = 5054;
+    ErrCode_PinFailed                   = 5055;
+    ErrCode_PinContextClosed            = 5056;
+    ErrCode_CellNotFound                = 5058;
+    ErrCode_ProviderErr                 = 5059;
+    
+    ErrCode_ViolatesAppendOnly          = 5100;
+    ErrCode_InsufficientPermissions     = 5101;
+}
+
+enum LogLevel {
+    LogLevel_Error = 0;
+    LogLevel_Warn  = 2;
+    LogLevel_Info  = 4;
+}
+
+
+// Err is a general purpose error / warning / log message.
+message Err {
+
+    // Identifies the type of error.
+    ErrCode             Code                        = 1;
+    
+    // Severity level
+    LogLevel            Level                       = 2;
+    
+    // human-readable info
+    string              Msg                         = 4;
+}
