@@ -26,7 +26,7 @@ func NewPlayerCommand() *gcli.Command {
 func runPlayer(_ *gcli.Command, _ []string) error {
 	if GlobalOptions.PProfMode {
 		go utils.PanicRecoverWrapper(true, func() {
-			panic(http.ListenAndServe(":"+strconv.Itoa(configs.ConfigRegistry.MainPProfPort), nil))
+			panic(http.ListenAndServe(":"+strconv.Itoa(configs.ConfigRegistry.PProfPort), nil))
 		})
 	}
 

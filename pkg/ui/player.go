@@ -151,7 +151,7 @@ func NewPlayer(spotifox *Spotifox) *Player {
 				}
 				if p.lrcTimer != nil {
 					select {
-					case p.lrcTimer.Timer() <- duration + time.Millisecond*time.Duration(configs.ConfigRegistry.MainLyricOffset):
+					case p.lrcTimer.Timer() <- duration + time.Millisecond*time.Duration(configs.ConfigRegistry.LyricOffset):
 					default:
 					}
 				}
@@ -168,7 +168,7 @@ func (p *Player) Update(_ tea.Msg, _ *model.App) {
 	var main = p.spotifox.MustMain()
 	// 播放器歌词
 	spaceHeight := p.spotifox.WindowHeight() - 4 - main.MenuBottomRow()
-	if spaceHeight < 4 || !configs.ConfigRegistry.MainShowLyric {
+	if spaceHeight < 4 || !configs.ConfigRegistry.ShowLyric {
 		// 不显示歌词
 		p.showLyric = false
 	} else {
@@ -440,7 +440,7 @@ func (p *Player) PlaySong(song structs.Song, direction PlayDirection) error {
 		return nil
 	}
 
-	if configs.ConfigRegistry.MainShowLyric {
+	if configs.ConfigRegistry.ShowLyric {
 		go p.updateLyric(song.Id)
 	}
 
@@ -678,7 +678,7 @@ func (p *Player) updateLyric(songId int64) {
 			lrcFile = file
 		}
 	}
-	if configs.ConfigRegistry.MainShowLyricTrans {
+	if configs.ConfigRegistry.ShowLyricTrans {
 		if lrc, err := jsonparser.GetString(response, "tlyric", "lyric"); err == nil && lrc != "" {
 			if file, err := lyric.ReadTranslateLRC(strings.NewReader(lrc)); err == nil {
 				tranLRCFile = file

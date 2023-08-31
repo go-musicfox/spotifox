@@ -211,7 +211,7 @@ func (s *SearchPage) View(a *model.App) string {
 	)
 
 	// title
-	if configs.ConfigRegistry.MainShowTitle {
+	if configs.ConfigRegistry.ShowTitle {
 		builder.WriteString(main.TitleView(a, &top))
 	} else {
 		top++

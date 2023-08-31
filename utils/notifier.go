@@ -116,7 +116,7 @@ type NotifyContent struct {
 }
 
 func Notify(content NotifyContent) {
-	if !configs.ConfigRegistry.MainShowNotify {
+	if !configs.ConfigRegistry.ShowNotify {
 		return
 	}
 
@@ -126,7 +126,7 @@ func Notify(content NotifyContent) {
 
 	if runtime.GOOS != "darwin" {
 		localDir := GetLocalDataDir()
-		content.Icon = path.Join(localDir, configs.ConfigRegistry.MainNotifyIcon)
+		content.Icon = path.Join(localDir, configs.ConfigRegistry.NotifyIcon)
 		if _, err := os.Stat(content.Icon); os.IsNotExist(err) {
 			content.Icon = path.Join(localDir, constants.DefaultNotifyIcon)
 			// 写入logo文件

@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -16,9 +18,11 @@ import (
 	"github.com/go-musicfox/spotifox/pkg/storage"
 	"github.com/go-musicfox/spotifox/pkg/structs"
 	"github.com/go-musicfox/spotifox/utils"
-
 	"github.com/mattn/go-runewidth"
 	"github.com/muesli/termenv"
+	"github.com/zmb3/spotify/v2"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
+	"golang.org/x/oauth2"
 )
 
 const LoginPageType model.PageType = "login"
@@ -203,7 +207,7 @@ func (l *LoginPage) View(a *model.App) string {
 	)
 
 	// title
-	if configs.ConfigRegistry.MainShowTitle {
+	if configs.ConfigRegistry.ShowTitle {
 		builder.WriteString(mainPage.TitleView(a, &top))
 	} else {
 		top++
@@ -333,7 +337,18 @@ func (l *LoginPage) loginByAccount() (model.Page, tea.Cmd) {
 		return l, tickLogin(time.Nanosecond)
 	}
 	user := structs.NewUserFromSession(l.sess.Context().Info)
-	user.Account = login.Username
+
+	token, err := l.sess.Mercury().GetToken(configs.ConfigRegistry.SpotifyClientId, constants.SpotifyOAuthScopes)
+	fmt.Println(token, err)
+
+	client := spotify.New(spotifyauth.New().Client(context.Background(), &oauth2.Token{
+		AccessToken: token.AccessToken,
+		TokenType:   token.TokenType,
+		Expiry:      time.Now().Add(time.Duration(token.ExpiresIn-30) * time.Second),
+	}))
+	u, err := client.CurrentUser(context.Background())
+	fmt.Println(u, err)
+
 	return l.loginSuccessHandle(user)
 }
 

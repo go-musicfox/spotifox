@@ -28,19 +28,20 @@ type Registry struct {
 	ProgressFullChar       rune // 进度条已加载字符
 	ProgressLastFullChar   rune // 进度条最后一个已加载字符
 
-	MainShowTitle        bool                     // 主界面是否显示标题
-	MainLoadingText      string                   // 主页面加载中提示
-	MainPlayerSongLevel  service.SongQualityLevel // 歌曲音质级别
-	MainPrimaryColor     string                   // 主题色
-	MainShowLyric        bool                     // 显示歌词
-	MainLyricOffset      int                      // 偏移:ms
-	MainShowLyricTrans   bool                     // 显示歌词翻译
-	MainShowNotify       bool                     // 显示通知
-	MainNotifyIcon       string                   // logo 图片名
-	MainPProfPort        int                      // pprof端口
-	MainAltScreen        bool                     // AltScreen显示模式
-	MainEnableMouseEvent bool                     // 启用鼠标事件
-	MainDoubleColumn     bool                     // 是否双列显示
+	SpotifyClientId  string
+	ShowTitle        bool                     // 主界面是否显示标题
+	LoadingText      string                   // 主页面加载中提示
+	PlayerSongLevel  service.SongQualityLevel // 歌曲音质级别
+	PrimaryColor     string                   // 主题色
+	ShowLyric        bool                     // 显示歌词
+	LyricOffset      int                      // 偏移:ms
+	ShowLyricTrans   bool                     // 显示歌词翻译
+	ShowNotify       bool                     // 显示通知
+	NotifyIcon       string                   // logo 图片名
+	PProfPort        int                      // pprof端口
+	AltScreen        bool                     // AltScreen显示模式
+	EnableMouseEvent bool                     // 启用鼠标事件
+	DoubleColumn     bool                     // 是否双列显示
 
 	PlayerEngine         string // 播放引擎
 	PlayerBeepMp3Decoder string // beep mp3解码器
@@ -61,15 +62,15 @@ func (r *Registry) FillToModelOpts(opts *model.Options) {
 	opts.ProgressOptions.LastEmptyChar = r.ProgressLastEmptyChar
 
 	opts.AppName = constants.AppName
-	opts.WhetherDisplayTitle = r.MainShowTitle
-	opts.LoadingText = r.MainLoadingText
-	opts.PrimaryColor = r.MainPrimaryColor
-	opts.DualColumn = r.MainDoubleColumn
+	opts.WhetherDisplayTitle = r.ShowTitle
+	opts.LoadingText = r.LoadingText
+	opts.PrimaryColor = r.PrimaryColor
+	opts.DualColumn = r.DoubleColumn
 
-	if r.MainEnableMouseEvent {
+	if r.EnableMouseEvent {
 		opts.TeaOptions = append(opts.TeaOptions, tea.WithMouseCellMotion())
 	}
-	if r.MainAltScreen {
+	if r.AltScreen {
 		opts.TeaOptions = append(opts.TeaOptions, tea.WithAltScreen())
 	}
 }
@@ -89,17 +90,17 @@ func NewRegistryWithDefault() *Registry {
 		ProgressFullChar:       []rune(constants.ProgressFullChar)[0],
 		ProgressLastFullChar:   []rune(constants.ProgressFullChar)[0],
 
-		MainShowTitle:        true,
-		MainLoadingText:      constants.MainLoadingText,
-		MainPlayerSongLevel:  service.Higher,
-		MainPrimaryColor:     constants.AppPrimaryColor,
-		MainShowLyric:        true,
-		MainShowLyricTrans:   true,
-		MainShowNotify:       true,
-		MainNotifyIcon:       constants.DefaultNotifyIcon,
-		MainPProfPort:        constants.MainPProfPort,
-		MainAltScreen:        true,
-		MainEnableMouseEvent: true,
+		ShowTitle:            true,
+		LoadingText:          constants.MainLoadingText,
+		PlayerSongLevel:      service.Higher,
+		PrimaryColor:         constants.AppPrimaryColor,
+		ShowLyric:            true,
+		ShowLyricTrans:       true,
+		ShowNotify:           true,
+		NotifyIcon:           constants.DefaultNotifyIcon,
+		PProfPort:            constants.MainPProfPort,
+		AltScreen:            true,
+		EnableMouseEvent:     true,
 		PlayerEngine:         constants.BeepPlayer,
 		PlayerBeepMp3Decoder: constants.BeepGoMp3Decoder,
 	}
@@ -138,27 +139,28 @@ func NewRegistryFromIniFile(filepath string) *Registry {
 	lastFullChar := ini.String("progress.lastFullChar", constants.ProgressFullChar)
 	registry.ProgressLastFullChar = firstCharOrDefault(lastFullChar, constants.ProgressFullChar)
 
-	registry.MainShowTitle = ini.Bool("main.showTitle", true)
-	registry.MainLoadingText = ini.String("main.loadingText", constants.MainLoadingText)
+	registry.SpotifyClientId = ini.Get("main.spotifyClientId", "")
+	registry.ShowTitle = ini.Bool("main.showTitle", true)
+	registry.LoadingText = ini.String("main.loadingText", constants.MainLoadingText)
 	songLevel := service.SongQualityLevel(ini.String("main.songLevel", string(service.Higher)))
 	if songLevel.IsValid() {
-		registry.MainPlayerSongLevel = songLevel
+		registry.PlayerSongLevel = songLevel
 	}
 	primaryColor := ini.String("main.primaryColor", constants.AppPrimaryColor)
 	if primaryColor != "" {
-		registry.MainPrimaryColor = primaryColor
+		registry.PrimaryColor = primaryColor
 	} else {
-		registry.MainPrimaryColor = constants.AppPrimaryColor
+		registry.PrimaryColor = constants.AppPrimaryColor
 	}
-	registry.MainShowLyric = ini.Bool("main.showLyric", true)
-	registry.MainLyricOffset = ini.Int("main.lyricOffset", 0)
-	registry.MainShowLyricTrans = ini.Bool("main.showLyricTrans", true)
-	registry.MainShowNotify = ini.Bool("main.showNotify", true)
-	registry.MainNotifyIcon = ini.String("main.notifyIcon", constants.DefaultNotifyIcon)
-	registry.MainPProfPort = ini.Int("main.pprofPort", constants.MainPProfPort)
-	registry.MainAltScreen = ini.Bool("main.altScreen", true)
-	registry.MainEnableMouseEvent = ini.Bool("main.enableMouseEvent", true)
-	registry.MainDoubleColumn = ini.Bool("main.doubleColumn", true)
+	registry.ShowLyric = ini.Bool("main.showLyric", true)
+	registry.LyricOffset = ini.Int("main.lyricOffset", 0)
+	registry.ShowLyricTrans = ini.Bool("main.showLyricTrans", true)
+	registry.ShowNotify = ini.Bool("main.showNotify", true)
+	registry.NotifyIcon = ini.String("main.notifyIcon", constants.DefaultNotifyIcon)
+	registry.PProfPort = ini.Int("main.pprofPort", constants.MainPProfPort)
+	registry.AltScreen = ini.Bool("main.altScreen", true)
+	registry.EnableMouseEvent = ini.Bool("main.enableMouseEvent", true)
+	registry.DoubleColumn = ini.Bool("main.doubleColumn", true)
 
 	defaultPlayer := constants.BeepPlayer
 	if runtime.GOOS == "darwin" {

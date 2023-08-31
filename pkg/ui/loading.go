@@ -38,9 +38,9 @@ func (loading *Loading) start() {
 	}
 
 	if menuTitle.Subtitle != "" {
-		subTitle = menuTitle.Subtitle + " " + configs.ConfigRegistry.MainLoadingText
+		subTitle = menuTitle.Subtitle + " " + configs.ConfigRegistry.LoadingText
 	} else {
-		subTitle = configs.ConfigRegistry.MainLoadingText
+		subTitle = configs.ConfigRegistry.LoadingText
 	}
 	fmt.Print(main.MenuTitleView(loading.netease.App, nil, &model.MenuItem{
 		Title:    menuTitle.Title,

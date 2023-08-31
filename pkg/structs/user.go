@@ -8,10 +8,10 @@ import (
 )
 
 type User struct {
-	Username string `json:"username"`
-	Account  string `json:"account"`
-	Country  string `json:"country"`
-	AuthBlob []byte `json:"authBlob"`
+	Username    string `json:"username"`
+	DisplayName string `json:"displayName"`
+	Country     string `json:"country"`
+	AuthBlob    []byte `json:"authBlob"`
 }
 
 func NewUserFromLocalJson(bytes []byte) (User, error) {

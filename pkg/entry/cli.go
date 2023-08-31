@@ -27,7 +27,7 @@ func runCLI() {
 	// 加载config
 	utils.LoadIniConfig()
 
-	util.PrimaryColor = configs.ConfigRegistry.MainPrimaryColor
+	util.PrimaryColor = configs.ConfigRegistry.PrimaryColor
 	var (
 		logo         = util.GetAlphaAscii(app.Name)
 		randomColor  = util.GetPrimaryColor()

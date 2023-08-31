@@ -57,8 +57,8 @@ func (m *MainMenu) FormatMenuItem(item *model.MenuItem) {
 		item.Subtitle = "[未登录]"
 		return
 	}
-	if m.netease.user.Account != "" {
-		item.Subtitle = "[" + m.netease.user.Account + "]"
+	if m.netease.user.DisplayName != "" {
+		item.Subtitle = "[" + m.netease.user.DisplayName + "]"
 		return
 	}
 	item.Subtitle = "[" + m.netease.user.Username + "]"
