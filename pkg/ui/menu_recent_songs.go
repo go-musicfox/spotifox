@@ -37,8 +37,8 @@ func (m *RecentSongsMenu) MenuViews() []model.MenuItem {
 
 func (m *RecentSongsMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		if utils.CheckUserInfo(m.netease.user) == utils.NeedLogin {
-			page, _ := m.netease.ToLoginPage(main.EnterMenu)
+		if utils.CheckUserInfo(m.spotifox.user) == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		}
 
@@ -46,7 +46,7 @@ func (m *RecentSongsMenu) BeforeEnterMenuHook() model.Hook {
 		code, response := recentSongService.RecordRecentSongs()
 		codeType := utils.CheckCode(code)
 		if codeType == utils.NeedLogin {
-			page, _ := m.netease.ToLoginPage(main.EnterMenu)
+			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		} else if codeType != utils.Success {
 			return false, nil

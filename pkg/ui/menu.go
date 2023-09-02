@@ -3,6 +3,8 @@ package ui
 import (
 	"github.com/anhoder/foxful-cli/model"
 	"github.com/go-musicfox/spotifox/pkg/structs"
+	"github.com/go-musicfox/spotifox/utils"
+	"github.com/zmb3/spotify/v2"
 )
 
 // Menu menu interface
@@ -16,19 +18,14 @@ type Menu interface {
 	IsLocatable() bool
 }
 
-// DjMenu dj menu interface
-type DjMenu interface {
-	Menu
-}
-
 type SongsMenu interface {
 	Menu
-	Songs() []structs.Song
+	Songs() []spotify.PlaylistItem
 }
 
 type PlaylistsMenu interface {
 	Menu
-	Playlists() []structs.Playlist
+	Playlists() []spotify.SimplePlaylist
 }
 
 type AlbumsMenu interface {
@@ -43,12 +40,12 @@ type ArtistsMenu interface {
 
 type baseMenu struct {
 	model.DefaultMenu
-	netease *Spotifox
+	spotifox *Spotifox
 }
 
-func newBaseMenu(netease *Spotifox) baseMenu {
+func newBaseMenu(spotifox *Spotifox) baseMenu {
 	return baseMenu{
-		netease: netease,
+		spotifox: spotifox,
 	}
 }
 
@@ -60,8 +57,8 @@ func (e *baseMenu) IsLocatable() bool {
 	return true
 }
 
-func (e *baseMenu) BeforeEnterMenuHook() model.Hook {
-	return func(main *model.Main) (bool, model.Page) {
-		return true, e.netease.login
-	}
+func (e *baseMenu) handleFetchErr(err error) (bool, model.Page) {
+	utils.Logger().Printf("[ERROR] err: %+v", err)
+	model.NewMenuTips(e.spotifox.MustMain(), nil).DisplayTips("Err:" + err.Error())
+	return false, nil
 }

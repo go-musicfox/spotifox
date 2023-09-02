@@ -17,7 +17,6 @@ func NewSearchTypeMenu(base baseMenu) *SearchTypeMenu {
 			{Title: "按歌单"},
 			{Title: "按用户"},
 			{Title: "按歌词"},
-			{Title: "按电台"},
 		},
 	}
 
@@ -40,7 +39,6 @@ func (m *SearchTypeMenu) SubMenu(_ *model.App, index int) model.Menu {
 		StPlaylist,
 		StUser,
 		StLyric,
-		StRadio,
 	}
 
 	if index >= len(typeArr) {

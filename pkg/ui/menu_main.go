@@ -15,53 +15,39 @@ func NewMainMenu(netease *Spotifox) *MainMenu {
 	mainMenu := &MainMenu{
 		baseMenu: base,
 		menus: []model.MenuItem{
-			{Title: "每日推荐歌曲"},
-			{Title: "每日推荐歌单"},
+			// {Title: "每日推荐歌曲"},
+			// {Title: "每日推荐歌单"},
 			{Title: "我的歌单"},
-			{Title: "私人FM"},
-			{Title: "专辑列表"},
-			{Title: "搜索"},
-			{Title: "排行榜"},
-			{Title: "精选歌单"},
-			{Title: "热门歌手"},
-			{Title: "最近播放歌曲"},
-			{Title: "云盘"},
-			{Title: "主播电台"},
-			{Title: "LastFM"},
-			{Title: "帮助"},
-			{Title: "检查更新"},
+			// {Title: "私人FM"},
+			// {Title: "专辑列表"},
+			// {Title: "搜索"},
+			// {Title: "排行榜"},
+			// {Title: "精选歌单"},
+			// {Title: "热门歌手"},
+			// {Title: "最近播放歌曲"},
+			// {Title: "云盘"},
+			// {Title: "主播电台"},
+			// {Title: "LastFM"},
+			// {Title: "帮助"},
+			// {Title: "检查更新"},
 		},
 		menuList: []Menu{
-			NewDailyRecommendSongsMenu(base),
-			NewDailyRecommendPlaylistMenu(base),
 			NewUserPlaylistMenu(base, CurUser),
-			NewPersonalFmMenu(base),
-			NewAlbumListMenu(base),
-			NewSearchTypeMenu(base),
-			NewRanksMenu(base),
-			NewHighQualityPlaylistsMenu(base),
-			NewHotArtistsMenu(base),
-			NewRecentSongsMenu(base),
-			NewCloudMenu(base),
-			NewRadioDjTypeMenu(base),
-			NewLastfm(base),
-			NewHelpMenu(base),
-			NewCheckUpdateMenu(base),
 		},
 	}
 	return mainMenu
 }
 
 func (m *MainMenu) FormatMenuItem(item *model.MenuItem) {
-	if m.netease.user == nil {
+	if m.spotifox.user == nil {
 		item.Subtitle = "[未登录]"
 		return
 	}
-	if m.netease.user.DisplayName != "" {
-		item.Subtitle = "[" + m.netease.user.DisplayName + "]"
+	if m.spotifox.user.DisplayName != "" {
+		item.Subtitle = "[" + m.spotifox.user.DisplayName + "]"
 		return
 	}
-	item.Subtitle = "[" + m.netease.user.Username + "]"
+	item.Subtitle = "[" + m.spotifox.user.Username + "]"
 }
 
 func (m *MainMenu) GetMenuKey() string {

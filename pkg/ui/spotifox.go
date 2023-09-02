@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/anhoder/foxful-cli/model"
+	"github.com/arcspace/go-arc-sdk/stdlib/task"
+	respot "github.com/arcspace/go-librespot/librespot/api-respot"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-musicfox/spotifox/pkg/configs"
 	"github.com/go-musicfox/spotifox/pkg/constants"
@@ -16,6 +18,7 @@ import (
 	"github.com/go-musicfox/spotifox/pkg/storage"
 	"github.com/go-musicfox/spotifox/pkg/structs"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/zmb3/spotify/v2"
 	"golang.org/x/mod/semver"
 )
 
@@ -23,6 +26,9 @@ type Spotifox struct {
 	user       *structs.User
 	lastfm     *lastfm.Client
 	lastfmUser *storage.LastfmUser
+
+	sess          respot.Session
+	spotifyClient *spotify.Client
 
 	*model.App
 	login  *LoginPage
@@ -32,20 +38,40 @@ type Spotifox struct {
 }
 
 func NewSpotifox(app *model.App) *Spotifox {
-	n := new(Spotifox)
-	n.lastfm = lastfm.NewClient()
+	ctx := respot.DefaultSessionContext(constants.SpotifyDeviceName)
+	sess, err := respot.StartNewSession(ctx)
+	if err != nil {
+		panic(err)
+	}
+	ctx.Context, _ = task.Start(&task.Task{Label: "spotifox"})
+
+	var n = &Spotifox{
+		lastfm: lastfm.NewClient(),
+		sess:   sess,
+		App:    app,
+	}
 	n.player = NewPlayer(n)
 	n.login = NewLoginPage(n)
 	// n.search = NewSearchPage(n)
-	n.App = app
 
 	return n
 }
 
 // ToLoginPage
-func (n *Spotifox) ToLoginPage(callback func(newMenu model.Menu, newTitle *model.MenuItem) model.Page) (model.Page, tea.Cmd) {
-	//n.login.AfterLogin = callback
-	return n.login, tickLogin(time.Nanosecond)
+func (s *Spotifox) ToLoginPage(callback LoginCallback) (model.Page, tea.Cmd) {
+	s.login.AfterLogin = callback
+	if s.user != nil && s.user.Username != "" && len(s.user.AuthBlob) > 0 {
+		login := &s.sess.Context().Login
+		login.Username = s.user.Username
+		login.AuthData = s.user.AuthBlob
+		err := s.sess.Login()
+		if err == nil {
+			return s.login.handleLoginSuccess()
+		}
+		utils.Logger().Printf("login by auth blob failed, err: %+v", err)
+	}
+
+	return s.login, tickLogin(time.Nanosecond)
 }
 
 // ToSearchPage

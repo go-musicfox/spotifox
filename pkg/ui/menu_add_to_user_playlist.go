@@ -1,12 +1,12 @@
 package ui
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/anhoder/foxful-cli/model"
 	"github.com/go-musicfox/spotifox/pkg/structs"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/zmb3/spotify/v2"
 
 	"github.com/buger/jsonparser"
 	"github.com/go-musicfox/netease-music/service"
@@ -15,19 +15,17 @@ import (
 type AddToUserPlaylistMenu struct {
 	baseMenu
 	menus     []model.MenuItem
-	playlists []structs.Playlist
+	playlists []spotify.SimplePlaylist
 	song      structs.Song
-	userId    int64
 	offset    int
 	limit     int
 	hasMore   bool
 	action    bool // true for add, false for del
 }
 
-func NewAddToUserPlaylistMenu(base baseMenu, userId int64, song structs.Song, action bool) *AddToUserPlaylistMenu {
+func NewAddToUserPlaylistMenu(base baseMenu, song structs.Song, action bool) *AddToUserPlaylistMenu {
 	return &AddToUserPlaylistMenu{
 		baseMenu: base,
-		userId:   userId,
 		offset:   0,
 		limit:    100,
 		action:   action,
@@ -40,14 +38,14 @@ func (m *AddToUserPlaylistMenu) IsSearchable() bool {
 }
 
 func (m *AddToUserPlaylistMenu) GetMenuKey() string {
-	return fmt.Sprintf("add_to_user_playlist_%d", m.userId)
+	return "add_to_user_playlist_" + m.spotifox.user.ID
 }
 
 func (m *AddToUserPlaylistMenu) MenuViews() []model.MenuItem {
 	return m.menus
 }
 
-func (m *AddToUserPlaylistMenu) Playlists() []structs.Playlist {
+func (m *AddToUserPlaylistMenu) Playlists() []spotify.SimplePlaylist {
 	return m.playlists
 }
 
@@ -58,33 +56,29 @@ func (m *AddToUserPlaylistMenu) SubMenu(_ *model.App, _ int) model.Menu {
 func (m *AddToUserPlaylistMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
 		// 等于0，获取当前用户歌单
-		if m.userId == CurUser && utils.CheckUserInfo(m.netease.user) == utils.NeedLogin {
-			page, _ := m.netease.ToLoginPage(main.EnterMenu)
+		if utils.CheckUserInfo(m.spotifox.user) == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		}
 
-		userId := m.userId
-		if m.userId == CurUser {
-			// 等于0，获取当前用户歌单
-			//userId = m.netease.user.UserId
-		}
+		userId := m.spotifox.user.ID
 
 		userPlaylists := service.UserPlaylistService{
-			Uid:    strconv.FormatInt(userId, 10),
+			Uid:    userId,
 			Limit:  strconv.Itoa(m.limit),
 			Offset: strconv.Itoa(m.offset),
 		}
 		code, response := userPlaylists.UserPlaylist()
 		codeType := utils.CheckCode(code)
 		if codeType == utils.NeedLogin {
-			page, _ := m.netease.ToLoginPage(main.EnterMenu)
+			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		} else if codeType != utils.Success {
 			return false, nil
 		}
 
 		var menus []model.MenuItem
-		m.playlists = utils.GetPlaylists(response)
+		// m.playlists = utils.GetPlaylists(response)
 		for _, playlist := range m.playlists {
 			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name)})
 		}
@@ -104,33 +98,29 @@ func (m *AddToUserPlaylistMenu) BottomOutHook() model.Hook {
 		return nil
 	}
 	return func(main *model.Main) (bool, model.Page) {
-		userId := m.userId
-		if m.userId == CurUser {
-			// 等于0，获取当前用户歌单
-			//userId = m.netease.user.UserId
-		}
+		userId := m.spotifox.user.ID
 
 		m.offset = m.offset + len(m.menus)
 		userPlaylists := service.UserPlaylistService{
-			Uid:    strconv.FormatInt(userId, 10),
+			Uid:    userId,
 			Limit:  strconv.Itoa(m.limit),
 			Offset: strconv.Itoa(m.offset),
 		}
 		code, response := userPlaylists.UserPlaylist()
 		codeType := utils.CheckCode(code)
 		if codeType == utils.NeedLogin {
-			page, _ := m.netease.ToLoginPage(nil)
+			page, _ := m.spotifox.ToLoginPage(nil)
 			return false, page
 		} else if codeType != utils.Success {
 			return false, nil
 		}
 
-		list := utils.GetPlaylists(response)
-		for _, playlist := range list {
-			m.menus = append(m.menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name)})
-		}
+		// list := utils.GetPlaylists(response)
+		// for _, playlist := range list {
+		// 	m.menus = append(m.menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name)})
+		// }
 
-		m.playlists = append(m.playlists, list...)
+		// m.playlists = append(m.playlists, list...)
 
 		// 是否有更多
 		if hasMore, err := jsonparser.GetBoolean(response, "more"); err == nil {

@@ -38,7 +38,7 @@ func (m *LastfmAuth) BeforeBackMenuHook() model.Hook {
 
 func (m *LastfmAuth) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		m.token, m.url, m.err = m.netease.lastfm.GetAuthUrlWithToken()
+		m.token, m.url, m.err = m.spotifox.lastfm.GetAuthUrlWithToken()
 		if m.url != "" {
 			_ = open.Start(m.url)
 		}
@@ -50,27 +50,27 @@ func (m *LastfmAuth) BeforeEnterMenuHook() model.Hook {
 func (m *LastfmAuth) SubMenu(mod_el *model.App, _ int) model.Menu {
 	var err error
 
-	loading := NewLoading(m.netease)
-	loading.start()
+	loading := model.NewLoading(m.spotifox.MustMain())
+	loading.Start()
 
-	if m.netease.lastfmUser == nil {
-		m.netease.lastfmUser = &storage.LastfmUser{}
+	if m.spotifox.lastfmUser == nil {
+		m.spotifox.lastfmUser = &storage.LastfmUser{}
 	}
-	m.netease.lastfmUser.SessionKey, err = m.netease.lastfm.GetSession(m.token)
+	m.spotifox.lastfmUser.SessionKey, err = m.spotifox.lastfm.GetSession(m.token)
 	if err != nil {
-		loading.complete()
+		loading.Complete()
 		return NewLastfmRes(m.baseMenu, "授权", err, 1)
 	}
-	user, err := m.netease.lastfm.GetUserInfo(map[string]interface{}{})
-	loading.complete()
+	user, err := m.spotifox.lastfm.GetUserInfo(map[string]interface{}{})
+	loading.Complete()
 	if err != nil {
 		return NewLastfmRes(m.baseMenu, "授权", err, 1)
 	}
-	m.netease.lastfmUser.Id = user.Id
-	m.netease.lastfmUser.Name = user.Name
-	m.netease.lastfmUser.RealName = user.RealName
-	m.netease.lastfmUser.Url = user.Url
-	m.netease.lastfmUser.Store()
+	m.spotifox.lastfmUser.Id = user.Id
+	m.spotifox.lastfmUser.Name = user.Name
+	m.spotifox.lastfmUser.RealName = user.RealName
+	m.spotifox.lastfmUser.Url = user.Url
+	m.spotifox.lastfmUser.Store()
 	return NewLastfmRes(m.baseMenu, "授权", nil, 3)
 }
 

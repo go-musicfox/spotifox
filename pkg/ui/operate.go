@@ -6,12 +6,9 @@ import (
 	"strconv"
 
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/skratchdot/open-golang/open"
 
 	"github.com/go-musicfox/spotifox/pkg/constants"
-	"github.com/go-musicfox/spotifox/pkg/player"
 	"github.com/go-musicfox/spotifox/pkg/storage"
-	"github.com/go-musicfox/spotifox/pkg/structs"
 	"github.com/go-musicfox/spotifox/utils"
 
 	"github.com/buger/jsonparser"
@@ -20,16 +17,16 @@ import (
 
 // likePlayingSong like/unlike playing song
 func likePlayingSong(m *Spotifox, isLike bool) model.Page {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	loading := model.NewLoading(m.MustMain())
+	loading.Start()
+	defer loading.Complete()
 
 	if m.player.curSongIndex >= len(m.player.playlist) {
 		return nil
 	}
 
 	if utils.CheckUserInfo(m.user) == utils.NeedLogin {
-		page, _ := m.ToLoginPage(func(newMenu model.Menu, newTitle *model.MenuItem) model.Page {
+		page, _ := m.ToLoginPage(func() model.Page {
 			likePlayingSong(m, isLike)
 			return nil
 		})
@@ -46,7 +43,7 @@ func likePlayingSong(m *Spotifox, isLike bool) model.Page {
 	//	code, response := userPlaylists.UserPlaylist()
 	//	codeType := utils.CheckCode(code)
 	//	if codeType == utils.NeedLogin {
-	//		page, _ := m.ToLoginPage(func(newMenu model.Menu, newTitle *model.MenuItem) model.Page {
+	//		page, _ := m.ToLoginPage(func() model.Page {
 	//			likePlayingSong(m, isLike)
 	//			return nil
 	//		})
@@ -71,7 +68,7 @@ func likePlayingSong(m *Spotifox, isLike bool) model.Page {
 		op = "del"
 	}
 	likeService := service.PlaylistTracksService{
-		TrackIds: []string{strconv.FormatInt(m.player.playlist[m.player.curSongIndex].Id, 10)},
+		TrackIds: []string{string(utils.IDOfSong(m.player.playlist[m.player.curSongIndex]))},
 		Op:       op,
 		//Pid:      strconv.FormatInt(m.user.MyLikePlaylistID, 10),
 	}
@@ -85,7 +82,7 @@ func likePlayingSong(m *Spotifox, isLike bool) model.Page {
 		}
 		utils.Notify(utils.NotifyContent{
 			Title:   msg,
-			Text:    m.player.playlist[m.player.curSongIndex].Name,
+			Text:    utils.NameOfSong(m.player.playlist[m.player.curSongIndex]),
 			Url:     constants.AppGithubUrl,
 			GroupId: constants.GroupID,
 		})
@@ -131,9 +128,9 @@ func logout() {
 
 // likeSelectedSong like/unlike selected song
 func likeSelectedSong(m *Spotifox, isLike bool) model.Page {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	loading := model.NewLoading(m.MustMain())
+	loading.Start()
+	defer loading.Complete()
 
 	var (
 		main = m.MustMain()
@@ -147,7 +144,7 @@ func likeSelectedSong(m *Spotifox, isLike bool) model.Page {
 	songs := me.Songs()
 
 	if utils.CheckUserInfo(m.user) == utils.NeedLogin {
-		page, _ := m.ToLoginPage(func(newMenu model.Menu, newTitle *model.MenuItem) model.Page {
+		page, _ := m.ToLoginPage(func() model.Page {
 			likeSelectedSong(m, isLike)
 			return nil
 		})
@@ -164,7 +161,7 @@ func likeSelectedSong(m *Spotifox, isLike bool) model.Page {
 	//	code, response := userPlaylists.UserPlaylist()
 	//	codeType := utils.CheckCode(code)
 	//	if codeType == utils.NeedLogin {
-	//		page, _ := m.ToLoginPage(func(newMenu model.Menu, newTitle *model.MenuItem) model.Page {
+	//		page, _ := m.ToLoginPage(func() model.Page {
 	//			likeSelectedSong(m, isLike)
 	//			return nil
 	//		})
@@ -189,7 +186,7 @@ func likeSelectedSong(m *Spotifox, isLike bool) model.Page {
 		op = "del"
 	}
 	likeService := service.PlaylistTracksService{
-		TrackIds: []string{strconv.FormatInt(songs[selectedIndex].Id, 10)},
+		TrackIds: []string{string(utils.IDOfSong(songs[selectedIndex]))},
 		Op:       op,
 		//Pid:      strconv.FormatInt(m.user.MyLikePlaylistID, 10),
 	}
@@ -203,7 +200,7 @@ func likeSelectedSong(m *Spotifox, isLike bool) model.Page {
 		}
 		utils.Notify(utils.NotifyContent{
 			Title:   msg,
-			Text:    songs[selectedIndex].Name,
+			Text:    utils.NameOfSong(songs[selectedIndex]),
 			Url:     constants.AppGithubUrl,
 			GroupId: constants.GroupID,
 		})
@@ -230,41 +227,41 @@ func likeSelectedSong(m *Spotifox, isLike bool) model.Page {
 
 // trashPlayingSong 标记为不喜欢
 func trashPlayingSong(m *Spotifox) model.Page {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	loading := model.NewLoading(m.MustMain())
+	loading.Start()
+	defer loading.Complete()
 
 	if m.player.curSongIndex >= len(m.player.playlist) {
 		return nil
 	}
 
 	if utils.CheckUserInfo(m.user) == utils.NeedLogin {
-		page, _ := m.ToLoginPage(func(newMenu model.Menu, newTitle *model.MenuItem) model.Page {
+		page, _ := m.ToLoginPage(func() model.Page {
 			trashPlayingSong(m)
 			return nil
 		})
 		return page
 	}
 
-	trashService := service.FmTrashService{
-		SongID: strconv.FormatInt(m.player.playlist[m.player.curSongIndex].Id, 10),
-	}
-	trashService.FmTrash()
+	// trashService := service.FmTrashService{
+	// 	SongID: strconv.FormatInt(m.player.playlist[m.player.curSongIndex].Id, 10),
+	// }
+	// trashService.FmTrash()
 
-	utils.Notify(utils.NotifyContent{
-		Title:   "已标记为不喜欢",
-		Text:    m.player.playlist[m.player.curSongIndex].Name,
-		Url:     constants.AppGithubUrl,
-		GroupId: constants.GroupID,
-	})
+	// utils.Notify(utils.NotifyContent{
+	// 	Title:   "已标记为不喜欢",
+	// 	Text:    m.player.playlist[m.player.curSongIndex].Name,
+	// 	Url:     constants.AppGithubUrl,
+	// 	GroupId: constants.GroupID,
+	// })
 	return nil
 }
 
 // trashSelectedSong 标记为不喜欢
 func trashSelectedSong(m *Spotifox) model.Page {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	loading := model.NewLoading(m.MustMain())
+	loading.Start()
+	defer loading.Complete()
 
 	var (
 		main = m.MustMain()
@@ -275,312 +272,312 @@ func trashSelectedSong(m *Spotifox) model.Page {
 	if !ok || selectedIndex >= len(me.Songs()) {
 		return nil
 	}
-	songs := me.Songs()
+	// songs := me.Songs()
 
 	if utils.CheckUserInfo(m.user) == utils.NeedLogin {
-		page, _ := m.ToLoginPage(func(newMenu model.Menu, newTitle *model.MenuItem) model.Page {
+		page, _ := m.ToLoginPage(func() model.Page {
 			trashSelectedSong(m)
 			return nil
 		})
 		return page
 	}
 
-	trashService := service.FmTrashService{
-		SongID: strconv.FormatInt(songs[selectedIndex].Id, 10),
-	}
-	trashService.FmTrash()
+	// trashService := service.FmTrashService{
+	// 	SongID: strconv.FormatInt(songs[selectedIndex].Id, 10),
+	// }
+	// trashService.FmTrash()
 
-	utils.Notify(utils.NotifyContent{
-		Title:   "已标记为不喜欢",
-		Text:    songs[selectedIndex].Name,
-		Url:     constants.AppGithubUrl,
-		GroupId: constants.GroupID,
-	})
+	// utils.Notify(utils.NotifyContent{
+	// 	Title:   "已标记为不喜欢",
+	// 	Text:    songs[selectedIndex].Name,
+	// 	Url:     constants.AppGithubUrl,
+	// 	GroupId: constants.GroupID,
+	// })
 	return nil
 }
 
 func albumOfPlayingSong(m *Spotifox) {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	// loading := model.NewLoading(m.MustMain())
+	// loading.Start()
+	// defer loading.Complete()
 
-	var (
-		main = m.MustMain()
-		menu = main.CurMenu()
-	)
-	if m.player.curSongIndex >= len(m.player.playlist) {
-		return
-	}
+	// var (
+	// 	main = m.MustMain()
+	// 	menu = main.CurMenu()
+	// )
+	// if m.player.curSongIndex >= len(m.player.playlist) {
+	// 	return
+	// }
 
-	curSong := m.player.playlist[m.player.curSongIndex]
+	// curSong := m.player.playlist[m.player.curSongIndex]
 	// 避免重复进入
-	if detail, ok := menu.(*AlbumDetailMenu); ok && detail.albumId == curSong.Album.Id {
-		return
-	}
+	// if detail, ok := menu.(*AlbumDetailMenu); ok && detail.albumId == curSong.Album.Id {
+	// 	return
+	// }
 
-	main.EnterMenu(NewAlbumDetailMenu(newBaseMenu(m), curSong.Album.Id), &model.MenuItem{Title: curSong.Album.Name, Subtitle: "「" + curSong.Name + "」所属专辑"})
+	// main.EnterMenu(NewAlbumDetailMenu(newBaseMenu(m), curSong.Album.Id), &model.MenuItem{Title: curSong.Album.Name, Subtitle: "「" + curSong.Name + "」所属专辑"})
 }
 
 func albumOfSelectedSong(m *Spotifox) {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	// loading := model.NewLoading(m.MustMain())
+	// loading.Start()
+	// defer loading.Complete()
 
-	var (
-		main = m.MustMain()
-		menu = main.CurMenu()
-	)
-	me, ok := menu.(SongsMenu)
-	selectedIndex := menu.RealDataIndex(main.SelectedIndex())
-	if !ok || selectedIndex >= len(me.Songs()) {
-		return
-	}
-	songs := me.Songs()
+	// var (
+	// 	main = m.MustMain()
+	// 	menu = main.CurMenu()
+	// )
+	// me, ok := menu.(SongsMenu)
+	// selectedIndex := menu.RealDataIndex(main.SelectedIndex())
+	// if !ok || selectedIndex >= len(me.Songs()) {
+	// 	return
+	// }
+	// songs := me.Songs()
 
-	// 避免重复进入
-	if detail, ok := menu.(*AlbumDetailMenu); ok && detail.albumId == songs[selectedIndex].Album.Id {
-		return
-	}
+	// // 避免重复进入
+	// if detail, ok := menu.(*AlbumDetailMenu); ok && detail.albumId == songs[selectedIndex].Album.Id {
+	// 	return
+	// }
 
-	main.EnterMenu(NewAlbumDetailMenu(newBaseMenu(m), songs[selectedIndex].Album.Id), &model.MenuItem{Title: songs[selectedIndex].Album.Name, Subtitle: "「" + songs[selectedIndex].Name + "」所属专辑"})
+	// main.EnterMenu(NewAlbumDetailMenu(newBaseMenu(m), songs[selectedIndex].Album.Id), &model.MenuItem{Title: songs[selectedIndex].Album.Name, Subtitle: "「" + songs[selectedIndex].Name + "」所属专辑"})
 }
 
 func artistOfPlayingSong(m *Spotifox) {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	// loading := model.NewLoading(m.MustMain())
+	// loading.Start()
+	// defer loading.Complete()
 
-	var (
-		main = m.MustMain()
-		menu = main.CurMenu()
-	)
-	if m.player.curSongIndex >= len(m.player.playlist) {
-		return
-	}
-	curSong := m.player.playlist[m.player.curSongIndex]
-	artistCount := len(curSong.Artists)
-	if artistCount <= 0 {
-		return
-	}
-	if artistCount == 1 {
-		// 避免重复进入
-		if detail, ok := menu.(*ArtistDetailMenu); ok && detail.artistId == curSong.Artists[0].Id {
-			return
-		}
-		main.EnterMenu(NewArtistDetailMenu(newBaseMenu(m), curSong.Artists[0].Id, curSong.Artists[0].Name), &model.MenuItem{Title: curSong.Artists[0].Name, Subtitle: "「" + curSong.Name + "」所属歌手"})
-		return
-	}
-	// 避免重复进入
-	if artists, ok := menu.(*ArtistsOfSongMenu); ok && artists.song.Id == curSong.Id {
-		return
-	}
-	main.EnterMenu(NewArtistsOfSongMenu(newBaseMenu(m), curSong), &model.MenuItem{Title: "「" + curSong.Name + "」所属歌手"})
+	// var (
+	// 	main = m.MustMain()
+	// 	menu = main.CurMenu()
+	// )
+	// if m.player.curSongIndex >= len(m.player.playlist) {
+	// 	return
+	// }
+	// curSong := m.player.playlist[m.player.curSongIndex]
+	// artistCount := len(curSong.Artists)
+	// if artistCount <= 0 {
+	// 	return
+	// }
+	// if artistCount == 1 {
+	// 	// 避免重复进入
+	// 	if detail, ok := menu.(*ArtistDetailMenu); ok && detail.artistId == curSong.Artists[0].Id {
+	// 		return
+	// 	}
+	// 	main.EnterMenu(NewArtistDetailMenu(newBaseMenu(m), curSong.Artists[0].Id, curSong.Artists[0].Name), &model.MenuItem{Title: curSong.Artists[0].Name, Subtitle: "「" + curSong.Name + "」所属歌手"})
+	// 	return
+	// }
+	// // 避免重复进入
+	// if artists, ok := menu.(*ArtistsOfSongMenu); ok && artists.song.Id == curSong.Id {
+	// 	return
+	// }
+	// main.EnterMenu(NewArtistsOfSongMenu(newBaseMenu(m), curSong), &model.MenuItem{Title: "「" + curSong.Name + "」所属歌手"})
 }
 
 func artistOfSelectedSong(m *Spotifox) {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	// loading := model.NewLoading(m.MustMain())
+	// loading.Start()
+	// defer loading.Complete()
 
-	var (
-		main = m.MustMain()
-		menu = main.CurMenu()
-	)
-	me, ok := menu.(SongsMenu)
-	selectedIndex := menu.RealDataIndex(main.SelectedIndex())
-	if !ok || selectedIndex >= len(me.Songs()) {
-		return
-	}
-	songs := me.Songs()
-	song := songs[selectedIndex]
-	artistCount := len(song.Artists)
-	if artistCount <= 0 {
-		return
-	}
-	if artistCount == 1 {
-		// 避免重复进入
-		if detail, ok := menu.(*ArtistDetailMenu); ok && detail.artistId == song.Artists[0].Id {
-			return
-		}
-		main.EnterMenu(NewArtistDetailMenu(newBaseMenu(m), song.Artists[0].Id, song.Artists[0].Name), &model.MenuItem{Title: song.Artists[0].Name, Subtitle: "「" + song.Name + "」所属歌手"})
-		return
-	}
-	// 避免重复进入
-	if artists, ok := menu.(*ArtistsOfSongMenu); ok && artists.song.Id == song.Id {
-		return
-	}
-	main.EnterMenu(NewArtistsOfSongMenu(newBaseMenu(m), song), &model.MenuItem{Title: "「" + song.Name + "」所属歌手"})
+	// var (
+	// 	main = m.MustMain()
+	// 	menu = main.CurMenu()
+	// )
+	// me, ok := menu.(SongsMenu)
+	// selectedIndex := menu.RealDataIndex(main.SelectedIndex())
+	// if !ok || selectedIndex >= len(me.Songs()) {
+	// 	return
+	// }
+	// songs := me.Songs()
+	// song := songs[selectedIndex]
+	// artistCount := len(song.Artists)
+	// if artistCount <= 0 {
+	// 	return
+	// }
+	// if artistCount == 1 {
+	// 	// 避免重复进入
+	// 	if detail, ok := menu.(*ArtistDetailMenu); ok && detail.artistId == song.Artists[0].Id {
+	// 		return
+	// 	}
+	// 	main.EnterMenu(NewArtistDetailMenu(newBaseMenu(m), song.Artists[0].Id, song.Artists[0].Name), &model.MenuItem{Title: song.Artists[0].Name, Subtitle: "「" + song.Name + "」所属歌手"})
+	// 	return
+	// }
+	// // 避免重复进入
+	// if artists, ok := menu.(*ArtistsOfSongMenu); ok && artists.song.Id == song.Id {
+	// 	return
+	// }
+	// main.EnterMenu(NewArtistsOfSongMenu(newBaseMenu(m), song), &model.MenuItem{Title: "「" + song.Name + "」所属歌手"})
 }
 
 func openPlayingSongInWeb(m *Spotifox) {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	// loading := model.NewLoading(m.MustMain())
+	// loading.Start()
+	// defer loading.Complete()
 
-	if m.player.curSongIndex >= len(m.player.playlist) {
-		return
-	}
-	curSong := m.player.playlist[m.player.curSongIndex]
+	// if m.player.curSongIndex >= len(m.player.playlist) {
+	// 	return
+	// }
+	// curSong := m.player.playlist[m.player.curSongIndex]
 
-	_ = open.Start(utils.WebUrlOfSong(curSong.Id))
+	// _ = open.Start(utils.WebUrlOfSong(curSong.Id))
 }
 
 func openSelectedItemInWeb(m *Spotifox) {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	// loading := model.NewLoading(m.MustMain())
+	// loading.Start()
+	// defer loading.Complete()
 
-	var (
-		main = m.MustMain()
-		menu = main.CurMenu()
-	)
-	selectedIndex := menu.RealDataIndex(main.SelectedIndex())
+	// var (
+	// 	main = m.MustMain()
+	// 	menu = main.CurMenu()
+	// )
+	// selectedIndex := menu.RealDataIndex(main.SelectedIndex())
 
-	// 打开歌曲
-	if songMenu, ok := menu.(SongsMenu); ok && selectedIndex < len(songMenu.Songs()) {
-		_ = open.Start(utils.WebUrlOfSong(songMenu.Songs()[selectedIndex].Id))
-		return
-	}
+	// // 打开歌曲
+	// if songMenu, ok := menu.(SongsMenu); ok && selectedIndex < len(songMenu.Songs()) {
+	// 	_ = open.Start(utils.WebUrlOfSong(songMenu.Songs()[selectedIndex].Id))
+	// 	return
+	// }
 
-	// 打开歌单
-	if playlistMenu, ok := menu.(PlaylistsMenu); ok && selectedIndex < len(playlistMenu.Playlists()) {
-		_ = open.Start(utils.WebUrlOfPlaylist(playlistMenu.Playlists()[selectedIndex].Id))
-		return
-	}
+	// // 打开歌单
+	// if playlistMenu, ok := menu.(PlaylistsMenu); ok && selectedIndex < len(playlistMenu.Playlists()) {
+	// 	_ = open.Start(utils.WebUrlOfPlaylist(playlistMenu.Playlists()[selectedIndex].Id))
+	// 	return
+	// }
 
-	// 打开专辑
-	if albumMenu, ok := menu.(AlbumsMenu); ok && selectedIndex < len(albumMenu.Albums()) {
-		_ = open.Start(utils.WebUrlOfAlbum(albumMenu.Albums()[selectedIndex].Id))
-		return
-	}
+	// // 打开专辑
+	// if albumMenu, ok := menu.(AlbumsMenu); ok && selectedIndex < len(albumMenu.Albums()) {
+	// 	_ = open.Start(utils.WebUrlOfAlbum(albumMenu.Albums()[selectedIndex].Id))
+	// 	return
+	// }
 
-	// 打开歌手
-	if artistMenu, ok := menu.(ArtistsMenu); ok && selectedIndex < len(artistMenu.Artists()) {
-		_ = open.Start(utils.WebUrlOfArtist(artistMenu.Artists()[selectedIndex].Id))
-		return
-	}
+	// // 打开歌手
+	// if artistMenu, ok := menu.(ArtistsMenu); ok && selectedIndex < len(artistMenu.Artists()) {
+	// 	_ = open.Start(utils.WebUrlOfArtist(artistMenu.Artists()[selectedIndex].Id))
+	// 	return
+	// }
 }
 
 // collectSelectedPlaylist 收藏选中歌单
 func collectSelectedPlaylist(m *Spotifox, isCollect bool) model.Page {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	// loading := model.NewLoading(m.MustMain())
+	// loading.Start()
+	// defer loading.Complete()
 
-	if utils.CheckUserInfo(m.user) == utils.NeedLogin {
-		page, _ := m.ToLoginPage(func(newMenu model.Menu, newTitle *model.MenuItem) model.Page {
-			collectSelectedPlaylist(m, isCollect)
-			return nil
-		})
-		return page
-	}
+	// if utils.CheckUserInfo(m.user) == utils.NeedLogin {
+	// 	page, _ := m.ToLoginPage(func() model.Page {
+	// 		collectSelectedPlaylist(m, isCollect)
+	// 		return nil
+	// 	})
+	// 	return page
+	// }
 
-	var (
-		main = m.MustMain()
-		menu = main.CurMenu()
-	)
-	me, ok := menu.(PlaylistsMenu)
-	if !ok || main.SelectedIndex() >= len(me.Playlists()) {
-		return nil
-	}
-	playlists := me.Playlists()
+	// var (
+	// 	main = m.MustMain()
+	// 	menu = main.CurMenu()
+	// )
+	// me, ok := menu.(PlaylistsMenu)
+	// if !ok || main.SelectedIndex() >= len(me.Playlists()) {
+	// 	return nil
+	// }
+	// playlists := me.Playlists()
 
-	var t = "1"
-	if !isCollect {
-		t = "0"
-	}
-	s := service.PlaylistSubscribeService{ID: strconv.FormatInt(playlists[main.SelectedIndex()].Id, 10), T: t}
-	if code, resp := s.PlaylistSubscribe(); code != 200 {
-		var msg string
-		if msg, _ = jsonparser.GetString(resp, "message"); msg == "" {
-			msg, _ = jsonparser.GetString(resp, "data", "message")
-		}
-		if msg == "" {
-			msg = "收藏歌单或移除歌单失败"
-		}
-		utils.Notify(utils.NotifyContent{
-			Title:   msg,
-			Text:    playlists[main.SelectedIndex()].Name,
-			Url:     constants.AppGithubUrl,
-			GroupId: constants.GroupID,
-		})
-		return nil
-	}
+	// var t = "1"
+	// if !isCollect {
+	// 	t = "0"
+	// }
+	// s := service.PlaylistSubscribeService{ID: strconv.FormatInt(playlists[main.SelectedIndex()].Id, 10), T: t}
+	// if code, resp := s.PlaylistSubscribe(); code != 200 {
+	// 	var msg string
+	// 	if msg, _ = jsonparser.GetString(resp, "message"); msg == "" {
+	// 		msg, _ = jsonparser.GetString(resp, "data", "message")
+	// 	}
+	// 	if msg == "" {
+	// 		msg = "收藏歌单或移除歌单失败"
+	// 	}
+	// 	utils.Notify(utils.NotifyContent{
+	// 		Title:   msg,
+	// 		Text:    playlists[main.SelectedIndex()].Name,
+	// 		Url:     constants.AppGithubUrl,
+	// 		GroupId: constants.GroupID,
+	// 	})
+	// 	return nil
+	// }
 
-	if isCollect {
-		utils.Notify(utils.NotifyContent{
-			Title:   "已收藏歌单",
-			Text:    playlists[main.SelectedIndex()].Name,
-			Url:     constants.AppGithubUrl,
-			GroupId: constants.GroupID,
-		})
-	} else {
-		utils.Notify(utils.NotifyContent{
-			Title:   "已移除收藏歌单",
-			Text:    playlists[main.SelectedIndex()].Name,
-			Url:     constants.AppGithubUrl,
-			GroupId: constants.GroupID,
-		})
-	}
+	// if isCollect {
+	// 	utils.Notify(utils.NotifyContent{
+	// 		Title:   "已收藏歌单",
+	// 		Text:    playlists[main.SelectedIndex()].Name,
+	// 		Url:     constants.AppGithubUrl,
+	// 		GroupId: constants.GroupID,
+	// 	})
+	// } else {
+	// 	utils.Notify(utils.NotifyContent{
+	// 		Title:   "已移除收藏歌单",
+	// 		Text:    playlists[main.SelectedIndex()].Name,
+	// 		Url:     constants.AppGithubUrl,
+	// 		GroupId: constants.GroupID,
+	// 	})
+	// }
 	return nil
 }
 
 // addSongToPlaylist 添加歌曲到播放列表
 func addSongToPlaylist(m *Spotifox, addToNext bool) {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	// loading := model.NewLoading(m.MustMain())
+	// loading.Start()
+	// defer loading.Complete()
 
-	var (
-		main = m.MustMain()
-		menu = main.CurMenu()
-	)
-	me, ok := menu.(SongsMenu)
-	selectedIndex := menu.RealDataIndex(main.SelectedIndex())
-	if !ok || selectedIndex >= len(me.Songs()) {
-		return
-	}
-	songs := me.Songs()
+	// var (
+	// 	main = m.MustMain()
+	// 	menu = main.CurMenu()
+	// )
+	// me, ok := menu.(SongsMenu)
+	// selectedIndex := menu.RealDataIndex(main.SelectedIndex())
+	// if !ok || selectedIndex >= len(me.Songs()) {
+	// 	return
+	// }
+	// songs := me.Songs()
 
-	var notifyTitle string
-	if addToNext && len(m.player.playlist) > 0 {
-		// 添加为下一曲
-		targetIndex := m.player.curSongIndex + 1
-		m.player.playlist = append(m.player.playlist, structs.Song{})
-		copy(m.player.playlist[targetIndex+1:], m.player.playlist[targetIndex:])
-		m.player.playlist[targetIndex] = songs[selectedIndex]
-		notifyTitle = "已添加为下一曲播放"
-	} else {
-		// 添加到播放列表末尾
-		m.player.playlist = append(m.player.playlist, songs[selectedIndex])
-		notifyTitle = "已添加到播放列表末尾"
-	}
-	// 替换播放中数据，避免数据错乱
-	m.player.playingMenu = nil
-	m.player.playingMenuKey += "modified"
+	// var notifyTitle string
+	// if addToNext && len(m.player.playlist) > 0 {
+	// 	// 添加为下一曲
+	// 	targetIndex := m.player.curSongIndex + 1
+	// 	m.player.playlist = append(m.player.playlist, structs.Song{})
+	// 	copy(m.player.playlist[targetIndex+1:], m.player.playlist[targetIndex:])
+	// 	m.player.playlist[targetIndex] = songs[selectedIndex]
+	// 	notifyTitle = "已添加为下一曲播放"
+	// } else {
+	// 	// 添加到播放列表末尾
+	// 	m.player.playlist = append(m.player.playlist, songs[selectedIndex])
+	// 	notifyTitle = "已添加到播放列表末尾"
+	// }
+	// // 替换播放中数据，避免数据错乱
+	// m.player.playingMenu = nil
+	// m.player.playingMenuKey += "modified"
 
-	if curPlaylist, ok := menu.(*CurPlaylist); ok {
-		curPlaylist.songs = m.player.playlist
-		curPlaylist.menus = utils.GetViewFromSongs(m.player.playlist)
-		main.RefreshMenuList()
-	}
+	// if curPlaylist, ok := menu.(*CurPlaylist); ok {
+	// 	curPlaylist.songs = m.player.playlist
+	// 	curPlaylist.menus = utils.GetViewFromSongs(m.player.playlist)
+	// 	main.RefreshMenuList()
+	// }
 
-	utils.Notify(utils.NotifyContent{
-		Title:   notifyTitle,
-		Text:    songs[selectedIndex].Name,
-		Url:     utils.WebUrlOfSong(songs[selectedIndex].Id),
-		GroupId: constants.GroupID,
-	})
+	// utils.Notify(utils.NotifyContent{
+	// 	Title:   notifyTitle,
+	// 	Text:    songs[selectedIndex].Name,
+	// 	Url:     utils.WebUrlOfSong(songs[selectedIndex].Id),
+	// 	GroupId: constants.GroupID,
+	// })
 }
 
 // openAddSongToUserPlaylistMenu 打开添加歌曲到用户歌单菜单
 func openAddSongToUserPlaylistMenu(m *Spotifox, isSelected, isAdd bool) model.Page {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	loading := model.NewLoading(m.MustMain())
+	loading.Start()
+	defer loading.Complete()
 
 	if utils.CheckUserInfo(m.user) == utils.NeedLogin {
-		page, _ := m.ToLoginPage(func(newMenu model.Menu, newTitle *model.MenuItem) model.Page {
+		page, _ := m.ToLoginPage(func() model.Page {
 			openAddSongToUserPlaylistMenu(m, isSelected, isAdd)
 			return nil
 		})
@@ -623,12 +620,12 @@ func openAddSongToUserPlaylistMenu(m *Spotifox, isSelected, isAdd bool) model.Pa
 
 // addSongToUserPlaylist 添加歌曲到用户歌单
 func addSongToUserPlaylist(m *Spotifox, isAdd bool) model.Page {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	loading := model.NewLoading(m.MustMain())
+	loading.Start()
+	defer loading.Complete()
 
 	if utils.CheckUserInfo(m.user) == utils.NeedLogin {
-		page, _ := m.ToLoginPage(func(newMenu model.Menu, newTitle *model.MenuItem) model.Page {
+		page, _ := m.ToLoginPage(func() model.Page {
 			addSongToUserPlaylist(m, isAdd)
 			return nil
 		})
@@ -651,7 +648,7 @@ func addSongToUserPlaylist(m *Spotifox, isAdd bool) model.Page {
 	likeService := service.PlaylistTracksService{
 		TrackIds: []string{strconv.FormatInt(me.song.Id, 10)},
 		Op:       op,
-		Pid:      strconv.FormatInt(playlist.Id, 10),
+		Pid:      string(playlist.ID),
 	}
 	if code, resp := likeService.PlaylistTracks(); code != 200 {
 		var msg string
@@ -673,23 +670,23 @@ func addSongToUserPlaylist(m *Spotifox, isAdd bool) model.Page {
 		return nil
 	}
 
-	var title string
-	if isAdd {
-		title = "已添加到歌单「" + playlist.Name + "」"
-	} else {
-		title = "已从歌单「" + playlist.Name + "」中删除"
-	}
-	utils.Notify(utils.NotifyContent{
-		Title:   title,
-		Text:    me.song.Name,
-		Url:     utils.WebUrlOfPlaylist(playlist.Id),
-		GroupId: constants.GroupID,
-	})
+	// var title string
+	// if isAdd {
+	// 	title = "已添加到歌单「" + playlist.Name + "」"
+	// } else {
+	// 	title = "已从歌单「" + playlist.Name + "」中删除"
+	// }
+	// utils.Notify(utils.NotifyContent{
+	// 	Title:   title,
+	// 	Text:    me.song.Name,
+	// 	Url:     utils.WebUrlOfPlaylist(playlist.ID),
+	// 	GroupId: constants.GroupID,
+	// })
 	main.BackMenu()
 	switch mt := menu.(type) {
 	case *PlaylistDetailMenu:
 		// 刷新菜单
-		if !isAdd && mt.playlistId == playlist.Id {
+		if !isAdd && mt.playlistId == playlist.ID {
 			t := main.MenuTitle()
 			main.BackMenu()
 			_, page := menu.BeforeEnterMenuHook()(main)
@@ -703,63 +700,63 @@ func addSongToUserPlaylist(m *Spotifox, isAdd bool) model.Page {
 
 // 从播放列表删除选中歌曲,仅在当前播放列表界面有效
 func delSongFromPlaylist(m *Spotifox) model.Page {
-	loading := NewLoading(m)
-	loading.start()
-	defer loading.complete()
+	// loading := model.NewLoading(m.MustMain())
+	// loading.Start()
+	// defer loading.Complete()
 
-	var (
-		main = m.MustMain()
-		menu = main.CurMenu()
-	)
-	me, ok := menu.(*CurPlaylist)
-	selectedIndex := menu.RealDataIndex(main.SelectedIndex())
-	if !ok || selectedIndex >= len(me.Songs()) {
-		return nil
-	}
-	// 防止切片越界
-	if len(m.player.playlist) == 0 {
-		return nil
-	}
-	// 选中歌曲为当前播放歌曲时处理逻辑
-	if m.player.curSongIndex == selectedIndex && m.player.curSong.Id == me.Songs()[selectedIndex].Id {
-		// 防止用户快速删除当前播放歌曲导致错位
-		if m.player.State() >= player.Playing && m.player.playedTime.Seconds() < 2 {
-			return nil
-		}
-		// 末尾歌曲删除向前退
-		if m.player.curSongIndex+1 >= len(m.player.playlist) {
-			m.player.curSongIndex = len(m.player.playlist) - 1
-			// 不在只剩一个歌曲的情况下重新播放歌曲
-			if len(m.player.playlist) > 1 {
-				m.player.PreviousSong(false)
-			}
-		} else {
-			_ = m.player.PlaySong(m.player.playlist[m.player.curSongIndex+1], DurationNext)
-		}
-	}
-	// 以下2行 为防止切片越界
-	m.player.playlist = append(m.player.playlist[:selectedIndex], m.player.playlist[selectedIndex+1:]...)
-	songs := m.player.playlist
-	me.menus = utils.GetViewFromSongs(songs)
-	me.songs = songs
-	// 更新当前歌曲下标
-	if selectedIndex < m.player.curSongIndex {
-		m.player.curSongIndex = m.player.curSongIndex - 1
-	}
-	// 更新游标位置
-	if main.SelectedIndex() >= len(me.Songs()) {
-		main.SetSelectedIndex(len(me.Songs()) - 1)
-	}
+	// var (
+	// 	main = m.MustMain()
+	// 	menu = main.CurMenu()
+	// )
+	// me, ok := menu.(*CurPlaylist)
+	// selectedIndex := menu.RealDataIndex(main.SelectedIndex())
+	// if !ok || selectedIndex >= len(me.Songs()) {
+	// 	return nil
+	// }
+	// // 防止切片越界
+	// if len(m.player.playlist) == 0 {
+	// 	return nil
+	// }
+	// // 选中歌曲为当前播放歌曲时处理逻辑
+	// if m.player.curSongIndex == selectedIndex && m.player.curSong.Id == me.Songs()[selectedIndex].Id {
+	// 	// 防止用户快速删除当前播放歌曲导致错位
+	// 	if m.player.State() >= player.Playing && m.player.playedTime.Seconds() < 2 {
+	// 		return nil
+	// 	}
+	// 	// 末尾歌曲删除向前退
+	// 	if m.player.curSongIndex+1 >= len(m.player.playlist) {
+	// 		m.player.curSongIndex = len(m.player.playlist) - 1
+	// 		// 不在只剩一个歌曲的情况下重新播放歌曲
+	// 		if len(m.player.playlist) > 1 {
+	// 			m.player.PreviousSong(false)
+	// 		}
+	// 	} else {
+	// 		_ = m.player.PlaySong(m.player.playlist[m.player.curSongIndex+1], DurationNext)
+	// 	}
+	// }
+	// // 以下2行 为防止切片越界
+	// m.player.playlist = append(m.player.playlist[:selectedIndex], m.player.playlist[selectedIndex+1:]...)
+	// songs := m.player.playlist
+	// me.menus = utils.GetViewFromSongs(songs)
+	// me.songs = songs
+	// // 更新当前歌曲下标
+	// if selectedIndex < m.player.curSongIndex {
+	// 	m.player.curSongIndex = m.player.curSongIndex - 1
+	// }
+	// // 更新游标位置
+	// if main.SelectedIndex() >= len(me.Songs()) {
+	// 	main.SetSelectedIndex(len(me.Songs()) - 1)
+	// }
 
-	// 替换播放中数据，避免数据错乱
-	m.player.playingMenu = nil
-	m.player.playingMenuKey += "modified"
+	// // 替换播放中数据，避免数据错乱
+	// m.player.playingMenu = nil
+	// m.player.playingMenuKey += "modified"
 
-	// 如果播放列表中已经没有歌曲，停止播放
-	if len(m.player.playlist) == 0 {
-		m.player.Stop()
-	}
+	// // 如果播放列表中已经没有歌曲，停止播放
+	// if len(m.player.playlist) == 0 {
+	// 	m.player.Stop()
+	// }
 
-	main.RefreshMenuList()
+	// main.RefreshMenuList()
 	return nil
 }

@@ -6,17 +6,32 @@ import (
 
 	"github.com/anhoder/foxful-cli/model"
 	ds "github.com/go-musicfox/spotifox/pkg/structs"
+	"github.com/zmb3/spotify/v2"
 )
 
-// GetViewFromSongs 从歌曲列表获取View
 func GetViewFromSongs(songs []ds.Song) []model.MenuItem {
-	var menus []model.MenuItem
+	return nil
+}
+
+func MenuItemsFromSongs(songs []spotify.PlaylistItem) []model.MenuItem {
+	var (
+		menus    []model.MenuItem
+		title    string
+		subtitle string
+	)
 	for _, song := range songs {
-		var artists []string
-		for _, artist := range song.Artists {
-			artists = append(artists, artist.Name)
+		if song.Track.Track != nil {
+			title = song.Track.Track.Name
+			var artists []string
+			for _, a := range song.Track.Track.Artists {
+				artists = append(artists, a.Name)
+			}
+			subtitle = strings.Join(artists, ",")
+		} else if song.Track.Episode != nil {
+			title = song.Track.Episode.Name
+			subtitle = song.Track.Episode.Description
 		}
-		menus = append(menus, model.MenuItem{Title: ReplaceSpecialStr(song.Name), Subtitle: ReplaceSpecialStr(strings.Join(artists, ","))})
+		menus = append(menus, model.MenuItem{Title: ReplaceSpecialStr(title), Subtitle: ReplaceSpecialStr(subtitle)})
 	}
 
 	return menus

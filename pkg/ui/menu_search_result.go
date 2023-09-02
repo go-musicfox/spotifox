@@ -8,6 +8,7 @@ import (
 	"github.com/go-musicfox/spotifox/pkg/constants"
 	ds2 "github.com/go-musicfox/spotifox/pkg/structs"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/zmb3/spotify/v2"
 
 	"github.com/go-musicfox/netease-music/service"
 )
@@ -45,8 +46,8 @@ func (m *SearchResultMenu) IsSearchable() bool {
 
 func (m *SearchResultMenu) BeforeBackMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		if m.netease.search.wordsInput.Value() != "" {
-			m.netease.search.wordsInput.SetValue("")
+		if m.spotifox.search.wordsInput.Value() != "" {
+			m.spotifox.search.wordsInput.SetValue("")
 		}
 
 		return true, nil
@@ -74,11 +75,11 @@ func (m *SearchResultMenu) SubMenu(_ *model.App, index int) model.Menu {
 			return nil
 		}
 		return NewAlbumDetailMenu(m.baseMenu, resultWithType[index].Id)
-	case []ds2.Playlist:
+	case []spotify.SimplePlaylist:
 		if index >= len(resultWithType) {
 			return nil
 		}
-		return NewPlaylistDetailMenu(m.baseMenu, resultWithType[index].Id)
+		return NewPlaylistDetailMenu(m.baseMenu, resultWithType[index].ID)
 	case []ds2.Artist:
 		if index >= len(resultWithType) {
 			return nil
@@ -88,12 +89,7 @@ func (m *SearchResultMenu) SubMenu(_ *model.App, index int) model.Menu {
 		if index >= len(resultWithType) {
 			return nil
 		}
-		return NewUserPlaylistMenu(m.baseMenu, 0)
-	case []ds2.DjRadio:
-		if index >= len(resultWithType) {
-			return nil
-		}
-		return NewDjRadioDetailMenu(m.baseMenu, resultWithType[index].Id)
+		return NewUserPlaylistMenu(m.baseMenu, "")
 	}
 
 	return nil
@@ -128,15 +124,15 @@ func (m *SearchResultMenu) BottomOutHook() model.Hook {
 
 func (m *SearchResultMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		if m.netease.search.wordsInput.Value() == "" {
+		if m.spotifox.search.wordsInput.Value() == "" {
 			// 显示搜索页面
-			page, _ := m.netease.ToSearchPage(m.searchType)
+			page, _ := m.spotifox.ToSearchPage(m.searchType)
 			return false, page
 		}
 
-		m.result = m.netease.search.result
-		m.searchType = m.netease.search.searchType
-		m.keyword = m.netease.search.wordsInput.Value()
+		m.result = m.spotifox.search.result
+		m.searchType = m.spotifox.search.searchType
+		m.keyword = m.spotifox.search.wordsInput.Value()
 		m.convertMenus()
 		return true, nil
 	}

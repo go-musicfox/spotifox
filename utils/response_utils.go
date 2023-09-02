@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/go-musicfox/spotifox/pkg/structs"
+	"github.com/zmb3/spotify/v2"
 
 	"github.com/buger/jsonparser"
 )
@@ -32,27 +34,29 @@ func CheckCode(code float64) ResCode {
 	return PasswordError
 }
 
-// CheckUserInfo 验证用户信息
+func CheckSpotifyErr(err error) ResCode {
+	if err == nil {
+		return Success
+	}
+	if e, ok := err.(spotify.Error); ok && e.Status == http.StatusUnauthorized {
+		return NeedLogin
+	}
+	return UnknownError
+}
+
 func CheckUserInfo(user *structs.User) ResCode {
-	//if user == nil || user.UserId == 0 {
-	//	return NeedLogin
-	//}
+	if user == nil || user.ID == "" || user.Token.AccessToken == "" {
+		return NeedLogin
+	}
 
 	return Success
 }
 
+var specialCharReplacer = strings.NewReplacer(`“`, `"`, `”`, `"`, `·`, `.`)
+
 // ReplaceSpecialStr 替换特殊字符
 func ReplaceSpecialStr(str string) string {
-	replaceStr := map[string]string{
-		"“": "\"",
-		"”": "\"",
-		"·": ".",
-	}
-	for oldStr, newStr := range replaceStr {
-		str = strings.ReplaceAll(str, oldStr, newStr)
-	}
-
-	return str
+	return specialCharReplacer.Replace(str)
 }
 
 // GetDailySongs 获取每日歌曲列表

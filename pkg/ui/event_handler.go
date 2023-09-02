@@ -6,23 +6,24 @@ import (
 	"github.com/anhoder/foxful-cli/model"
 	tea "github.com/charmbracelet/bubbletea"
 	playerpkg "github.com/go-musicfox/spotifox/pkg/player"
-	"github.com/go-musicfox/spotifox/pkg/structs"
+	"github.com/go-musicfox/spotifox/utils"
+	"github.com/zmb3/spotify/v2"
 )
 
 type EventHandler struct {
-	netease *Spotifox
+	spotifox *Spotifox
 }
 
 func NewEventHandler(netease *Spotifox) *EventHandler {
 	return &EventHandler{
-		netease: netease,
+		spotifox: netease,
 	}
 }
 
 func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.Page, tea.Cmd) {
 	var (
 		key    = msg.String()
-		player = h.netease.player
+		player = h.spotifox.player
 		main   = a.MustMain()
 		menu   = main.CurMenu()
 	)
@@ -35,7 +36,7 @@ func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.P
 			if !player.playlistUpdateAt.IsZero() {
 				subTitle = player.playlistUpdateAt.Format("[更新于2006-01-02 15:04:05]")
 			}
-			main.EnterMenu(NewCurPlaylist(newBaseMenu(h.netease), player.playlist), &model.MenuItem{Title: "当前播放列表", Subtitle: subTitle})
+			main.EnterMenu(NewCurPlaylist(newBaseMenu(h.spotifox), player.playlist), &model.MenuItem{Title: "当前播放列表", Subtitle: subTitle})
 			player.LocatePlayingSong()
 		}
 	case " ", "　":
@@ -54,14 +55,14 @@ func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.P
 		player.NextSong(true)
 	case "p":
 		player.SetPlayMode(0)
-	case "P":
-		newPage := player.Intelligence(false)
-		return true, newPage, a.Tick(time.Nanosecond)
+	// case "P":
+	// newPage := player.Intelligence(false)
+	// return true, newPage, a.Tick(time.Nanosecond)
 	case ",", "，":
-		newPage := likePlayingSong(h.netease, true)
+		newPage := likePlayingSong(h.spotifox, true)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case ".", "。":
-		newPage := likePlayingSong(h.netease, false)
+		newPage := likePlayingSong(h.spotifox, false)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "w", "W":
 		logout()
@@ -72,71 +73,71 @@ func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.P
 		player.UpVolume()
 	case "t":
 		// trash playing song
-		newPage := trashPlayingSong(h.netease)
+		newPage := trashPlayingSong(h.spotifox)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "T":
 		// trash selected song
-		newPage := trashSelectedSong(h.netease)
+		newPage := trashSelectedSong(h.spotifox)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "<", "〈", "＜", "《", "«": // half-width, full-width, Japanese, Chinese and French
 		// like selected song
-		newPage := likeSelectedSong(h.netease, true)
+		newPage := likeSelectedSong(h.spotifox, true)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case ">", "〉", "＞", "》", "»":
 		// unlike selected song
-		newPage := likeSelectedSong(h.netease, false)
+		newPage := likeSelectedSong(h.spotifox, false)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "?", "？":
 		// 帮助
-		main.EnterMenu(NewHelpMenu(newBaseMenu(h.netease)), &model.MenuItem{Title: "帮助"})
+		main.EnterMenu(NewHelpMenu(newBaseMenu(h.spotifox)), &model.MenuItem{Title: "帮助"})
 	case "tab":
-		newPage := openAddSongToUserPlaylistMenu(h.netease, true, true)
+		newPage := openAddSongToUserPlaylistMenu(h.spotifox, true, true)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "shift+tab":
-		newPage := openAddSongToUserPlaylistMenu(h.netease, true, false)
+		newPage := openAddSongToUserPlaylistMenu(h.spotifox, true, false)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "`":
-		newPage := openAddSongToUserPlaylistMenu(h.netease, false, true)
+		newPage := openAddSongToUserPlaylistMenu(h.spotifox, false, true)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "~", "～":
-		newPage := openAddSongToUserPlaylistMenu(h.netease, false, false)
+		newPage := openAddSongToUserPlaylistMenu(h.spotifox, false, false)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "a":
 		// 当前歌曲所属专辑
-		albumOfPlayingSong(h.netease)
+		albumOfPlayingSong(h.spotifox)
 	case "A":
 		// 选中歌曲所属专辑
-		albumOfSelectedSong(h.netease)
+		albumOfSelectedSong(h.spotifox)
 	case "s":
 		// 当前歌曲所属歌手
-		artistOfPlayingSong(h.netease)
+		artistOfPlayingSong(h.spotifox)
 	case "S":
 		// 选中歌曲所属歌手
-		artistOfSelectedSong(h.netease)
+		artistOfSelectedSong(h.spotifox)
 	case "o":
 		// 网页打开当前歌曲
-		openPlayingSongInWeb(h.netease)
+		openPlayingSongInWeb(h.spotifox)
 	case "O":
 		// 网页打开选中项
-		openSelectedItemInWeb(h.netease)
+		openSelectedItemInWeb(h.spotifox)
 	case ";", ":", "：", "；":
 		// 收藏选中歌单
-		newPage := collectSelectedPlaylist(h.netease, true)
+		newPage := collectSelectedPlaylist(h.spotifox, true)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "'", "\"":
 		// 取消收藏选中歌单
-		newPage := collectSelectedPlaylist(h.netease, false)
+		newPage := collectSelectedPlaylist(h.spotifox, false)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "\\", "、":
 		// 从播放列表删除歌曲,仅在当前播放列表界面有效
-		newPage := delSongFromPlaylist(h.netease)
+		newPage := delSongFromPlaylist(h.spotifox)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "e":
 		// 追加到下一曲播放
-		addSongToPlaylist(h.netease, true)
+		addSongToPlaylist(h.spotifox, true)
 	case "E":
 		// 追加到播放列表末尾
-		addSongToPlaylist(h.netease, false)
+		addSongToPlaylist(h.spotifox, false)
 	case "r", "R":
 		// rerender
 		return true, main, a.RerenderCmd(true)
@@ -148,14 +149,14 @@ func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.P
 }
 
 func (h *EventHandler) enterKeyHandle() (stopPropagation bool, newPage model.Page, cmd tea.Cmd) {
-	loading := NewLoading(h.netease)
-	loading.start()
-	defer loading.complete()
+	loading := model.NewLoading(h.spotifox.MustMain())
+	loading.Start()
+	defer loading.Complete()
 
-	var menu = h.netease.MustMain().CurMenu()
+	var menu = h.spotifox.MustMain().CurMenu()
 	if _, ok := menu.(*AddToUserPlaylistMenu); ok {
-		addSongToUserPlaylist(h.netease, menu.(*AddToUserPlaylistMenu).action)
-		return true, h.netease.MustMain(), h.netease.Tick(time.Nanosecond)
+		addSongToUserPlaylist(h.spotifox, menu.(*AddToUserPlaylistMenu).action)
+		return true, h.spotifox.MustMain(), h.spotifox.Tick(time.Nanosecond)
 	}
 	return false, nil, nil
 }
@@ -163,11 +164,11 @@ func (h *EventHandler) enterKeyHandle() (stopPropagation bool, newPage model.Pag
 // 空格监听
 func (h *EventHandler) spaceKeyHandle() {
 	var (
-		songs         []structs.Song
-		inPlayingMenu = h.netease.player.InPlayingMenu()
-		main          = h.netease.MustMain()
+		songs         []spotify.PlaylistItem
+		inPlayingMenu = h.spotifox.player.InPlayingMenu()
+		main          = h.spotifox.MustMain()
 		menu          = main.CurMenu()
-		player        = h.netease.player
+		player        = h.spotifox.player
 	)
 	if me, ok := menu.(SongsMenu); ok {
 		songs = me.Songs()
@@ -180,16 +181,16 @@ func (h *EventHandler) spaceKeyHandle() {
 		}
 		switch player.State() {
 		case playerpkg.Paused:
-			h.netease.player.Resume()
+			h.spotifox.player.Resume()
 		case playerpkg.Playing:
-			h.netease.player.Paused()
+			h.spotifox.player.Paused()
 		case playerpkg.Stopped:
 			_ = player.PlaySong(player.playlist[player.curSongIndex], DurationNext)
 		}
 		return
 	}
 
-	if inPlayingMenu && songs[selectedIndex].Id == player.playlist[player.curSongIndex].Id {
+	if inPlayingMenu && utils.CompareSong(songs[selectedIndex], player.playlist[player.curSongIndex]) {
 		switch player.State() {
 		case playerpkg.Paused:
 			player.Resume()
@@ -205,20 +206,17 @@ func (h *EventHandler) spaceKeyHandle() {
 		player.playingMenu = me
 	}
 
-	var newPlaylists = make([]structs.Song, len(songs))
+	var newPlaylists = make([]spotify.PlaylistItem, len(songs))
 	copy(newPlaylists, songs)
 	player.playlist = newPlaylists
 
 	player.playlistUpdateAt = time.Now()
-	if player.mode == playerpkg.PmIntelligent {
-		player.SetPlayMode(0)
-	}
 	_ = player.PlaySong(player.playlist[selectedIndex], DurationNext)
 }
 
 func (h *EventHandler) MouseMsgHandle(msg tea.MouseMsg, a *model.App) (stopPropagation bool, newPage model.Page, cmd tea.Cmd) {
 	var (
-		player = h.netease.player
+		player = h.spotifox.player
 		main   = a.MustMain()
 	)
 	switch msg.Type {

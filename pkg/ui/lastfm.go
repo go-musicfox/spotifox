@@ -26,7 +26,7 @@ func (m *Lastfm) GetMenuKey() string {
 }
 
 func (m *Lastfm) MenuViews() []model.MenuItem {
-	if m.netease.lastfmUser == nil || m.netease.lastfmUser.SessionKey == "" {
+	if m.spotifox.lastfmUser == nil || m.spotifox.lastfmUser.SessionKey == "" {
 		return []model.MenuItem{
 			{Title: "去授权"},
 		}
@@ -38,24 +38,24 @@ func (m *Lastfm) MenuViews() []model.MenuItem {
 }
 
 func (m *Lastfm) SubMenu(_ *model.App, index int) model.Menu {
-	if m.netease.lastfmUser == nil || m.netease.lastfmUser.SessionKey == "" {
+	if m.spotifox.lastfmUser == nil || m.spotifox.lastfmUser.SessionKey == "" {
 		return m.auth
 	}
 	switch index {
 	case 0:
-		_ = open.Start(m.netease.lastfmUser.Url)
+		_ = open.Start(m.spotifox.lastfmUser.Url)
 	case 1:
-		m.netease.lastfmUser = &storage.LastfmUser{}
-		m.netease.lastfmUser.Clear()
+		m.spotifox.lastfmUser = &storage.LastfmUser{}
+		m.spotifox.lastfmUser.Clear()
 		return NewLastfmRes(m.baseMenu, "清除授权", nil, 2)
 	}
 	return nil
 }
 
 func (m *Lastfm) FormatMenuItem(item *model.MenuItem) {
-	if m.netease.lastfmUser == nil || m.netease.lastfmUser.SessionKey == "" {
+	if m.spotifox.lastfmUser == nil || m.spotifox.lastfmUser.SessionKey == "" {
 		item.Subtitle = "[未授权]"
 	} else {
-		item.Subtitle = fmt.Sprintf("[%s]", m.netease.lastfmUser.Name)
+		item.Subtitle = fmt.Sprintf("[%s]", m.spotifox.lastfmUser.Name)
 	}
 }

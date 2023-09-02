@@ -59,15 +59,13 @@ const (
 	PmOrder
 	PmSingleLoop
 	PmRandom
-	PmIntelligent
 )
 
 var modeNames = map[Mode]string{
-	PmListLoop:    "列表",
-	PmOrder:       "顺序",
-	PmSingleLoop:  "单曲",
-	PmRandom:      "随机",
-	PmIntelligent: "心动",
+	PmListLoop:   "列表",
+	PmOrder:      "顺序",
+	PmSingleLoop: "单曲",
+	PmRandom:     "随机",
 }
 
 func ModeName(mode Mode) string {

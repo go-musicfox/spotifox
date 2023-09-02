@@ -3,7 +3,8 @@ module github.com/go-musicfox/spotifox
 go 1.21
 
 require (
-	github.com/anhoder/foxful-cli v0.1.1
+	github.com/anhoder/foxful-cli v0.1.3
+	github.com/arcspace/go-arc-sdk v0.0.0-20230811172934-db6c05cc94b2
 	github.com/arcspace/go-librespot v0.0.0-20230811173922-2e901b172fbe
 	github.com/buger/jsonparser v1.1.1
 	github.com/charmbracelet/bubbles v0.16.1
@@ -30,7 +31,6 @@ require (
 
 require (
 	capnproto.org/go/capnp/v3 v3.0.0-alpha-29 // indirect
-	github.com/arcspace/go-arc-sdk v0.0.0-20230811172934-db6c05cc94b2 // indirect
 	github.com/brynbellomy/klog v0.0.0-20200414031930-87fbf2e555ae // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect

@@ -2,8 +2,8 @@ package ui
 
 import (
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/spotifox/pkg/structs"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/zmb3/spotify/v2"
 )
 
 const CurPlaylistKey = "cur_playlist"
@@ -11,14 +11,14 @@ const CurPlaylistKey = "cur_playlist"
 type CurPlaylist struct {
 	baseMenu
 	menus []model.MenuItem
-	songs []structs.Song
+	songs []spotify.PlaylistItem
 }
 
-func NewCurPlaylist(base baseMenu, songs []structs.Song) *CurPlaylist {
+func NewCurPlaylist(base baseMenu, songs []spotify.PlaylistItem) *CurPlaylist {
 	return &CurPlaylist{
 		baseMenu: base,
 		songs:    songs,
-		menus:    utils.GetViewFromSongs(songs),
+		menus:    utils.MenuItemsFromSongs(songs),
 	}
 }
 
@@ -38,22 +38,22 @@ func (m *CurPlaylist) MenuViews() []model.MenuItem {
 	return m.menus
 }
 
-func (m *CurPlaylist) Songs() []structs.Song {
+func (m *CurPlaylist) Songs() []spotify.PlaylistItem {
 	return m.songs
 }
 
 func (m *CurPlaylist) BottomOutHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		if m.netease.player.playingMenu == nil || m.netease.player.playingMenu.GetMenuKey() == CurPlaylistKey {
+		if m.spotifox.player.playingMenu == nil || m.spotifox.player.playingMenu.GetMenuKey() == CurPlaylistKey {
 			return true, nil
 		}
-		hook := m.netease.player.playingMenu.BottomOutHook()
+		hook := m.spotifox.player.playingMenu.BottomOutHook()
 		if hook == nil {
 			return true, nil
 		}
 		res, page := hook(main)
-		m.songs = m.netease.player.playlist
-		m.menus = utils.GetViewFromSongs(m.songs)
+		m.songs = m.spotifox.player.playlist
+		m.menus = utils.MenuItemsFromSongs(m.songs)
 		return res, page
 	}
 }

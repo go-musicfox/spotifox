@@ -13,15 +13,14 @@ import (
 	"github.com/anhoder/foxful-cli/util"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-musicfox/spotifox/pkg/configs"
-	"github.com/go-musicfox/spotifox/pkg/constants"
 	"github.com/go-musicfox/spotifox/pkg/lastfm"
 	"github.com/go-musicfox/spotifox/pkg/lyric"
 	"github.com/go-musicfox/spotifox/pkg/player"
 	"github.com/go-musicfox/spotifox/pkg/state_handler"
 	"github.com/go-musicfox/spotifox/pkg/storage"
-	"github.com/go-musicfox/spotifox/pkg/structs"
 	"github.com/go-musicfox/spotifox/utils"
 	"github.com/go-musicfox/spotifox/utils/like_list"
+	"github.com/zmb3/spotify/v2"
 
 	"github.com/buger/jsonparser"
 	"github.com/go-musicfox/netease-music/service"
@@ -60,11 +59,11 @@ type Player struct {
 	spotifox *Spotifox
 	cancel   context.CancelFunc
 
-	playlist         []structs.Song // 歌曲列表
-	playlistUpdateAt time.Time      // 播放列表更新时间
-	curSongIndex     int            // 当前歌曲的下标
-	curSong          structs.Song   // 当前歌曲信息（防止播放列表发生变动后，歌曲信息不匹配）
-	playingMenuKey   string         // 正在播放的菜单Key
+	playlist         []spotify.PlaylistItem // 歌曲列表
+	playlistUpdateAt time.Time              // 播放列表更新时间
+	curSongIndex     int                    // 当前歌曲的下标
+	curSong          spotify.PlaylistItem   // 当前歌曲信息（防止播放列表发生变动后，歌曲信息不匹配）
+	playingMenuKey   string                 // 正在播放的菜单Key
 	playingMenu      Menu
 	playedTime       time.Duration // 已经播放的时长
 
@@ -124,12 +123,8 @@ func NewPlayer(spotifox *Spotifox) *Player {
 					p.spotifox.Rerender(false)
 					break
 				}
-				// 上报lastfm
+				// report to lastfm
 				lastfm.Report(p.spotifox.lastfm, lastfm.ReportPhaseComplete, p.curSong, p.PassedTime())
-				// 自动切歌且播放时间不少于(实际歌曲时间-20)秒时，才上报至网易云
-				if p.CurMusic().Duration.Seconds()-p.playedTime.Seconds() < 20 {
-					utils.ReportSongEnd(p.curSong.Id, p.PlayingInfo().TrackID, p.PassedTime())
-				}
 				p.NextSong(false)
 			}
 		}
@@ -283,8 +278,9 @@ func (p *Player) songView() string {
 		builder.WriteString(util.SetFgStyle("_ z Z Z ", termenv.ANSIYellow))
 	}
 
-	if p.curSong.Id > 0 {
-		if like_list.IsLikeSong(p.curSong.Id) {
+	songId := utils.IDOfSong(p.curSong)
+	if songId != "" {
+		if like_list.IsLikeSong(songId) {
 			builder.WriteString(util.SetFgStyle("♥ ", termenv.ANSIRed))
 		} else {
 			builder.WriteString(util.SetFgStyle("♥ ", termenv.ANSIWhite))
@@ -293,21 +289,20 @@ func (p *Player) songView() string {
 
 	if p.curSongIndex < len(p.playlist) {
 		// 按剩余长度截断字符串
-		truncateSong := runewidth.Truncate(p.curSong.Name, p.spotifox.WindowWidth()-main.MenuStartColumn()-prefixLen, "") // 多减，避免剩余1个中文字符
+		truncateSong := runewidth.Truncate(utils.NameOfSong(p.curSong), p.spotifox.WindowWidth()-main.MenuStartColumn()-prefixLen, "") // 多减，避免剩余1个中文字符
 		builder.WriteString(util.SetFgStyle(truncateSong, util.GetPrimaryColor()))
 		builder.WriteString(" ")
 
 		var artists strings.Builder
-		for i, v := range p.curSong.Artists {
+		for i, v := range utils.ArtistNamesOfSong(p.curSong) {
 			if i != 0 {
 				artists.WriteString(",")
 			}
-
-			artists.WriteString(v.Name)
+			artists.WriteString(v)
 		}
 
 		// 按剩余长度截断字符串
-		remainLen := p.spotifox.WindowWidth() - main.MenuStartColumn() - prefixLen - runewidth.StringWidth(p.curSong.Name)
+		remainLen := p.spotifox.WindowWidth() - main.MenuStartColumn() - prefixLen - runewidth.StringWidth(utils.NameOfSong(p.curSong))
 		truncateArtists := runewidth.Truncate(
 			runewidth.FillRight(artists.String(), remainLen),
 			remainLen, "")
@@ -352,15 +347,14 @@ func (p *Player) InPlayingMenu() bool {
 }
 
 // CompareWithCurPlaylist 与当前播放列表对比，是否一致
-func (p *Player) CompareWithCurPlaylist(playlist []structs.Song) bool {
-
+func (p *Player) CompareWithCurPlaylist(playlist []spotify.PlaylistItem) bool {
 	if len(playlist) != len(p.playlist) {
 		return false
 	}
 
 	// 如果前20个一致，则认为相同
 	for i := 0; i < 20 && i < len(playlist); i++ {
-		if playlist[i].Id != p.playlist[i].Id {
+		if !utils.CompareSong(playlist[i], p.playlist[i]) {
 			return false
 		}
 	}
@@ -404,10 +398,10 @@ func (p *Player) LocatePlayingSong() {
 }
 
 // PlaySong 播放歌曲
-func (p *Player) PlaySong(song structs.Song, direction PlayDirection) error {
-	loading := NewLoading(p.spotifox)
-	loading.start()
-	defer loading.complete()
+func (p *Player) PlaySong(song spotify.PlaylistItem, direction PlayDirection) error {
+	loading := model.NewLoading(p.spotifox.MustMain())
+	loading.Start()
+	defer loading.Complete()
 
 	table := storage.NewTable()
 	_ = table.SetByKVModel(storage.PlayerSnapshot{}, storage.PlayerSnapshot{
@@ -440,26 +434,26 @@ func (p *Player) PlaySong(song structs.Song, direction PlayDirection) error {
 		return nil
 	}
 
-	if configs.ConfigRegistry.ShowLyric {
-		go p.updateLyric(song.Id)
-	}
+	// if configs.ConfigRegistry.ShowLyric {
+	// 	go p.updateLyric(song.Id)
+	// }
 
 	p.Player.Play(player.UrlMusic{
-		Url:  url,
-		Song: song,
+		Url: url,
+		// Song: song,
 		Type: player.SongTypeMapping[musicType],
 	})
 
 	// 上报
 	lastfm.Report(p.spotifox.lastfm, lastfm.ReportPhaseStart, p.curSong, p.PassedTime())
 
-	go utils.Notify(utils.NotifyContent{
-		Title:   "正在播放: " + song.Name,
-		Text:    fmt.Sprintf("%s - %s", song.ArtistName(), song.Album.Name),
-		Icon:    song.PicUrl,
-		Url:     utils.WebUrlOfSong(song.Id),
-		GroupId: constants.GroupID,
-	})
+	// go utils.Notify(utils.NotifyContent{
+	// 	Title:   "正在播放: " + song.Name,
+	// 	Text:    fmt.Sprintf("%s - %s", song.ArtistName(), song.Album.Name),
+	// 	Icon:    song.PicUrl,
+	// 	Url:     utils.WebUrlOfSong(song.Id),
+	// 	GroupId: constants.GroupID,
+	// })
 
 	p.playErrCount = 0
 
@@ -469,10 +463,6 @@ func (p *Player) PlaySong(song structs.Song, direction PlayDirection) error {
 // NextSong 下一曲
 func (p *Player) NextSong(isManual bool) {
 	if len(p.playlist) == 0 || p.curSongIndex >= len(p.playlist)-1 {
-		if p.mode == player.PmIntelligent {
-			p.Intelligence(true)
-		}
-
 		var main = p.spotifox.MustMain()
 		if p.InPlayingMenu() {
 			if main.IsDualColumn() && p.curSongIndex%2 == 0 {
@@ -488,7 +478,7 @@ func (p *Player) NextSong(isManual bool) {
 	}
 
 	switch p.mode {
-	case player.PmListLoop, player.PmIntelligent:
+	case player.PmListLoop:
 		p.curSongIndex++
 		if p.curSongIndex > len(p.playlist)-1 {
 			p.curSongIndex = 0
@@ -526,10 +516,6 @@ func (p *Player) NextSong(isManual bool) {
 // PreviousSong 上一曲
 func (p *Player) PreviousSong(isManual bool) {
 	if len(p.playlist) == 0 || p.curSongIndex >= len(p.playlist)-1 {
-		if p.mode == player.PmIntelligent {
-			p.Intelligence(true)
-		}
-
 		var main = p.spotifox.MustMain()
 		if p.InPlayingMenu() {
 			if main.IsDualColumn() && p.curSongIndex%2 == 0 {
@@ -545,7 +531,7 @@ func (p *Player) PreviousSong(isManual bool) {
 	}
 
 	switch p.mode {
-	case player.PmListLoop, player.PmIntelligent:
+	case player.PmListLoop:
 		p.curSongIndex--
 		if p.curSongIndex < 0 {
 			p.curSongIndex = len(p.playlist) - 1
@@ -687,61 +673,6 @@ func (p *Player) updateLyric(songId int64) {
 	}
 }
 
-// Intelligence 智能/心动模式
-func (p *Player) Intelligence(appendMode bool) model.Page {
-	var (
-		main    = p.spotifox.MustMain()
-		curMenu = main.CurMenu()
-	)
-	playlist, ok := curMenu.(*PlaylistDetailMenu)
-	if !ok {
-		return nil
-	}
-
-	selectedIndex := curMenu.RealDataIndex(main.SelectedIndex())
-	if selectedIndex >= len(playlist.songs) {
-		return nil
-	}
-
-	if utils.CheckUserInfo(p.spotifox.user) == utils.NeedLogin {
-		page, _ := p.spotifox.ToLoginPage(nil)
-		return page
-	}
-
-	intelligenceService := service.PlaymodeIntelligenceListService{
-		SongId:       strconv.FormatInt(playlist.songs[selectedIndex].Id, 10),
-		PlaylistId:   strconv.FormatInt(playlist.playlistId, 10),
-		StartMusicId: strconv.FormatInt(playlist.songs[selectedIndex].Id, 10),
-	}
-	code, response := intelligenceService.PlaymodeIntelligenceList()
-	codeType := utils.CheckCode(code)
-	if codeType == utils.NeedLogin {
-		page, _ := p.spotifox.ToLoginPage(func(newMenu model.Menu, newTitle *model.MenuItem) model.Page {
-			p.Intelligence(appendMode)
-			return nil
-		})
-		return page
-	} else if codeType != utils.Success {
-		return nil
-	}
-	songs := utils.GetIntelligenceSongs(response)
-
-	if appendMode {
-		p.playlist = append(p.playlist, songs...)
-		p.playlistUpdateAt = time.Now()
-		p.curSongIndex++
-	} else {
-		p.playlist = append([]structs.Song{playlist.songs[selectedIndex]}, songs...)
-		p.playlistUpdateAt = time.Now()
-		p.curSongIndex = 0
-	}
-	p.mode = player.PmIntelligent
-	p.playingMenuKey = "Intelligent"
-
-	_ = p.PlaySong(p.playlist[p.curSongIndex], DurationNext)
-	return nil
-}
-
 func (p *Player) UpVolume() {
 	p.Player.UpVolume()
 
@@ -792,17 +723,17 @@ func (p *Player) handleControlSignal(signal CtrlSignal) {
 }
 
 func (p *Player) PlayingInfo() state_handler.PlayingInfo {
-	music := p.curSong
+	// music := p.curSong
 	return state_handler.PlayingInfo{
-		TotalDuration:  music.Duration,
-		PassedDuration: p.PassedTime(),
-		State:          p.State(),
-		Volume:         p.Volume(),
-		TrackID:        music.Id,
-		PicUrl:         music.PicUrl,
-		Name:           music.Name,
-		Album:          music.Album.Name,
-		Artist:         music.ArtistName(),
-		AlbumArtist:    music.Album.ArtistName(),
+		// TotalDuration:  music.Duration,
+		// PassedDuration: p.PassedTime(),
+		// State:          p.State(),
+		// Volume:         p.Volume(),
+		// TrackID:        music.Id,
+		// PicUrl:         music.PicUrl,
+		// Name:           music.Name,
+		// Album:          music.Album.Name,
+		// Artist:         music.ArtistName(),
+		// AlbumArtist:    music.Album.ArtistName(),
 	}
 }

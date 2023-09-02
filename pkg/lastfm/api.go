@@ -2,11 +2,12 @@ package lastfm
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-musicfox/spotifox/pkg/constants"
-	"github.com/go-musicfox/spotifox/pkg/structs"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/zmb3/spotify/v2"
 
 	"github.com/pkg/errors"
 	lastfmgo "github.com/shkh/lastfm-go"
@@ -139,30 +140,30 @@ const (
 	ReportPhaseComplete
 )
 
-func Report(client *Client, phase ReportPhase, song structs.Song, passedTime time.Duration) {
+func Report(client *Client, phase ReportPhase, song spotify.PlaylistItem, passedTime time.Duration) {
 	switch phase {
 	case ReportPhaseStart:
-		go func(song structs.Song) {
-			_ = client.UpdateNowPlaying(map[string]interface{}{
-				"artist":   song.ArtistName(),
-				"track":    song.Name,
-				"album":    song.Album.Name,
-				"duration": song.Duration,
+		go func(song spotify.PlaylistItem) {
+			_ = client.UpdateNowPlaying(map[string]any{
+				"artist":   strings.Join(utils.ArtistNamesOfSong(song), ","),
+				"track":    utils.NameOfSong(song),
+				"album":    utils.AlbumNameOfSong(song),
+				"duration": utils.DurationOfSong(song),
 			})
 		}(song)
 	case ReportPhaseComplete:
-		duration := song.Duration.Seconds()
+		duration := utils.DurationOfSong(song).Seconds()
 		passedSeconds := passedTime.Seconds()
 		if passedSeconds >= duration/2 {
-			go func(song structs.Song, passed time.Duration) {
+			go func(song spotify.PlaylistItem, duration float64) {
 				_ = client.Scrobble(map[string]interface{}{
-					"artist":    song.ArtistName(),
-					"track":     song.Name,
-					"album":     song.Album.Name,
+					"artist":    strings.Join(utils.ArtistNamesOfSong(song), ","),
+					"track":     utils.NameOfSong(song),
+					"album":     utils.AlbumNameOfSong(song),
 					"timestamp": time.Now().Unix(),
-					"duration":  song.Duration.Seconds(),
+					"duration":  duration,
 				})
-			}(song, passedTime)
+			}(song, duration)
 		}
 	}
 }

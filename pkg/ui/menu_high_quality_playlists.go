@@ -2,16 +2,13 @@ package ui
 
 import (
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/spotifox/pkg/structs"
-	"github.com/go-musicfox/spotifox/utils"
-
-	"github.com/go-musicfox/netease-music/service"
+	"github.com/zmb3/spotify/v2"
 )
 
 type HighQualityPlaylistsMenu struct {
 	baseMenu
 	menus     []model.MenuItem
-	playlists []structs.Playlist
+	playlists []spotify.SimplePlaylist
 }
 
 func NewHighQualityPlaylistsMenu(base baseMenu) *HighQualityPlaylistsMenu {
@@ -36,10 +33,10 @@ func (m *HighQualityPlaylistsMenu) SubMenu(_ *model.App, index int) model.Menu {
 	if index >= len(m.playlists) {
 		return nil
 	}
-	return NewPlaylistDetailMenu(m.baseMenu, m.playlists[index].Id)
+	return NewPlaylistDetailMenu(m.baseMenu, m.playlists[index].ID)
 }
 
-func (m *HighQualityPlaylistsMenu) Playlists() []structs.Playlist {
+func (m *HighQualityPlaylistsMenu) Playlists() []spotify.SimplePlaylist {
 	return m.playlists
 }
 
@@ -50,18 +47,18 @@ func (m *HighQualityPlaylistsMenu) BeforeEnterMenuHook() model.Hook {
 			return true, nil
 		}
 
-		highQualityPlaylists := service.TopPlaylistHighqualityService{
-			Limit: "80",
-		}
-		code, response := highQualityPlaylists.TopPlaylistHighquality()
-		codeType := utils.CheckCode(code)
-		if codeType != utils.Success {
-			return false, nil
-		}
-		m.playlists = utils.GetPlaylistsFromHighQuality(response)
-		for _, playlist := range m.playlists {
-			m.menus = append(m.menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name)})
-		}
+		// highQualityPlaylists := service.TopPlaylistHighqualityService{
+		// 	Limit: "80",
+		// }
+		// code, response := highQualityPlaylists.TopPlaylistHighquality()
+		// codeType := utils.CheckCode(code)
+		// if codeType != utils.Success {
+		// 	return false, nil
+		// }
+		// m.playlists = utils.GetPlaylistsFromHighQuality(response)
+		// for _, playlist := range m.playlists {
+		// 	m.menus = append(m.menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name)})
+		// }
 
 		return true, nil
 	}

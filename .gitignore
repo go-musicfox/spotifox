@@ -10,3 +10,4 @@ go.work.sum
 .devenv/
 .envrc
 result/
+__debug*

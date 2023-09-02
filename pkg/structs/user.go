@@ -4,14 +4,22 @@ import (
 	"encoding/json"
 
 	respot "github.com/arcspace/go-librespot/librespot/api-respot"
+	"github.com/arcspace/go-librespot/librespot/mercury"
 	"github.com/pkg/errors"
+	"github.com/zmb3/spotify/v2"
 )
 
 type User struct {
-	Username    string `json:"username"`
-	DisplayName string `json:"displayName"`
-	Country     string `json:"country"`
-	AuthBlob    []byte `json:"authBlob"`
+	spotify.User `json:",inline"`
+
+	Username string        `json:"username"`
+	Country  string        `json:"country"`
+	AuthBlob []byte        `json:"authBlob"`
+	Token    mercury.Token `json:"-"`
+
+	Email     string `json:"email"`
+	Product   string `json:"product"`
+	Birthdate string `json:"birthdate"`
 }
 
 func NewUserFromLocalJson(bytes []byte) (User, error) {

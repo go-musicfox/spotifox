@@ -1,27 +1,31 @@
 package ui
 
 import (
-	"fmt"
-	"strconv"
+	"context"
 
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/spotifox/pkg/structs"
 	"github.com/go-musicfox/spotifox/utils"
-
-	"github.com/go-musicfox/netease-music/service"
+	"github.com/pkg/errors"
+	"github.com/zmb3/spotify/v2"
 )
 
 type PlaylistDetailMenu struct {
 	baseMenu
 	menus      []model.MenuItem
-	songs      []structs.Song
-	playlistId int64
+	songs      []spotify.PlaylistItem
+	playlistId spotify.ID
+
+	limit  int
+	offset int
+	total  int
 }
 
-func NewPlaylistDetailMenu(base baseMenu, playlistId int64) *PlaylistDetailMenu {
+func NewPlaylistDetailMenu(base baseMenu, playlistId spotify.ID) *PlaylistDetailMenu {
 	return &PlaylistDetailMenu{
 		baseMenu:   base,
 		playlistId: playlistId,
+
+		limit: 50,
 	}
 }
 
@@ -34,7 +38,7 @@ func (m *PlaylistDetailMenu) IsPlayable() bool {
 }
 
 func (m *PlaylistDetailMenu) GetMenuKey() string {
-	return fmt.Sprintf("playlist_detail_%d", m.playlistId)
+	return "playlist_detail_" + string(m.playlistId)
 }
 
 func (m *PlaylistDetailMenu) MenuViews() []model.MenuItem {
@@ -45,43 +49,50 @@ func (m *PlaylistDetailMenu) SubMenu(_ *model.App, _ int) model.Menu {
 	return nil
 }
 
-func getSongsInPlaylist(playlistId int64, getAll bool) (codeType utils.ResCode, songs []structs.Song) {
-	var (
-		code     float64
-		response []byte
-	)
-	if !getAll {
-		playlistDetail := service.PlaylistDetailService{Id: strconv.FormatInt(playlistId, 10), S: "0"} // 最近S个收藏者，设为0
-		code, response = playlistDetail.PlaylistDetail()
-	} else {
-		allTrack := service.PlaylistTrackAllService{Id: strconv.FormatInt(playlistId, 10), S: "0"} // 最近S个收藏者，设为0
-		code, response = allTrack.AllTracks()
-	}
-	codeType = utils.CheckCode(code)
-	if codeType != utils.Success {
-		return
-	}
-	songs = utils.GetSongsOfPlaylist(response)
-
-	return
-}
-
 func (m *PlaylistDetailMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		codeType, songs := getSongsInPlaylist(m.playlistId, true)
-		if codeType == utils.NeedLogin {
-			page, _ := m.netease.ToLoginPage(main.EnterMenu)
+		if m.spotifox.spotifyClient == nil || utils.CheckUserInfo(m.spotifox.user) == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
-		} else if codeType != utils.Success {
-			return false, nil
 		}
-		m.songs = songs
-		m.menus = utils.GetViewFromSongs(songs)
+		res, err := m.spotifox.spotifyClient.GetPlaylistItems(context.Background(), m.playlistId, spotify.Limit(m.limit))
+		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+			return false, page
+		}
+		if err != nil {
+			return m.handleFetchErr(errors.Wrap(err, "get playlist items failed"))
+		}
+		m.total = res.Total
+
+		m.songs = res.Items
+		m.menus = utils.MenuItemsFromSongs(m.songs)
 
 		return true, nil
 	}
 }
 
-func (m *PlaylistDetailMenu) Songs() []structs.Song {
+func (m *PlaylistDetailMenu) BottomOutHook() model.Hook {
+	if m.total <= m.limit+m.offset {
+		return nil
+	}
+	return func(main *model.Main) (bool, model.Page) {
+		m.offset += len(m.menus)
+		res, err := m.spotifox.spotifyClient.GetPlaylistItems(context.Background(), m.playlistId, spotify.Limit(m.limit))
+		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+			return false, page
+		}
+		if err != nil {
+			return m.handleFetchErr(errors.Wrap(err, "get playlist items failed"))
+		}
+		m.songs = append(m.songs, res.Items...)
+		m.menus = append(m.menus, utils.MenuItemsFromSongs(m.songs)...)
+
+		return true, nil
+	}
+}
+
+func (m *PlaylistDetailMenu) Songs() []spotify.PlaylistItem {
 	return m.songs
 }

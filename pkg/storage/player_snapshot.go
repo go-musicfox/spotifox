@@ -4,13 +4,13 @@ import (
 	"time"
 
 	"github.com/go-musicfox/spotifox/pkg/constants"
-	"github.com/go-musicfox/spotifox/pkg/structs"
+	"github.com/zmb3/spotify/v2"
 )
 
 type PlayerSnapshot struct {
-	CurSongIndex     int            `json:"cur_song_index"`
-	Playlist         []structs.Song `json:"playlist"`
-	PlaylistUpdateAt time.Time      `json:"playlist_update_at"`
+	CurSongIndex     int                    `json:"cur_song_index"`
+	Playlist         []spotify.PlaylistItem `json:"playlist"`
+	PlaylistUpdateAt time.Time              `json:"playlist_update_at"`
 }
 
 func (p PlayerSnapshot) GetDbName() string {

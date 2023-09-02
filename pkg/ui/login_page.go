@@ -2,13 +2,12 @@ package ui
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
 	"github.com/anhoder/foxful-cli/model"
 	"github.com/anhoder/foxful-cli/util"
-	respot "github.com/arcspace/go-librespot/librespot/api-respot"
 	_ "github.com/arcspace/go-librespot/librespot/core" // bootstrapping
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,10 +17,10 @@ import (
 	"github.com/go-musicfox/spotifox/pkg/storage"
 	"github.com/go-musicfox/spotifox/pkg/structs"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/go-musicfox/spotifox/utils/auth"
 	"github.com/mattn/go-runewidth"
 	"github.com/muesli/termenv"
 	"github.com/zmb3/spotify/v2"
-	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
 )
 
@@ -29,7 +28,7 @@ const LoginPageType model.PageType = "login"
 
 const (
 	submitIndex = 2 // skip account and password input
-	authIndex   = 3
+	// authIndex   = 3
 )
 
 // login tick
@@ -43,16 +42,17 @@ func tickLogin(duration time.Duration) tea.Cmd {
 
 type LoginPage struct {
 	spotifox *Spotifox
-	sess     respot.Session
 
 	menuTitle     *model.MenuItem
 	index         int
 	accountInput  textinput.Model
 	passwordInput textinput.Model
 	submitButton  string
-	authButton    string
-	authStep      int
-	tips          string
+	// authButton    string
+	// authStep int
+	tips string
+
+	AfterLogin LoginCallback
 }
 
 func NewLoginPage(spotifox *Spotifox) (login *LoginPage) {
@@ -70,22 +70,15 @@ func NewLoginPage(spotifox *Spotifox) (login *LoginPage) {
 	passwordInput.EchoCharacter = '•'
 	passwordInput.CharLimit = 32
 
-	ctx := respot.DefaultSessionContext(constants.SpotifyDeviceName)
-	sess, err := respot.StartNewSession(ctx)
-	if err != nil {
-		panic(err)
-	}
-
 	login = &LoginPage{
 		spotifox: spotifox,
-		sess:     sess,
 
-		menuTitle:     &model.MenuItem{Title: "用户登录", Subtitle: "账密登录或OAuth授权"},
+		menuTitle:     &model.MenuItem{Title: "用户登录", Subtitle: "账号密码登录"},
 		accountInput:  accountInput,
 		passwordInput: passwordInput,
 		submitButton:  model.GetBlurredSubmitButton(),
 	}
-	login.authButton = model.GetBlurredButton(login.authButtonTextByStep())
+	// login.authButton = model.GetBlurredButton(login.authButtonTextByStep())
 
 	return
 }
@@ -119,18 +112,19 @@ func (l *LoginPage) Update(msg tea.Msg, _ *model.App) (model.Page, tea.Cmd) {
 
 	switch key.String() {
 	case "b":
-		if l.index != submitIndex && l.index != authIndex {
+		// if l.index != submitIndex && l.index != authIndex {
+		if l.index != submitIndex {
 			return l.updateLoginInputs(msg)
 		}
 		fallthrough
 	case "esc":
 		l.tips = ""
-		l.authStep = 0
-		if l.index == authIndex {
-			l.authButton = model.GetFocusedButton(l.authButtonTextByStep())
-		} else {
-			l.authButton = model.GetBlurredButton(l.authButtonTextByStep())
-		}
+		// l.authStep = 0
+		// if l.index == authIndex {
+		// 	l.authButton = model.GetFocusedButton(l.authButtonTextByStep())
+		// } else {
+		// 	l.authButton = model.GetBlurredButton(l.authButtonTextByStep())
+		// }
 		return l.spotifox.MustMain(), l.spotifox.RerenderCmd(true)
 	case "tab", "shift+tab", "enter", "up", "down", "left", "right":
 		s := key.String()
@@ -146,22 +140,22 @@ func (l *LoginPage) Update(msg tea.Msg, _ *model.App) (model.Page, tea.Cmd) {
 			if l.index < submitIndex {
 				return l.updateLoginInputs(msg)
 			}
-			if s == "left" && l.index == authIndex {
-				l.index--
-			} else if s == "right" && l.index == submitIndex {
-				l.index++
-			}
+			// if s == "left" && l.index == authIndex {
+			// 	l.index--
+			// } else if s == "right" && l.index == submitIndex {
+			// 	l.index++
+			// }
 		} else if s == "up" || s == "shift+tab" {
 			l.index--
 		} else {
 			l.index++
 		}
 
-		if l.index > authIndex {
-			l.index = 0
-		} else if l.index < 0 {
-			l.index = authIndex
-		}
+		// if l.index > authIndex {
+		// 	l.index = 0
+		// } else if l.index < 0 {
+		// 	l.index = authIndex
+		// }
 
 		for i := 0; i <= len(inputs)-1; i++ {
 			if i != l.index {
@@ -186,11 +180,11 @@ func (l *LoginPage) Update(msg tea.Msg, _ *model.App) (model.Page, tea.Cmd) {
 			l.submitButton = model.GetBlurredSubmitButton()
 		}
 
-		if l.index == authIndex {
-			l.authButton = model.GetFocusedButton(l.authButtonTextByStep())
-		} else {
-			l.authButton = model.GetBlurredButton(l.authButtonTextByStep())
-		}
+		// if l.index == authIndex {
+		// 	l.authButton = model.GetFocusedButton(l.authButtonTextByStep())
+		// } else {
+		// 	l.authButton = model.GetBlurredButton(l.authButtonTextByStep())
+		// }
 
 		return l, nil
 	}
@@ -263,9 +257,10 @@ func (l *LoginPage) View(a *model.App) string {
 
 	var btnBlank = "    "
 	builder.WriteString(btnBlank)
-	builder.WriteString(l.authButton)
+	// builder.WriteString(l.authButton)
 
-	spaceLen := a.WindowWidth() - mainPage.MenuStartColumn() - runewidth.StringWidth(model.SubmitText) - runewidth.StringWidth(l.authButtonTextByStep()) - len(btnBlank)
+	// spaceLen := a.WindowWidth() - mainPage.MenuStartColumn() - runewidth.StringWidth(model.SubmitText) - runewidth.StringWidth(l.authButtonTextByStep()) - len(btnBlank)
+	spaceLen := a.WindowWidth() - mainPage.MenuStartColumn() - runewidth.StringWidth(model.SubmitText) - len(btnBlank)
 	if spaceLen > 0 {
 		builder.WriteString(strings.Repeat(" ", spaceLen))
 	}
@@ -297,21 +292,21 @@ func (l *LoginPage) updateLoginInputs(msg tea.Msg) (model.Page, tea.Cmd) {
 	return l, tea.Batch(cmds...)
 }
 
-func (l *LoginPage) authButtonTextByStep() string {
-	switch l.authStep {
-	case 1:
-		return "已在浏览器登录授权，继续"
-	case 0:
-		fallthrough
-	default:
-		return "OAuth授权"
-	}
-}
+// func (l *LoginPage) authButtonTextByStep() string {
+// 	switch l.authStep {
+// 	case 1:
+// 		return "已在浏览器登录授权，继续"
+// 	case 0:
+// 		fallthrough
+// 	default:
+// 		return "OAuth授权"
+// 	}
+// }
 
 func (l *LoginPage) enterHandler() (model.Page, tea.Cmd) {
-	loading := NewLoading(l.spotifox, l.menuTitle)
-	loading.start()
-	defer loading.complete()
+	loading := model.NewLoading(l.spotifox.MustMain(), l.menuTitle)
+	loading.Start()
+	defer loading.Complete()
 
 	switch l.index {
 	case submitIndex:
@@ -320,7 +315,7 @@ func (l *LoginPage) enterHandler() (model.Page, tea.Cmd) {
 			return l, nil
 		}
 		return l.loginByAccount()
-	case authIndex:
+		// case authIndex:
 		//return l.loginByOAuth()
 	}
 
@@ -328,73 +323,104 @@ func (l *LoginPage) enterHandler() (model.Page, tea.Cmd) {
 }
 
 func (l *LoginPage) loginByAccount() (model.Page, tea.Cmd) {
-	login := &l.sess.Context().Login
+	login := &l.spotifox.sess.Context().Login
 	login.Username = l.accountInput.Value()
 	login.Password = l.passwordInput.Value()
-	if err := l.sess.Login(); err != nil {
-		utils.Logger().Printf("login err, %+v", err)
-		l.tips = util.SetFgStyle(err.Error(), termenv.ANSIBrightRed)
-		return l, tickLogin(time.Nanosecond)
+	if err := l.spotifox.sess.Login(); err != nil {
+		return l.handleLoginFail(err)
 	}
-	user := structs.NewUserFromSession(l.sess.Context().Info)
 
-	token, err := l.sess.Mercury().GetToken(configs.ConfigRegistry.SpotifyClientId, constants.SpotifyOAuthScopes)
-	fmt.Println(token, err)
+	return l.handleLoginSuccess()
+}
 
-	client := spotify.New(spotifyauth.New().Client(context.Background(), &oauth2.Token{
+// func (l *LoginPage) loginByOAuth() (model.Page, tea.Cmd) {
+//if l.authStep == 0 {
+//	var authURL string
+//	authURL, l.tokenChan = core.StartOAuth(constants.SpotifyClientId, constants.SpotifyClientSecret, constants.SpotifyOAuthScopes, constants.SpotifyOAuthPort)
+//	_ = open.Start(authURL)
+//	l.authStep++
+//	return l, tickLogin(time.Nanosecond)
+//}
+//
+//if l.tokenChan == nil {
+//	utils.Logger().Print("auth failed: token chan is nil")
+//	l.tips = util.SetFgStyle("Not Auth", termenv.ANSIBrightRed)
+//	return l, tickLogin(time.Nanosecond)
+//}
+//var accessToken string
+//select {
+//case auth := <-l.tokenChan:
+//	accessToken = auth.AccessToken
+//case <-time.After(time.Second * 3):
+//}
+//if accessToken == "" {
+//	utils.Logger().Print("auth failed: token is empty")
+//	l.tips = util.SetFgStyle("Not Auth", termenv.ANSIBrightRed)
+//	return l, tickLogin(time.Nanosecond)
+//}
+//session, err := core.LoginOAuthToken(accessToken, constants.SpotifyDeviceName)
+//if err != nil {
+//	utils.Logger().Printf("auth failed, get session err: %+v", err)
+//	l.tips = util.SetFgStyle(err.Error(), termenv.ANSIBrightRed)
+//	return l, tickLogin(time.Nanosecond)
+//}
+//
+//l.tips = ""
+//return l.loginSuccessHandle(structs.NewUserFromSession(session))
+// }
+
+func (l *LoginPage) handleLoginSuccess() (model.Page, tea.Cmd) {
+	user := structs.NewUserFromSession(l.spotifox.sess.Context().Info)
+
+	token, err := l.spotifox.sess.Mercury().GetToken(configs.ConfigRegistry.SpotifyClientId, constants.SpotifyOAuthScopes)
+	if err != nil {
+		return l.handleLoginFail(err)
+	}
+	if token == nil || token.AccessToken == "" {
+		return l.handleLoginFail(errors.New("get access token failed"))
+	}
+	user.Token = *token
+
+	httpClient := oauth2.NewClient(context.Background(), (*auth.TokenSourceWrapper)(&oauth2.Token{
 		AccessToken: token.AccessToken,
 		TokenType:   token.TokenType,
 		Expiry:      time.Now().Add(time.Duration(token.ExpiresIn-30) * time.Second),
 	}))
-	u, err := client.CurrentUser(context.Background())
-	fmt.Println(u, err)
+	httpClient.Timeout = constants.AppHttpTimeout
+	l.spotifox.spotifyClient = spotify.New(httpClient)
 
-	return l.loginSuccessHandle(user)
-}
+	// get user profile
+	u, err := l.spotifox.spotifyClient.CurrentUser(context.Background())
+	if err != nil {
+		return l.handleLoginFail(err)
+	}
+	user.User = u.User
+	user.Email = u.Email
+	user.Product = u.Product
+	user.Birthdate = u.Birthdate
 
-func (l *LoginPage) loginByOAuth() (model.Page, tea.Cmd) {
-	//if l.authStep == 0 {
-	//	var authURL string
-	//	authURL, l.tokenChan = core.StartOAuth(constants.SpotifyClientId, constants.SpotifyClientSecret, constants.SpotifyOAuthScopes, constants.SpotifyOAuthPort)
-	//	_ = open.Start(authURL)
-	//	l.authStep++
-	//	return l, tickLogin(time.Nanosecond)
-	//}
-	//
-	//if l.tokenChan == nil {
-	//	utils.Logger().Print("auth failed: token chan is nil")
-	//	l.tips = util.SetFgStyle("Not Auth", termenv.ANSIBrightRed)
-	//	return l, tickLogin(time.Nanosecond)
-	//}
-	//var accessToken string
-	//select {
-	//case auth := <-l.tokenChan:
-	//	accessToken = auth.AccessToken
-	//case <-time.After(time.Second * 3):
-	//}
-	//if accessToken == "" {
-	//	utils.Logger().Print("auth failed: token is empty")
-	//	l.tips = util.SetFgStyle("Not Auth", termenv.ANSIBrightRed)
-	//	return l, tickLogin(time.Nanosecond)
-	//}
-	//session, err := core.LoginOAuthToken(accessToken, constants.SpotifyDeviceName)
-	//if err != nil {
-	//	utils.Logger().Printf("auth failed, get session err: %+v", err)
-	//	l.tips = util.SetFgStyle(err.Error(), termenv.ANSIBrightRed)
-	//	return l, tickLogin(time.Nanosecond)
-	//}
-	//
-	//l.tips = ""
-	//return l.loginSuccessHandle(structs.NewUserFromSession(session))
-	return nil, nil
-}
-
-func (l *LoginPage) loginSuccessHandle(user structs.User) (model.Page, tea.Cmd) {
 	l.spotifox.user = &user
 
 	table := storage.NewTable()
 	_ = table.SetByKVModel(storage.User{}, user)
 
-	l.spotifox.MustMain().RefreshMenuTitle()
-	return l.spotifox.MustMain(), model.TickMain(time.Nanosecond)
+	// clean
+	l.tips = ""
+	l.accountInput.Reset()
+	l.passwordInput.Reset()
+
+	var newPage model.Page = l.spotifox.MustMain()
+	if l.AfterLogin != nil {
+		p := l.AfterLogin()
+		if p != nil {
+			newPage = p
+		}
+	}
+	return newPage, tea.Tick(time.Nanosecond, func(t time.Time) tea.Msg { return newPage.Msg })
+}
+
+func (l *LoginPage) handleLoginFail(err error) (model.Page, tea.Cmd) {
+	utils.Logger().Printf("login err, %+v", err)
+	l.tips = util.SetFgStyle(err.Error(), termenv.ANSIBrightRed)
+	return l, tickLogin(time.Nanosecond)
 }
