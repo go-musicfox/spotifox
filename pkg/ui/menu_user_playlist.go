@@ -58,12 +58,17 @@ func (m *UserPlaylistMenu) BeforeEnterMenuHook() model.Hook {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		}
-		var userId = m.userId
+
+		var (
+			res *spotify.SimplePlaylistPage
+			err error
+		)
 		if m.userId == CurUser {
-			userId = m.spotifox.user.ID
+			res, err = m.spotifox.spotifyClient.CurrentUsersPlaylists(context.Background(), spotify.Limit(m.limit))
+		} else {
+			res, err = m.spotifox.spotifyClient.GetPlaylistsForUser(context.Background(), m.userId, spotify.Limit(m.limit))
 		}
 
-		res, err := m.spotifox.spotifyClient.GetPlaylistsForUser(context.Background(), userId, spotify.Limit(m.limit))
 		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
@@ -76,7 +81,11 @@ func (m *UserPlaylistMenu) BeforeEnterMenuHook() model.Hook {
 		m.playlists = res.Playlists
 		var menus []model.MenuItem
 		for _, playlist := range m.playlists {
-			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name), Subtitle: utils.ReplaceSpecialStr(playlist.Description)})
+			var owner string
+			if playlist.Owner.DisplayName != "" {
+				owner = "[" + playlist.Owner.DisplayName + "]"
+			}
+			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name), Subtitle: utils.ReplaceSpecialStr(owner)})
 		}
 		m.menus = menus
 
@@ -89,12 +98,18 @@ func (m *UserPlaylistMenu) BottomOutHook() model.Hook {
 		return nil
 	}
 	return func(main *model.Main) (bool, model.Page) {
-		var userId = m.userId
-		if m.userId == CurUser {
-			userId = m.spotifox.user.ID
-		}
 		m.offset += len(m.menus)
-		res, err := m.spotifox.spotifyClient.GetPlaylistsForUser(context.Background(), userId, spotify.Limit(m.limit), spotify.Offset(m.offset))
+
+		var (
+			res *spotify.SimplePlaylistPage
+			err error
+		)
+		if m.userId == CurUser {
+			res, err = m.spotifox.spotifyClient.CurrentUsersPlaylists(context.Background(), spotify.Limit(m.limit))
+		} else {
+			res, err = m.spotifox.spotifyClient.GetPlaylistsForUser(context.Background(), m.userId, spotify.Limit(m.limit))
+		}
+
 		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
@@ -106,7 +121,7 @@ func (m *UserPlaylistMenu) BottomOutHook() model.Hook {
 		m.playlists = append(m.playlists, res.Playlists...)
 		var menus []model.MenuItem
 		for _, playlist := range m.playlists {
-			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name), Subtitle: utils.ReplaceSpecialStr(playlist.Description)})
+			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name), Subtitle: utils.ReplaceSpecialStr(playlist.Owner.DisplayName)})
 		}
 		m.menus = menus
 

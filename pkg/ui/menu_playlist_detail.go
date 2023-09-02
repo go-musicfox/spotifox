@@ -12,7 +12,7 @@ import (
 type PlaylistDetailMenu struct {
 	baseMenu
 	menus      []model.MenuItem
-	songs      []spotify.PlaylistItem
+	songs      []*spotify.FullTrack
 	playlistId spotify.ID
 
 	limit  int
@@ -65,7 +65,12 @@ func (m *PlaylistDetailMenu) BeforeEnterMenuHook() model.Hook {
 		}
 		m.total = res.Total
 
-		m.songs = res.Items
+		for _, v := range res.Items {
+			if v.Track.Track == nil {
+				continue
+			}
+			m.songs = append(m.songs, v.Track.Track)
+		}
 		m.menus = utils.MenuItemsFromSongs(m.songs)
 
 		return true, nil
@@ -86,13 +91,18 @@ func (m *PlaylistDetailMenu) BottomOutHook() model.Hook {
 		if err != nil {
 			return m.handleFetchErr(errors.Wrap(err, "get playlist items failed"))
 		}
-		m.songs = append(m.songs, res.Items...)
-		m.menus = append(m.menus, utils.MenuItemsFromSongs(m.songs)...)
+		for _, v := range res.Items {
+			if v.Track.Track == nil {
+				continue
+			}
+			m.songs = append(m.songs, v.Track.Track)
+		}
+		m.menus = utils.MenuItemsFromSongs(m.songs)
 
 		return true, nil
 	}
 }
 
-func (m *PlaylistDetailMenu) Songs() []spotify.PlaylistItem {
+func (m *PlaylistDetailMenu) Songs() []*spotify.FullTrack {
 	return m.songs
 }

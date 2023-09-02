@@ -11,10 +11,10 @@ const CurPlaylistKey = "cur_playlist"
 type CurPlaylist struct {
 	baseMenu
 	menus []model.MenuItem
-	songs []spotify.PlaylistItem
+	songs []*spotify.FullTrack
 }
 
-func NewCurPlaylist(base baseMenu, songs []spotify.PlaylistItem) *CurPlaylist {
+func NewCurPlaylist(base baseMenu, songs []*spotify.FullTrack) *CurPlaylist {
 	return &CurPlaylist{
 		baseMenu: base,
 		songs:    songs,
@@ -38,7 +38,7 @@ func (m *CurPlaylist) MenuViews() []model.MenuItem {
 	return m.menus
 }
 
-func (m *CurPlaylist) Songs() []spotify.PlaylistItem {
+func (m *CurPlaylist) Songs() []*spotify.FullTrack {
 	return m.songs
 }
 

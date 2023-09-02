@@ -164,7 +164,7 @@ func (h *EventHandler) enterKeyHandle() (stopPropagation bool, newPage model.Pag
 // 空格监听
 func (h *EventHandler) spaceKeyHandle() {
 	var (
-		songs         []spotify.PlaylistItem
+		songs         []*spotify.FullTrack
 		inPlayingMenu = h.spotifox.player.InPlayingMenu()
 		main          = h.spotifox.MustMain()
 		menu          = main.CurMenu()
@@ -206,7 +206,7 @@ func (h *EventHandler) spaceKeyHandle() {
 		player.playingMenu = me
 	}
 
-	var newPlaylists = make([]spotify.PlaylistItem, len(songs))
+	var newPlaylists = make([]*spotify.FullTrack, len(songs))
 	copy(newPlaylists, songs)
 	player.playlist = newPlaylists
 

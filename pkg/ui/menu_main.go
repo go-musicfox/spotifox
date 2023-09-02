@@ -15,24 +15,16 @@ func NewMainMenu(netease *Spotifox) *MainMenu {
 	mainMenu := &MainMenu{
 		baseMenu: base,
 		menus: []model.MenuItem{
-			// {Title: "每日推荐歌曲"},
-			// {Title: "每日推荐歌单"},
+			{Title: "我喜欢的音乐"},
 			{Title: "我的歌单"},
-			// {Title: "私人FM"},
-			// {Title: "专辑列表"},
-			// {Title: "搜索"},
-			// {Title: "排行榜"},
-			// {Title: "精选歌单"},
-			// {Title: "热门歌手"},
-			// {Title: "最近播放歌曲"},
-			// {Title: "云盘"},
-			// {Title: "主播电台"},
-			// {Title: "LastFM"},
-			// {Title: "帮助"},
-			// {Title: "检查更新"},
+			{Title: "帮助"},
+			{Title: "检查更新"},
 		},
 		menuList: []Menu{
+			NewLikedSongsMenu(base),
 			NewUserPlaylistMenu(base, CurUser),
+			NewHelpMenu(base),
+			NewCheckUpdateMenu(base),
 		},
 	}
 	return mainMenu

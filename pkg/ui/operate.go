@@ -68,7 +68,7 @@ func likePlayingSong(m *Spotifox, isLike bool) model.Page {
 		op = "del"
 	}
 	likeService := service.PlaylistTracksService{
-		TrackIds: []string{string(utils.IDOfSong(m.player.playlist[m.player.curSongIndex]))},
+		TrackIds: []string{string(m.player.playlist[m.player.curSongIndex].ID)},
 		Op:       op,
 		//Pid:      strconv.FormatInt(m.user.MyLikePlaylistID, 10),
 	}
@@ -82,7 +82,7 @@ func likePlayingSong(m *Spotifox, isLike bool) model.Page {
 		}
 		utils.Notify(utils.NotifyContent{
 			Title:   msg,
-			Text:    utils.NameOfSong(m.player.playlist[m.player.curSongIndex]),
+			Text:    m.player.playlist[m.player.curSongIndex].Name,
 			Url:     constants.AppGithubUrl,
 			GroupId: constants.GroupID,
 		})
@@ -186,7 +186,7 @@ func likeSelectedSong(m *Spotifox, isLike bool) model.Page {
 		op = "del"
 	}
 	likeService := service.PlaylistTracksService{
-		TrackIds: []string{string(utils.IDOfSong(songs[selectedIndex]))},
+		TrackIds: []string{string(songs[selectedIndex].ID)},
 		Op:       op,
 		//Pid:      strconv.FormatInt(m.user.MyLikePlaylistID, 10),
 	}
@@ -200,7 +200,7 @@ func likeSelectedSong(m *Spotifox, isLike bool) model.Page {
 		}
 		utils.Notify(utils.NotifyContent{
 			Title:   msg,
-			Text:    utils.NameOfSong(songs[selectedIndex]),
+			Text:    songs[selectedIndex].Name,
 			Url:     constants.AppGithubUrl,
 			GroupId: constants.GroupID,
 		})

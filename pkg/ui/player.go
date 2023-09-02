@@ -59,11 +59,11 @@ type Player struct {
 	spotifox *Spotifox
 	cancel   context.CancelFunc
 
-	playlist         []spotify.PlaylistItem // 歌曲列表
-	playlistUpdateAt time.Time              // 播放列表更新时间
-	curSongIndex     int                    // 当前歌曲的下标
-	curSong          spotify.PlaylistItem   // 当前歌曲信息（防止播放列表发生变动后，歌曲信息不匹配）
-	playingMenuKey   string                 // 正在播放的菜单Key
+	playlist         []*spotify.FullTrack // 歌曲列表
+	playlistUpdateAt time.Time            // 播放列表更新时间
+	curSongIndex     int                  // 当前歌曲的下标
+	curSong          *spotify.FullTrack   // 当前歌曲信息（防止播放列表发生变动后，歌曲信息不匹配）
+	playingMenuKey   string               // 正在播放的菜单Key
 	playingMenu      Menu
 	playedTime       time.Duration // 已经播放的时长
 
@@ -278,7 +278,7 @@ func (p *Player) songView() string {
 		builder.WriteString(util.SetFgStyle("_ z Z Z ", termenv.ANSIYellow))
 	}
 
-	songId := utils.IDOfSong(p.curSong)
+	songId := p.curSong.ID
 	if songId != "" {
 		if like_list.IsLikeSong(songId) {
 			builder.WriteString(util.SetFgStyle("♥ ", termenv.ANSIRed))
@@ -289,7 +289,7 @@ func (p *Player) songView() string {
 
 	if p.curSongIndex < len(p.playlist) {
 		// 按剩余长度截断字符串
-		truncateSong := runewidth.Truncate(utils.NameOfSong(p.curSong), p.spotifox.WindowWidth()-main.MenuStartColumn()-prefixLen, "") // 多减，避免剩余1个中文字符
+		truncateSong := runewidth.Truncate(p.curSong.Name, p.spotifox.WindowWidth()-main.MenuStartColumn()-prefixLen, "") // 多减，避免剩余1个中文字符
 		builder.WriteString(util.SetFgStyle(truncateSong, util.GetPrimaryColor()))
 		builder.WriteString(" ")
 
@@ -302,7 +302,7 @@ func (p *Player) songView() string {
 		}
 
 		// 按剩余长度截断字符串
-		remainLen := p.spotifox.WindowWidth() - main.MenuStartColumn() - prefixLen - runewidth.StringWidth(utils.NameOfSong(p.curSong))
+		remainLen := p.spotifox.WindowWidth() - main.MenuStartColumn() - prefixLen - runewidth.StringWidth(p.curSong.Name)
 		truncateArtists := runewidth.Truncate(
 			runewidth.FillRight(artists.String(), remainLen),
 			remainLen, "")
@@ -347,7 +347,7 @@ func (p *Player) InPlayingMenu() bool {
 }
 
 // CompareWithCurPlaylist 与当前播放列表对比，是否一致
-func (p *Player) CompareWithCurPlaylist(playlist []spotify.PlaylistItem) bool {
+func (p *Player) CompareWithCurPlaylist(playlist []*spotify.FullTrack) bool {
 	if len(playlist) != len(p.playlist) {
 		return false
 	}
@@ -398,7 +398,7 @@ func (p *Player) LocatePlayingSong() {
 }
 
 // PlaySong 播放歌曲
-func (p *Player) PlaySong(song spotify.PlaylistItem, direction PlayDirection) error {
+func (p *Player) PlaySong(song *spotify.FullTrack, direction PlayDirection) error {
 	loading := model.NewLoading(p.spotifox.MustMain())
 	loading.Start()
 	defer loading.Complete()

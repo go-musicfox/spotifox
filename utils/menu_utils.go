@@ -13,27 +13,15 @@ func GetViewFromSongs(songs []ds.Song) []model.MenuItem {
 	return nil
 }
 
-func MenuItemsFromSongs(songs []spotify.PlaylistItem) []model.MenuItem {
-	var (
-		menus    []model.MenuItem
-		title    string
-		subtitle string
-	)
+func MenuItemsFromSongs(songs []*spotify.FullTrack) []model.MenuItem {
+	var menus []model.MenuItem
 	for _, song := range songs {
-		if song.Track.Track != nil {
-			title = song.Track.Track.Name
-			var artists []string
-			for _, a := range song.Track.Track.Artists {
-				artists = append(artists, a.Name)
-			}
-			subtitle = strings.Join(artists, ",")
-		} else if song.Track.Episode != nil {
-			title = song.Track.Episode.Name
-			subtitle = song.Track.Episode.Description
+		var artists []string
+		for _, a := range song.Artists {
+			artists = append(artists, a.Name)
 		}
-		menus = append(menus, model.MenuItem{Title: ReplaceSpecialStr(title), Subtitle: ReplaceSpecialStr(subtitle)})
+		menus = append(menus, model.MenuItem{Title: ReplaceSpecialStr(song.Name), Subtitle: ReplaceSpecialStr(strings.Join(artists, ","))})
 	}
-
 	return menus
 }
 
