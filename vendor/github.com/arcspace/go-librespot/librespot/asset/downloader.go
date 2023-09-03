@@ -11,8 +11,8 @@ import (
 	"sync"
 
 	"github.com/arcspace/go-arc-sdk/apis/arc"
-	"github.com/arcspace/go-arc-sdk/stdlib/task"
 	"github.com/arcspace/go-arc-sdk/stdlib/errors"
+	"github.com/arcspace/go-arc-sdk/stdlib/task"
 	"github.com/arcspace/go-librespot/Spotify"
 	"github.com/arcspace/go-librespot/librespot/core/connection"
 	"github.com/arcspace/go-librespot/librespot/mercury"
@@ -23,6 +23,8 @@ type Downloader interface {
 
 	// Blocks until the asset is ready to be accessed.
 	PinTrack(uri string) (arc.MediaAsset, error)
+
+	SetAudioFormat(f Spotify.AudioFile_Format)
 }
 
 type downloader struct {
@@ -61,6 +63,10 @@ func NewDownloader(conn connection.PacketStream, client *mercury.Client) Downloa
 		audioFormat: Spotify.AudioFile_OGG_VORBIS_160,
 	}
 	return dl
+}
+
+func (dl *downloader) SetAudioFormat(f Spotify.AudioFile_Format) {
+	dl.audioFormat = f
 }
 
 func (dl *downloader) PinTrack(assetURI string) (arc.MediaAsset, error) {

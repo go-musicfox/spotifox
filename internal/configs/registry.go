@@ -8,7 +8,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-musicfox/spotifox/internal/constants"
 
-	"github.com/go-musicfox/netease-music/service"
 	"github.com/gookit/ini/v2"
 )
 
@@ -30,19 +29,19 @@ type Registry struct {
 
 	SpotifyClientId  string
 	SpotifyCookie    string
-	ShowTitle        bool                     // 主界面是否显示标题
-	LoadingText      string                   // 主页面加载中提示
-	PlayerSongLevel  service.SongQualityLevel // 歌曲音质级别
-	PrimaryColor     string                   // 主题色
-	ShowLyric        bool                     // 显示歌词
-	LyricOffset      int                      // 偏移:ms
-	ShowLyricTrans   bool                     // 显示歌词翻译
-	ShowNotify       bool                     // 显示通知
-	NotifyIcon       string                   // logo 图片名
-	PProfPort        int                      // pprof端口
-	AltScreen        bool                     // AltScreen显示模式
-	EnableMouseEvent bool                     // 启用鼠标事件
-	DoubleColumn     bool                     // 是否双列显示
+	ShowTitle        bool       // 主界面是否显示标题
+	LoadingText      string     // 主页面加载中提示
+	SongFormat       SongFormat // 歌曲音质级别
+	PrimaryColor     string     // 主题色
+	ShowLyric        bool       // 显示歌词
+	LyricOffset      int        // 偏移:ms
+	ShowLyricTrans   bool       // 显示歌词翻译
+	ShowNotify       bool       // 显示通知
+	NotifyIcon       string     // logo 图片名
+	PProfPort        int        // pprof端口
+	AltScreen        bool       // AltScreen显示模式
+	EnableMouseEvent bool       // 启用鼠标事件
+	DoubleColumn     bool       // 是否双列显示
 
 	PlayerEngine         string // 播放引擎
 	PlayerBeepMp3Decoder string // beep mp3解码器
@@ -93,7 +92,7 @@ func NewRegistryWithDefault() *Registry {
 
 		ShowTitle:            true,
 		LoadingText:          constants.MainLoadingText,
-		PlayerSongLevel:      service.Higher,
+		SongFormat:           Ogg_320,
 		PrimaryColor:         constants.AppPrimaryColor,
 		ShowLyric:            true,
 		ShowLyricTrans:       true,
@@ -144,9 +143,9 @@ func NewRegistryFromIniFile(filepath string) *Registry {
 	registry.SpotifyCookie = ini.Get("main.spotifyCookie", "")
 	registry.ShowTitle = ini.Bool("main.showTitle", true)
 	registry.LoadingText = ini.String("main.loadingText", constants.MainLoadingText)
-	songLevel := service.SongQualityLevel(ini.String("main.songLevel", string(service.Higher)))
-	if songLevel.IsValid() {
-		registry.PlayerSongLevel = songLevel
+	songFormat := SongFormat(ini.String("main.songFormat", string(Ogg_320)))
+	if songFormat.IsValid() {
+		registry.SongFormat = songFormat
 	}
 	primaryColor := ini.String("main.primaryColor", constants.AppPrimaryColor)
 	if primaryColor != "" {

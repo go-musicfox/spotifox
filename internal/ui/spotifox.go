@@ -11,6 +11,7 @@ import (
 	"github.com/anhoder/foxful-cli/model"
 	"github.com/arcspace/go-arc-sdk/stdlib/task"
 	respot "github.com/arcspace/go-librespot/librespot/api-respot"
+	"github.com/arcspace/go-librespot/librespot/core"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-musicfox/spotifox/internal/configs"
 	"github.com/go-musicfox/spotifox/internal/constants"
@@ -46,6 +47,9 @@ func NewSpotifox(app *model.App) *Spotifox {
 	sess, err := respot.StartNewSession(ctx)
 	if err != nil {
 		panic(err)
+	}
+	if se, ok := sess.(*core.Session); ok {
+		se.Downloader().SetAudioFormat(configs.ConfigRegistry.SongFormat.ToSpotifyFormat())
 	}
 	ctx.Context, _ = task.Start(&task.Task{Label: "spotifox"})
 
@@ -219,7 +223,7 @@ func (s *Spotifox) FetchSongLyrics(songId spotify.ID) *lyric.LRCFile {
 	// get by user's cookie
 	if s.lyricClient != nil {
 		l, err := s.lyricClient.Get(string(songId))
-		if err != nil || l.Lyrics == nil {
+		if err != nil || l == nil || l.Lyrics == nil {
 			utils.Logger().Printf("get song lyrics failed: %+v", err)
 			return nil
 		}
