@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/anhoder/foxful-cli/model"
-	ds "github.com/go-musicfox/spotifox/pkg/structs"
+	ds "github.com/go-musicfox/spotifox/internal/structs"
 	"github.com/zmb3/spotify/v2"
 )
 

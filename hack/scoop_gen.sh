@@ -17,12 +17,12 @@ fi
 SCOOP_VERSION=${TAG#refs/tags/}
 SCOOP_VERSION=${SCOOP_VERSION#v}
 
-SCOOP_HASH="$(sha256sum "dist/go-musicfox_${SCOOP_VERSION}_windows_amd64.zip" | awk '{print $1}')"
+SCOOP_HASH="$(sha256sum "dist/spotifox_${SCOOP_VERSION}_windows_amd64.zip" | awk '{print $1}')"
 
 eval "cat <<EOF
-$(< "$ROOT"/deploy/scoop/go-musicfox.json.tpl)
+$(< "$ROOT"/deploy/scoop/spotifox.json.tpl)
 EOF
-"  > "$ROOT"/deploy/scoop/go-musicfox.json
+"  > "$ROOT"/deploy/scoop/spotifox.json
 
 echo $SCOOP_VERSION $SCOOP_HASH
-cat "$ROOT"/deploy/scoop/go-musicfox.json
+cat "$ROOT"/deploy/scoop/spotifox.json

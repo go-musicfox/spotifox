@@ -1,11 +1,11 @@
 env:
   - GO111MODULE=on
   - CGO_ENABLED=1
-  - HOMEBREW_NAME=go-musicfox
+  - HOMEBREW_NAME=spotifox
 builds:
-  - id: go-musicfox-linux-amd64
-    main: ./cmd/musicfox.go
-    binary: musicfox
+  - id: spotifox-linux-amd64
+    main: ./cmd/spotifox.go
+    binary: spotifox
     env:
       - CC=x86_64-linux-gnu-gcc
       - CXX=x86_64-linux-gnu-g++
@@ -18,10 +18,10 @@ builds:
     goos:
       - linux
     ldflags:
-      - -s -w -X github.com/go-musicfox/go-musicfox/pkg/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
-  - id: go-musicfox-linux-arm64
-    main: ./cmd/musicfox.go
-    binary: musicfox
+      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
+  - id: spotifox-linux-arm64
+    main: ./cmd/spotifox.go
+    binary: spotifox
     goarch:
       - arm64
     goos:
@@ -34,10 +34,10 @@ builds:
       - LDFLAGS=-L/usr/aarch64-linux-gnu/lib:$LDFLAGS
       - PKG_CONFIG_PATH=/usr/aarch64-linux-gnu/lib/pkgconfig:$PKG_CONFIG_PATH
     ldflags:
-      - -s -w -X github.com/go-musicfox/go-musicfox/pkg/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
-  - id: go-musicfox-linux-arm
-    main: ./cmd/musicfox.go
-    binary: musicfox
+      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
+  - id: spotifox-linux-arm
+    main: ./cmd/spotifox.go
+    binary: spotifox
     goarch:
       - arm
     goos:
@@ -50,71 +50,71 @@ builds:
       - LDFLAGS=-L/usr/arm-linux-gnueabi/lib:$LDFLAGS
       - PKG_CONFIG_PATH=/usr/arm-linux-gnueabi/lib/pkgconfig:$PKG_CONFIG_PATH
     ldflags:
-      - -s -w -X github.com/go-musicfox/go-musicfox/pkg/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
-  - id: go-musicfox-windows-amd64
-    main: ./cmd/musicfox.go
-    binary: musicfox
+      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
+  - id: spotifox-windows-amd64
+    main: ./cmd/spotifox.go
+    binary: spotifox
     goarch:
       - amd64
     goos:
       - windows
     ldflags:
-      - -s -w -X github.com/go-musicfox/go-musicfox/pkg/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
+      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
     env:
       - CC=/usr/local/mingw/bin/x86_64-w64-mingw32-gcc
       - CXX=/usr/local/mingw/bin/x86_64-w64-mingw32-g++
       - CFLAGS=-I/usr/local/mingw/x86_64-w64-mingw32/include:$CFLAGS
       - CPPFLAGS=-I/usr/local/mingw/x86_64-w64-mingw32/include:$CPPFLAGS
       - LDFLAGS=-L/usr/local/mingw/x86_64-w64-mingw32/lib:$LDFLAGS
-  - id: go-musicfox-windows-arm64
-    main: ./cmd/musicfox.go
-    binary: musicfox
+  - id: spotifox-windows-arm64
+    main: ./cmd/spotifox.go
+    binary: spotifox
     goarch:
       - arm64
     goos:
       - windows
     ldflags:
-      - -s -w -X github.com/go-musicfox/go-musicfox/pkg/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
+      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
     env:
       - CC=/usr/local/mingw/bin/aarch64-w64-mingw32-gcc
       - CXX=/usr/local/mingw/bin/aarch64-w64-mingw32-g++
       - CFLAGS=-I/usr/local/mingw/aarch64-w64-mingw32/include:$CFLAGS
       - CPPFLAGS=-I/usr/local/mingw/aarch64-w64-mingw32/include:$CPPFLAGS
       - LDFLAGS=-L/usr/local/mingw/aarch64-w64-mingw32/lib:$LDFLAGS
-  - id: go-musicfox-darwin-arm64
-    main: ./cmd/musicfox.go
-    binary: musicfox
+  - id: spotifox-darwin-arm64
+    main: ./cmd/spotifox.go
+    binary: spotifox
     goarch:
       - arm64
     goos:
       - darwin
     ldflags:
-      - -s -w -X github.com/go-musicfox/go-musicfox/pkg/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
+      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
     env:
       - CC=oa64-clang
       - CXX=oa64-clang++
-  - id: go-musicfox-darwin-amd64
-    main: ./cmd/musicfox.go
-    binary: musicfox
+  - id: spotifox-darwin-amd64
+    main: ./cmd/spotifox.go
+    binary: spotifox
     goarch:
       - amd64
     goos:
       - darwin
     ldflags:
-      - -s -w -X github.com/go-musicfox/go-musicfox/pkg/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/go-musicfox/pkg/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
+      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}}
     env:
       - CC=o64-clang
       - CXX=o64-clang++
 archives:
-  - id: musicfox
+  - id: spotifox
     builds:
-      - go-musicfox-linux-amd64
-      - go-musicfox-linux-arm64
-      - go-musicfox-linux-arm
-      - go-musicfox-windows-amd64
-      - go-musicfox-windows-arm64
-      - go-musicfox-darwin-amd64
-      - go-musicfox-darwin-arm64
+      - spotifox-linux-amd64
+      - spotifox-linux-arm64
+      - spotifox-linux-arm
+      - spotifox-windows-amd64
+      - spotifox-windows-arm64
+      - spotifox-darwin-amd64
+      - spotifox-darwin-arm64
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     wrap_in_directory: true
     format: zip
@@ -125,11 +125,11 @@ brews:
   - name: "{{ .Env.HOMEBREW_NAME }}"
     repository:
       owner: go-musicfox
-      name: homebrew-go-musicfox
+      name: homebrew-spotifox
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    url_template: "https://github.com/go-musicfox/go-musicfox/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    homepage: "https://github.com/go-musicfox/go-musicfox"
-    description: "go-musicfox是musicfox的重写版，使用Go编写的网易云音乐命令行程序。"
+    url_template: "https://github.com/go-musicfox/spotifox/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    homepage: "https://github.com/go-musicfox/spotifox"
+    description: "Spotifox is yet another Spotify client in cli."
     commit_author:
       name: anhoder
       email: anhoder@88.com
@@ -138,31 +138,31 @@ brews:
       - name: terminal-notifier
         type: optional
     install: |
-      system 'echo', '-e', "\033[1;33m给个star✨吧~\033[0m \033[4;36mhttps://github.com/go-musicfox/go-musicfox \033[0m"
-      bin.install 'musicfox'
+      system 'echo', '-e', "\033[1;33mStar✨ Please~\033[0m \033[4;36mhttps://github.com/go-musicfox/spotifox \033[0m"
+      bin.install 'spotifox'
 
 winget:
-  - name: go-musicfox
+  - name: spotifox
     publisher: go-musicfox
-    short_description: "A netease music player in terminal."
+    short_description: "Spotifox is yet another Spotify client in cli."
     license: "MIT"
-    publisher_url: https://github.com/go-musicfox/go-musicfox
-    publisher_support_url: "https://github.com/go-musicfox/go-musicfox/issues/new"
-    package_identifier: go-musicfox.go-musicfox
-    url_template: "https://github.com/go-musicfox/go-musicfox/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    publisher_url: https://github.com/go-musicfox/spotifox
+    publisher_support_url: "https://github.com/go-musicfox/spotifox/issues/new"
+    package_identifier: go-musicfox.spotifox
+    url_template: "https://github.com/go-musicfox/spotifox/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     commit_author:
       name: anhoder
       email: anhoder@88.com
     commit_msg_template: "{{ .PackageIdentifier }}: {{ .Tag }}"
-    homepage: "https://github.com/go-musicfox/go-musicfox"
-    description: "A netease music player in terminal."
+    homepage: "https://github.com/go-musicfox/spotifox"
+    description: "Spotifox is yet another Spotify client in cli."
     skip_upload: auto
     release_notes: "{{.Changelog}}"
     tags:
       - golang
       - cli
       - netease music
-      - musicfox
+      - spotifox
     repository:
       owner: go-musicfox
       name: winget-pkgs
@@ -176,29 +176,10 @@ winget:
       #     name: winget-pkgs
       #     branch: master
 
-# goreleaser支持的配置不多，暂时不用
-#scoop:
-#  url_template: "https://github.com/go-musicfox/go-musicfox/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-#  bucket:
-#    owner: go-musicfox
-#    name: go-musicfox
-#  folder: deploy/scoop
-#
-#  commit_author:
-#    name: anhoder
-#    email: anhoder@88.com
-#
-#  commit_msg_template: "Scoop update for {{ .ProjectName }} version {{ .Tag }}"
-#  homepage: "https://github.com/go-musicfox/go-musicfox"
-#  description: "go-musicfox是用Go写的又一款网易云音乐命令行客户端，支持UnblockNeteaseMusic、各种音质级别、lastfm、MPRIS..."
-#  license: MIT
-#
-#  post_install: ["Write-Host '好用记得给go-musicfox一个star✨哦~'"]
-
 release:
   github:
     owner: go-musicfox
-    name: go-musicfox
+    name: spotifox
   discussion_category_name: General
   prerelease: auto
   mode: replace

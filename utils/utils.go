@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-musicfox/spotifox/pkg/configs"
-	"github.com/go-musicfox/spotifox/pkg/constants"
+	"github.com/go-musicfox/spotifox/internal/configs"
+	"github.com/go-musicfox/spotifox/internal/constants"
 	"github.com/zmb3/spotify/v2"
 
 	"github.com/buger/jsonparser"

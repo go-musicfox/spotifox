@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-musicfox/spotifox/pkg/structs"
+	"github.com/go-musicfox/spotifox/internal/structs"
 	"github.com/zmb3/spotify/v2"
 
 	"github.com/buger/jsonparser"

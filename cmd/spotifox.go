@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/go-musicfox/spotifox/pkg/entry"
+	"github.com/go-musicfox/spotifox/internal/entry"
 )
 
 func main() {

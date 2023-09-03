@@ -12,7 +12,6 @@ require (
 	github.com/charmbracelet/lipgloss v0.8.0
 	github.com/ebitengine/purego v0.4.0
 	github.com/faiface/beep v1.1.0
-	github.com/fhs/gompd/v2 v2.3.0
 	github.com/go-musicfox/netease-music v1.4.1
 	github.com/go-musicfox/notificator v0.1.0
 	github.com/godbus/dbus/v5 v5.1.0
@@ -21,6 +20,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/muesli/termenv v0.15.2
 	github.com/pkg/errors v0.9.1
+	github.com/raitonoberu/lyricsapi v0.0.0-20230113141433-eded40b42d7c
 	github.com/shkh/lastfm-go v0.0.0-20191215035245-89a801c244e0
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/tosone/minimp3 v1.0.2
@@ -48,7 +48,6 @@ require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/cnsilvan/UnblockNeteaseMusic v0.0.0-20230310083816-92b59c95a366 // indirect
-	github.com/cocoonlife/goflac v0.0.0-20170210142907-50ea06ed5a9d // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/fogleman/ease v0.0.0-20170301025033-8da417bf1776 // indirect
 	github.com/forgoer/openssl v1.6.0 // indirect
@@ -57,14 +56,11 @@ require (
 	github.com/gookit/goutil v0.6.10 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/hajimehoshi/oto v1.0.1 // indirect
-	github.com/icza/bitio v1.1.0 // indirect
 	github.com/jfreymuth/oggvorbis v1.0.5 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
-	github.com/mewkiz/flac v1.0.8 // indirect
-	github.com/mewkiz/pkg v0.0.0-20230226050401-4010bf0fec14 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
