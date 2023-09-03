@@ -30,7 +30,7 @@ const AppDBName = "spotifox"
 const AppIniFile = "spotifox.ini"
 const AppPrimaryRandom = "random"
 const AppPrimaryColor = "#f90022"
-const AppHttpTimeout = time.Second * 5
+const AppHttpTimeout = time.Second * 10
 
 const MainLoadingText = "[加载中...]"
 const MainPProfPort = 9876
