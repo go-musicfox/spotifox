@@ -75,12 +75,12 @@ func (s *Spotifox) ToLoginPage(callback LoginCallback) (model.Page, tea.Cmd) {
 }
 
 // ToSearchPage
-func (n *Spotifox) ToSearchPage(searchType SearchType) (model.Page, tea.Cmd) {
-	n.search.searchType = searchType
-	return n.search, tickSearch(time.Nanosecond)
+func (s *Spotifox) ToSearchPage(searchType SearchType) (model.Page, tea.Cmd) {
+	s.search.searchType = searchType
+	return s.search, tickSearch(time.Nanosecond)
 }
 
-func (n *Spotifox) InitHook(_ *model.App) {
+func (s *Spotifox) InitHook(_ *model.App) {
 	config := configs.ConfigRegistry
 	// projectDir := utils.GetLocalDataDir()
 
@@ -97,27 +97,27 @@ func (n *Spotifox) InitHook(_ *model.App) {
 		// get user info
 		if jsonStr, err := table.GetByKVModel(storage.User{}); err == nil {
 			if user, err := structs.NewUserFromLocalJson(jsonStr); err == nil {
-				n.user = &user
+				s.user = &user
 			}
 		}
 		// refresh username
-		n.MustMain().RefreshMenuTitle()
+		s.MustMain().RefreshMenuTitle()
 
 		// get user info of lastfm
 		var lastfmUser storage.LastfmUser
 		if jsonStr, err := table.GetByKVModel(&lastfmUser); err == nil {
 			if err = json.Unmarshal(jsonStr, &lastfmUser); err == nil {
-				n.lastfmUser = &lastfmUser
-				n.lastfm.SetSession(lastfmUser.SessionKey)
+				s.lastfmUser = &lastfmUser
+				s.lastfm.SetSession(lastfmUser.SessionKey)
 			}
 		}
-		n.MustMain().RefreshMenuList()
+		s.MustMain().RefreshMenuList()
 
 		// get play mode
 		if jsonStr, err := table.GetByKVModel(storage.PlayMode{}); err == nil && len(jsonStr) > 0 {
 			var playMode player.Mode
 			if err = json.Unmarshal(jsonStr, &playMode); err == nil {
-				n.player.mode = playMode
+				s.player.mode = playMode
 			}
 		}
 
@@ -125,7 +125,7 @@ func (n *Spotifox) InitHook(_ *model.App) {
 		if jsonStr, err := table.GetByKVModel(storage.Volume{}); err == nil && len(jsonStr) > 0 {
 			var volume int
 			if err = json.Unmarshal(jsonStr, &volume); err == nil {
-				v, ok := n.player.Player.(storage.VolumeStorable)
+				v, ok := s.player.Player.(storage.VolumeStorable)
 				if ok {
 					v.SetVolume(volume)
 				}
@@ -136,7 +136,7 @@ func (n *Spotifox) InitHook(_ *model.App) {
 		if jsonStr, err := table.GetByKVModel(storage.PlayerSnapshot{}); err == nil && len(jsonStr) > 0 {
 			var snapshot storage.PlayerSnapshot
 			if err = json.Unmarshal(jsonStr, &snapshot); err == nil {
-				p := n.player
+				p := s.player
 				p.curSongIndex = snapshot.CurSongIndex
 				p.playlist = snapshot.Playlist
 				p.playlistUpdateAt = snapshot.PlaylistUpdateAt
@@ -144,7 +144,7 @@ func (n *Spotifox) InitHook(_ *model.App) {
 				p.playingMenuKey = "from_local_db" // reset menu key
 			}
 		}
-		n.Rerender(false)
+		s.Rerender(false)
 
 		// 获取扩展信息
 		{
@@ -176,8 +176,8 @@ func (n *Spotifox) InitHook(_ *model.App) {
 		if config.StartupCheckUpdate {
 			if ok, newVersion := utils.CheckUpdate(); ok {
 				if runtime.GOOS == "windows" {
-					n.MustMain().EnterMenu(
-						NewCheckUpdateMenu(newBaseMenu(n)),
+					s.MustMain().EnterMenu(
+						NewCheckUpdateMenu(newBaseMenu(s)),
 						&model.MenuItem{Title: "新版本: " + newVersion, Subtitle: "当前版本: " + constants.AppVersion},
 					)
 				}
@@ -192,10 +192,17 @@ func (n *Spotifox) InitHook(_ *model.App) {
 	})
 }
 
-func (n *Spotifox) CloseHook(_ *model.App) {
-	n.player.Close()
+func (s *Spotifox) CloseHook(_ *model.App) {
+	s.player.Close()
 }
 
-func (n *Spotifox) Player() *Player {
-	return n.player
+func (s *Spotifox) Player() *Player {
+	return s.player
+}
+
+func (s *Spotifox) CheckSession() utils.ResCode {
+	if s.spotifyClient == nil {
+		return utils.NeedLogin
+	}
+	return utils.CheckUserInfo(s.user)
 }

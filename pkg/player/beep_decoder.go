@@ -4,11 +4,9 @@ import (
 	"io"
 
 	"github.com/faiface/beep"
-	"github.com/faiface/beep/flac"
 	"github.com/faiface/beep/minimp3"
 	"github.com/faiface/beep/mp3"
 	"github.com/faiface/beep/vorbis"
-	"github.com/faiface/beep/wav"
 	"github.com/go-musicfox/spotifox/pkg/configs"
 	"github.com/go-musicfox/spotifox/pkg/constants"
 	"github.com/pkg/errors"
@@ -25,12 +23,8 @@ func DecodeSong(t SongType, r io.ReadSeekCloser) (streamer beep.StreamSeekCloser
 		default:
 			streamer, format, err = mp3.Decode(r)
 		}
-	case Wav:
-		streamer, format, err = wav.Decode(r)
 	case Ogg:
 		streamer, format, err = vorbis.Decode(r)
-	case Flac:
-		streamer, format, err = flac.Decode(r)
 	default:
 		err = errors.Errorf("Unknown song type(%d)", t)
 	}

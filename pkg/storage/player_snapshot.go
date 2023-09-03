@@ -8,9 +8,9 @@ import (
 )
 
 type PlayerSnapshot struct {
-	CurSongIndex     int                  `json:"cur_song_index"`
-	Playlist         []*spotify.FullTrack `json:"playlist"`
-	PlaylistUpdateAt time.Time            `json:"playlist_update_at"`
+	CurSongIndex     int                 `json:"cur_song_index"`
+	Playlist         []spotify.FullTrack `json:"playlist"`
+	PlaylistUpdateAt time.Time           `json:"playlist_update_at"`
 }
 
 func (p PlayerSnapshot) GetDbName() string {

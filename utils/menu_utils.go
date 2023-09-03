@@ -13,7 +13,7 @@ func GetViewFromSongs(songs []ds.Song) []model.MenuItem {
 	return nil
 }
 
-func MenuItemsFromSongs(songs []*spotify.FullTrack) []model.MenuItem {
+func MenuItemsFromSongs(songs []spotify.FullTrack) []model.MenuItem {
 	var menus []model.MenuItem
 	for _, song := range songs {
 		var artists []string

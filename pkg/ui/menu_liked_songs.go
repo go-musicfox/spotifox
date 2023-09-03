@@ -12,7 +12,7 @@ import (
 type LikedSongsMenu struct {
 	baseMenu
 	menus []model.MenuItem
-	songs []*spotify.FullTrack
+	songs []spotify.FullTrack
 
 	limit  int
 	offset int
@@ -49,7 +49,7 @@ func (m *LikedSongsMenu) SubMenu(_ *model.App, _ int) model.Menu {
 
 func (m *LikedSongsMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		if m.spotifox.spotifyClient == nil || utils.CheckUserInfo(m.spotifox.user) == utils.NeedLogin {
+		if m.spotifox.CheckSession() == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		}
@@ -64,7 +64,7 @@ func (m *LikedSongsMenu) BeforeEnterMenuHook() model.Hook {
 		m.total = res.Total
 
 		for i := range res.Tracks {
-			m.songs = append(m.songs, &res.Tracks[i].FullTrack)
+			m.songs = append(m.songs, res.Tracks[i].FullTrack)
 		}
 		m.menus = utils.MenuItemsFromSongs(m.songs)
 
@@ -77,17 +77,22 @@ func (m *LikedSongsMenu) BottomOutHook() model.Hook {
 		return nil
 	}
 	return func(main *model.Main) (bool, model.Page) {
+		if m.spotifox.CheckSession() == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
+			return false, page
+		}
+
 		m.offset += len(m.menus)
 		res, err := m.spotifox.spotifyClient.CurrentUsersTracks(context.Background(), spotify.Limit(m.limit))
 		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
 			return false, page
 		}
 		if err != nil {
 			return m.handleFetchErr(errors.Wrap(err, "get current user tracks failed"))
 		}
 		for i := range res.Tracks {
-			m.songs = append(m.songs, &res.Tracks[i].FullTrack)
+			m.songs = append(m.songs, res.Tracks[i].FullTrack)
 		}
 		m.menus = utils.MenuItemsFromSongs(m.songs)
 
@@ -95,6 +100,6 @@ func (m *LikedSongsMenu) BottomOutHook() model.Hook {
 	}
 }
 
-func (m *LikedSongsMenu) Songs() []*spotify.FullTrack {
+func (m *LikedSongsMenu) Songs() []spotify.FullTrack {
 	return m.songs
 }

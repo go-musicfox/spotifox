@@ -8,8 +8,8 @@ import (
 )
 
 type Player interface {
-	Play(music UrlMusic)
-	CurMusic() UrlMusic
+	Play(music MediaAsset)
+	CurMusic() MediaAsset
 	Paused()
 	Resume()
 	Stop()
@@ -30,10 +30,10 @@ func NewPlayerFromConfig() Player {
 	registry := configs.ConfigRegistry
 	var player Player
 	switch registry.PlayerEngine {
-	case constants.BeepPlayer:
+	case constants.BeepPlayer, constants.OsxPlayer:
 		player = NewBeepPlayer()
-	case constants.OsxPlayer:
-		player = NewOsxPlayer()
+	// case constants.OsxPlayer:
+	// 	player = NewOsxPlayer()
 	default:
 		panic("unknown player engine")
 	}

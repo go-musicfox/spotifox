@@ -40,7 +40,10 @@ func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.P
 			player.LocatePlayingSong()
 		}
 	case " ", "　":
-		h.spaceKeyHandle()
+		newPage := h.spaceKeyHandle()
+		if newPage != nil {
+			return true, newPage, func() tea.Msg { return newPage.Msg() }
+		}
 	case "v":
 		player.Seek(player.PassedTime() + time.Second*5)
 	case "V":
@@ -50,9 +53,15 @@ func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.P
 	case "X":
 		player.Seek(player.PassedTime() - time.Second*5)
 	case "[", "【":
-		player.PreviousSong(true)
+		newPage := player.PreviousSong(true)
+		if newPage != nil {
+			return true, newPage, func() tea.Msg { return newPage.Msg() }
+		}
 	case "]", "】":
-		player.NextSong(true)
+		newPage := player.NextSong(true)
+		if newPage != nil {
+			return true, newPage, func() tea.Msg { return newPage.Msg() }
+		}
 	case "p":
 		player.SetPlayMode(0)
 	// case "P":
@@ -161,10 +170,9 @@ func (h *EventHandler) enterKeyHandle() (stopPropagation bool, newPage model.Pag
 	return false, nil, nil
 }
 
-// 空格监听
-func (h *EventHandler) spaceKeyHandle() {
+func (h *EventHandler) spaceKeyHandle() model.Page {
 	var (
-		songs         []*spotify.FullTrack
+		songs         []spotify.FullTrack
 		inPlayingMenu = h.spotifox.player.InPlayingMenu()
 		main          = h.spotifox.MustMain()
 		menu          = main.CurMenu()
@@ -177,7 +185,7 @@ func (h *EventHandler) spaceKeyHandle() {
 	selectedIndex := menu.RealDataIndex(main.SelectedIndex())
 	if me, ok := menu.(Menu); !ok || !me.IsPlayable() || len(songs) == 0 || selectedIndex > len(songs)-1 {
 		if player.curSongIndex > len(player.playlist)-1 {
-			return
+			return nil
 		}
 		switch player.State() {
 		case playerpkg.Paused:
@@ -185,9 +193,9 @@ func (h *EventHandler) spaceKeyHandle() {
 		case playerpkg.Playing:
 			h.spotifox.player.Paused()
 		case playerpkg.Stopped:
-			_ = player.PlaySong(player.playlist[player.curSongIndex], DurationNext)
+			return player.PlaySong(player.playlist[player.curSongIndex], DurationNext)
 		}
-		return
+		return nil
 	}
 
 	if inPlayingMenu && utils.CompareSong(songs[selectedIndex], player.playlist[player.curSongIndex]) {
@@ -197,7 +205,7 @@ func (h *EventHandler) spaceKeyHandle() {
 		case playerpkg.Playing:
 			player.Paused()
 		}
-		return
+		return nil
 	}
 
 	player.curSongIndex = selectedIndex
@@ -206,12 +214,12 @@ func (h *EventHandler) spaceKeyHandle() {
 		player.playingMenu = me
 	}
 
-	var newPlaylists = make([]*spotify.FullTrack, len(songs))
+	var newPlaylists = make([]spotify.FullTrack, len(songs))
 	copy(newPlaylists, songs)
 	player.playlist = newPlaylists
 
 	player.playlistUpdateAt = time.Now()
-	_ = player.PlaySong(player.playlist[selectedIndex], DurationNext)
+	return player.PlaySong(player.playlist[selectedIndex], DurationNext)
 }
 
 func (h *EventHandler) MouseMsgHandle(msg tea.MouseMsg, a *model.App) (stopPropagation bool, newPage model.Page, cmd tea.Cmd) {
@@ -224,11 +232,11 @@ func (h *EventHandler) MouseMsgHandle(msg tea.MouseMsg, a *model.App) (stopPropa
 		x, y := msg.X, msg.Y
 		w := len(player.progressRamp)
 		if y+1 == a.WindowHeight() && x+1 <= len(player.progressRamp) {
-			allDuration := int(player.CurMusic().Duration.Seconds())
+			allDuration := int(player.CurMusic().Duration().Seconds())
 			if allDuration == 0 {
 				return true, main, nil
 			}
-			duration := float64(x) * player.CurMusic().Duration.Seconds() / float64(w)
+			duration := float64(x) * player.CurMusic().Duration().Seconds() / float64(w)
 			player.Seek(time.Second * time.Duration(duration))
 			if player.State() != playerpkg.Playing {
 				player.Resume()

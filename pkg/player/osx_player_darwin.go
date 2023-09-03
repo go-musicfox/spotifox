@@ -18,14 +18,14 @@ type osxPlayer struct {
 	player  *avcore.AVPlayer
 	handler *playerHandler
 
-	curMusic UrlMusic
+	curMusic MediaAsset
 	timer    *utils.Timer
 
 	volume    int
 	state     State
 	timeChan  chan time.Duration
 	stateChan chan State
-	musicChan chan UrlMusic
+	musicChan chan MediaAsset
 
 	close chan struct{}
 }
@@ -35,7 +35,7 @@ func NewOsxPlayer() Player {
 		state:     Stopped,
 		timeChan:  make(chan time.Duration),
 		stateChan: make(chan State),
-		musicChan: make(chan UrlMusic),
+		musicChan: make(chan MediaAsset),
 		close:     make(chan struct{}),
 		volume:    100,
 	}
@@ -72,7 +72,7 @@ func (p *osxPlayer) listen() {
 					p.timer = nil
 				}
 
-				item := avcore.AVPlayerItem_playerItemWithURL(core.NSURL_URLWithString(core.String(p.curMusic.Url)))
+				item := avcore.AVPlayerItem_playerItemWithURL(core.NSURL_URLWithString(core.String(string(p.curMusic.SongInfo.ID))))
 				p.player.ReplaceCurrentItemWithPlayerItem(item)
 
 				// 计时器
@@ -113,14 +113,14 @@ func (p *osxPlayer) setState(state State) {
 	}
 }
 
-func (p *osxPlayer) Play(music UrlMusic) {
+func (p *osxPlayer) Play(music MediaAsset) {
 	select {
 	case p.musicChan <- music:
 	default:
 	}
 }
 
-func (p *osxPlayer) CurMusic() UrlMusic {
+func (p *osxPlayer) CurMusic() MediaAsset {
 	return p.curMusic
 }
 

@@ -20,7 +20,7 @@ type Menu interface {
 
 type SongsMenu interface {
 	Menu
-	Songs() []*spotify.FullTrack
+	Songs() []spotify.FullTrack
 }
 
 type PlaylistsMenu interface {

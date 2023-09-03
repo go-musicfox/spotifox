@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-musicfox/spotifox/pkg/configs"
 	"github.com/go-musicfox/spotifox/pkg/constants"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/zmb3/spotify/v2"
 
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/effects"
@@ -22,7 +22,7 @@ import (
 type beepPlayer struct {
 	l sync.Mutex
 
-	curMusic UrlMusic
+	curMusic MediaAsset
 	timer    *utils.Timer
 
 	cacheReader     *os.File
@@ -37,7 +37,7 @@ type beepPlayer struct {
 	volume     *effects.Volume
 	timeChan   chan time.Duration
 	stateChan  chan State
-	musicChan  chan UrlMusic
+	musicChan  chan MediaAsset
 	httpClient *http.Client
 
 	close chan struct{}
@@ -49,7 +49,7 @@ func NewBeepPlayer() Player {
 
 		timeChan:  make(chan time.Duration),
 		stateChan: make(chan State),
-		musicChan: make(chan UrlMusic),
+		musicChan: make(chan MediaAsset),
 		ctrl: &beep.Ctrl{
 			Paused: false,
 		},
@@ -70,12 +70,11 @@ func NewBeepPlayer() Player {
 func (p *beepPlayer) listen() {
 	var (
 		done       = make(chan struct{})
-		resp       *http.Response
 		reader     io.ReadCloser
 		err        error
 		ctx        context.Context
 		cancel     context.CancelFunc
-		prevSongId int64
+		prevSongId spotify.ID
 		doneHandle = func() {
 			select {
 			case done <- struct{}{}:
@@ -105,10 +104,10 @@ func (p *beepPlayer) listen() {
 				cancel()
 			}
 			p.reset()
-			if prevSongId != p.curMusic.Id || !utils.FileOrDirExists(cacheFile) {
+			if prevSongId != p.curMusic.SongInfo.ID || !utils.FileOrDirExists(cacheFile) {
 				ctx, cancel = context.WithCancel(context.Background())
 
-				// FIXME 先这样处理，暂时没想到更好的办法
+				// FIXME No other optimization methods found
 				if p.cacheReader, err = os.OpenFile(cacheFile, os.O_CREATE|os.O_TRUNC|os.O_RDONLY, 0666); err != nil {
 					panic(err)
 				}
@@ -116,16 +115,10 @@ func (p *beepPlayer) listen() {
 					panic(err)
 				}
 
-				if !strings.HasPrefix(p.curMusic.Url, "http") {
-					reader, err = os.Open(p.curMusic.Url)
-					if err != nil {
-						panic(err)
-					}
-				} else if resp, err = p.httpClient.Get(p.curMusic.Url); err != nil {
+				if reader, err = p.curMusic.NewAssetReader(); err != nil {
+					utils.Logger().Printf("new asset reader err: %+v", err)
 					p.stopNoLock()
 					continue
-				} else {
-					reader = resp.Body
 				}
 
 				go func(ctx context.Context, cacheWFile *os.File, read io.ReadCloser) {
@@ -143,14 +136,14 @@ func (p *beepPlayer) listen() {
 						return
 					}
 					// 除了MP3格式，其他格式无需重载
-					if p.curMusic.Type == Mp3 && configs.ConfigRegistry.PlayerBeepMp3Decoder != constants.BeepMiniMp3Decoder {
+					if p.curMusic.SongType() == Mp3 && configs.ConfigRegistry.PlayerBeepMp3Decoder != constants.BeepMiniMp3Decoder {
 						// 需再开一次文件，保证其指针变化，否则将概率导致 p.ctrl.Streamer = beep.Seq(……) 直接停止播放
 						cacheReader, _ := os.OpenFile(cacheFile, os.O_RDONLY, 0666)
 						// 使用新的文件后需手动Seek到上次播放处
 						lastStreamer := p.curStreamer
 						defer lastStreamer.Close()
 						pos := lastStreamer.Position()
-						if p.curStreamer, p.curFormat, err = DecodeSong(p.curMusic.Type, cacheReader); err != nil {
+						if p.curStreamer, p.curFormat, err = DecodeSong(p.curMusic.SongType(), cacheReader); err != nil {
 							p.stopNoLock()
 							return
 						}
@@ -166,9 +159,6 @@ func (p *beepPlayer) listen() {
 				}(ctx, p.cacheWriter, reader)
 
 				var N = 512
-				if p.curMusic.Type == Flac {
-					N *= 4
-				}
 				if err = utils.WaitForNBytes(p.cacheReader, N, time.Millisecond*100, 50); err != nil {
 					utils.Logger().Printf("WaitForNBytes err: %+v", err)
 					p.stopNoLock()
@@ -181,7 +171,7 @@ func (p *beepPlayer) listen() {
 				}
 			}
 
-			if p.curStreamer, p.curFormat, err = DecodeSong(p.curMusic.Type, p.cacheReader); err != nil {
+			if p.curStreamer, p.curFormat, err = DecodeSong(p.curMusic.SongType(), p.cacheReader); err != nil {
 				p.stopNoLock()
 				break
 			}
@@ -209,21 +199,21 @@ func (p *beepPlayer) listen() {
 				},
 			})
 			p.resumeNoLock()
-			prevSongId = p.curMusic.Id
+			prevSongId = p.curMusic.SongInfo.ID
 			p.l.Unlock()
 		}
 	}
 }
 
 // Play 播放音乐
-func (p *beepPlayer) Play(music UrlMusic) {
+func (p *beepPlayer) Play(music MediaAsset) {
 	select {
 	case p.musicChan <- music:
 	default:
 	}
 }
 
-func (p *beepPlayer) CurMusic() UrlMusic {
+func (p *beepPlayer) CurMusic() MediaAsset {
 	return p.curMusic
 }
 
@@ -265,7 +255,7 @@ func (p *beepPlayer) Seek(duration time.Duration) {
 	// FLAC格式(其他未测)跳转会占用大量CPU资源，比特率越高占用越高
 	// 导致Seek方法卡住20-40秒的时间，之后方可随意跳转
 	// minimp3未实现Seek
-	if p.curStreamer == nil || p.curMusic.Type != Mp3 || configs.ConfigRegistry.PlayerBeepMp3Decoder == constants.BeepMiniMp3Decoder {
+	if p.curStreamer == nil || p.curMusic.SongType() != Mp3 || configs.ConfigRegistry.PlayerBeepMp3Decoder == constants.BeepMiniMp3Decoder {
 		return
 	}
 	if p.state == Playing || p.state == Paused {
@@ -426,7 +416,6 @@ func (p *beepPlayer) reset() {
 }
 
 func (p *beepPlayer) streamer(samples [][2]float64) (n int, ok bool) {
-	pos := p.curStreamer.Position()
 	n, ok = p.curStreamer.Stream(samples)
 	err := p.curStreamer.Err()
 	if err == nil && (ok || p.cacheDownloaded) {
@@ -436,11 +425,6 @@ func (p *beepPlayer) streamer(samples [][2]float64) (n int, ok bool) {
 
 	var retry = 4
 	for !ok && retry > 0 {
-		if p.curMusic.Type == Flac {
-			if err = p.curStreamer.Seek(pos); err != nil {
-				return
-			}
-		}
 		utils.ResetError(p.curStreamer)
 
 		select {

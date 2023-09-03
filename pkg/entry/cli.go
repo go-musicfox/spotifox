@@ -24,7 +24,6 @@ func runCLI() {
 		gf.BoolOpt(&commands.GlobalOptions.PProfMode, "pprof", "p", false, "enable PProf mode")
 	}
 
-	// 加载config
 	utils.LoadIniConfig()
 
 	util.PrimaryColor = configs.ConfigRegistry.PrimaryColor

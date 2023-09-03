@@ -1,26 +1,39 @@
 package player
 
-import "github.com/go-musicfox/spotifox/pkg/structs"
+import (
+	"time"
+
+	"github.com/arcspace/go-arc-sdk/apis/arc"
+	"github.com/zmb3/spotify/v2"
+)
 
 // SongType 歌曲类型
 type SongType uint8
 
 const (
 	Mp3 SongType = iota
-	Wav
 	Ogg
-	Flac
+	Aac
 )
 
-var SongTypeMapping = map[string]SongType{
-	"mp3":  Mp3,
-	"wav":  Wav,
-	"ogg":  Ogg,
-	"flac": Flac,
+type MediaAsset struct {
+	arc.MediaAsset
+	SongInfo spotify.FullTrack
 }
 
-type UrlMusic struct {
-	Url  string
-	Type SongType
-	structs.Song
+func (m MediaAsset) Duration() time.Duration {
+	return m.SongInfo.TimeDuration()
+}
+
+func (m MediaAsset) SongType() SongType {
+	switch m.MediaType() {
+	case "audio/mpeg":
+		return Mp3
+	case "audio/ogg":
+		return Ogg
+	case "audio/aac":
+		return Aac
+	default:
+		return Ogg
+	}
 }

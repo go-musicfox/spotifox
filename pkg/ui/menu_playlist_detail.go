@@ -12,7 +12,7 @@ import (
 type PlaylistDetailMenu struct {
 	baseMenu
 	menus      []model.MenuItem
-	songs      []*spotify.FullTrack
+	songs      []spotify.FullTrack
 	playlistId spotify.ID
 
 	limit  int
@@ -51,7 +51,7 @@ func (m *PlaylistDetailMenu) SubMenu(_ *model.App, _ int) model.Menu {
 
 func (m *PlaylistDetailMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		if m.spotifox.spotifyClient == nil || utils.CheckUserInfo(m.spotifox.user) == utils.NeedLogin {
+		if m.spotifox.CheckSession() == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		}
@@ -69,7 +69,7 @@ func (m *PlaylistDetailMenu) BeforeEnterMenuHook() model.Hook {
 			if v.Track.Track == nil {
 				continue
 			}
-			m.songs = append(m.songs, v.Track.Track)
+			m.songs = append(m.songs, *v.Track.Track)
 		}
 		m.menus = utils.MenuItemsFromSongs(m.songs)
 
@@ -82,10 +82,15 @@ func (m *PlaylistDetailMenu) BottomOutHook() model.Hook {
 		return nil
 	}
 	return func(main *model.Main) (bool, model.Page) {
+		if m.spotifox.CheckSession() == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
+			return false, page
+		}
+
 		m.offset += len(m.menus)
 		res, err := m.spotifox.spotifyClient.GetPlaylistItems(context.Background(), m.playlistId, spotify.Limit(m.limit))
 		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
 			return false, page
 		}
 		if err != nil {
@@ -95,7 +100,7 @@ func (m *PlaylistDetailMenu) BottomOutHook() model.Hook {
 			if v.Track.Track == nil {
 				continue
 			}
-			m.songs = append(m.songs, v.Track.Track)
+			m.songs = append(m.songs, *v.Track.Track)
 		}
 		m.menus = utils.MenuItemsFromSongs(m.songs)
 
@@ -103,6 +108,6 @@ func (m *PlaylistDetailMenu) BottomOutHook() model.Hook {
 	}
 }
 
-func (m *PlaylistDetailMenu) Songs() []*spotify.FullTrack {
+func (m *PlaylistDetailMenu) Songs() []spotify.FullTrack {
 	return m.songs
 }

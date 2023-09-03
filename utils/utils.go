@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-musicfox/spotifox/pkg/configs"
 	"github.com/go-musicfox/spotifox/pkg/constants"
+	"github.com/zmb3/spotify/v2"
 
 	"github.com/buger/jsonparser"
 	"golang.org/x/mod/semver"
@@ -133,8 +134,8 @@ func WebUrlOfPlaylist(playlistId int64) string {
 	return "https://music.163.com/#/my/m/music/playlist?id=" + strconv.FormatInt(playlistId, 10)
 }
 
-func WebUrlOfSong(songId int64) string {
-	return "https://music.163.com/#/song?id=" + strconv.FormatInt(songId, 10)
+func WebUrlOfSong(songId spotify.ID) string {
+	return "https://open.spotify.com/track/" + string(songId)
 }
 
 func WebUrlOfArtist(artistId int64) string {

@@ -140,12 +140,12 @@ const (
 	ReportPhaseComplete
 )
 
-func Report(client *Client, phase ReportPhase, song *spotify.FullTrack, passedTime time.Duration) {
+func Report(client *Client, phase ReportPhase, song spotify.FullTrack, passedTime time.Duration) {
 	switch phase {
 	case ReportPhaseStart:
-		go func(song *spotify.FullTrack) {
+		go func(song spotify.FullTrack) {
 			_ = client.UpdateNowPlaying(map[string]any{
-				"artist":   strings.Join(utils.ArtistNamesOfSong(song), ","),
+				"artist":   strings.Join(utils.ArtistNamesOfSong(&song), ","),
 				"track":    song.Name,
 				"album":    song.Album.Name,
 				"duration": song.TimeDuration(),
@@ -155,9 +155,9 @@ func Report(client *Client, phase ReportPhase, song *spotify.FullTrack, passedTi
 		duration := song.TimeDuration().Seconds()
 		passedSeconds := passedTime.Seconds()
 		if passedSeconds >= duration/2 {
-			go func(song *spotify.FullTrack, duration float64) {
+			go func(song spotify.FullTrack, duration float64) {
 				_ = client.Scrobble(map[string]interface{}{
-					"artist":    strings.Join(utils.ArtistNamesOfSong(song), ","),
+					"artist":    strings.Join(utils.ArtistNamesOfSong(&song), ","),
 					"track":     song.Name,
 					"album":     song.Album.Name,
 					"timestamp": time.Now().Unix(),
