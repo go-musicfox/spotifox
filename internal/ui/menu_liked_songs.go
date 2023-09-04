@@ -63,9 +63,11 @@ func (m *LikedSongsMenu) BeforeEnterMenuHook() model.Hook {
 		}
 		m.total = res.Total
 
+		var songs []spotify.FullTrack
 		for i := range res.Tracks {
-			m.songs = append(m.songs, res.Tracks[i].FullTrack)
+			songs = append(songs, res.Tracks[i].FullTrack)
 		}
+		m.songs = songs
 		m.menus = utils.MenuItemsFromSongs(m.songs)
 
 		return true, nil
