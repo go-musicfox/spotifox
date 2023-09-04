@@ -14,9 +14,9 @@ type EventHandler struct {
 	spotifox *Spotifox
 }
 
-func NewEventHandler(netease *Spotifox) *EventHandler {
+func NewEventHandler(s *Spotifox) *EventHandler {
 	return &EventHandler{
-		spotifox: netease,
+		spotifox: s,
 	}
 }
 
@@ -64,30 +64,22 @@ func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.P
 		}
 	case "p":
 		player.SetPlayMode(0)
-	// case "P":
-	// newPage := player.Intelligence(false)
-	// return true, newPage, a.Tick(time.Nanosecond)
 	case ",", "，":
 		newPage := likePlayingSong(h.spotifox, true)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case ".", "。":
 		newPage := likePlayingSong(h.spotifox, false)
 		return true, newPage, a.Tick(time.Nanosecond)
-	case "w", "W":
-		logout()
+	case "w":
+		logout(false)
+		return true, nil, tea.Quit
+	case "W":
+		logout(true)
 		return true, nil, tea.Quit
 	case "-", "−", "ー": // half-width, full-width and katakana
 		player.DownVolume()
 	case "=", "＝":
 		player.UpVolume()
-	case "t":
-		// trash playing song
-		newPage := trashPlayingSong(h.spotifox)
-		return true, newPage, a.Tick(time.Nanosecond)
-	case "T":
-		// trash selected song
-		newPage := trashSelectedSong(h.spotifox)
-		return true, newPage, a.Tick(time.Nanosecond)
 	case "<", "〈", "＜", "《", "«": // half-width, full-width, Japanese, Chinese and French
 		// like selected song
 		newPage := likeSelectedSong(h.spotifox, true)
@@ -131,22 +123,12 @@ func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.P
 		openSelectedItemInWeb(h.spotifox)
 	case ";", ":", "：", "；":
 		// 收藏选中歌单
-		newPage := collectSelectedPlaylist(h.spotifox, true)
+		newPage := followSelectedPlaylist(h.spotifox, true)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "'", "\"":
 		// 取消收藏选中歌单
-		newPage := collectSelectedPlaylist(h.spotifox, false)
+		newPage := followSelectedPlaylist(h.spotifox, false)
 		return true, newPage, a.Tick(time.Nanosecond)
-	case "\\", "、":
-		// 从播放列表删除歌曲,仅在当前播放列表界面有效
-		newPage := delSongFromPlaylist(h.spotifox)
-		return true, newPage, a.Tick(time.Nanosecond)
-	case "e":
-		// 追加到下一曲播放
-		addSongToPlaylist(h.spotifox, true)
-	case "E":
-		// 追加到播放列表末尾
-		addSongToPlaylist(h.spotifox, false)
 	case "r", "R":
 		// rerender
 		return true, main, a.RerenderCmd(true)

@@ -1,10 +1,6 @@
 package utils
 
 import (
-	"encoding/json"
-	"io"
-	"net/http"
-
 	"github.com/zmb3/spotify/v2"
 )
 
@@ -33,27 +29,4 @@ type Lines struct {
 	Words       string        `json:"words"`
 	Syllables   []interface{} `json:"syllables"`
 	EndTimeMs   string        `json:"endTimeMs"`
-}
-
-func GetExternalLyrics(id spotify.ID) *LyricsResp {
-	resp, err := http.Get("https://spotify-lyric-api.herokuapp.com/?trackid=" + string(id))
-	if err != nil {
-		Logger().Printf("Get song lyrics failed: %+v", err)
-		return nil
-	}
-	defer resp.Body.Close()
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		Logger().Printf("Get song lyrics failed: %+v", err)
-		return nil
-	}
-
-	var lyrics LyricsResp
-	if err = json.Unmarshal(data, &lyrics); err != nil {
-		Logger().Printf("Get song lyrics failed: %+v", err)
-		return nil
-	}
-
-	return &lyrics
 }

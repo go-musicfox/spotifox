@@ -11,6 +11,7 @@ type PlayerSnapshot struct {
 	CurSongIndex     int                 `json:"cur_song_index"`
 	Playlist         []spotify.FullTrack `json:"playlist"`
 	PlaylistUpdateAt time.Time           `json:"playlist_update_at"`
+	IsCurSongLiked   bool                `json:"is_cur_song_liked"`
 }
 
 func (p PlayerSnapshot) GetDbName() string {

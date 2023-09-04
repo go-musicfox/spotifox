@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"time"
 
 	"github.com/go-musicfox/spotifox/internal/configs"
 	"github.com/go-musicfox/spotifox/internal/constants"
@@ -130,30 +129,31 @@ func CopyDirFromEmbed(src, dst string) error {
 	return nil
 }
 
-func WebUrlOfPlaylist(playlistId int64) string {
-	return "https://music.163.com/#/my/m/music/playlist?id=" + strconv.FormatInt(playlistId, 10)
+func WebURLOfPlaylist(playlistId int64) string {
+	return "https://open.spotify.com/playlist/" + strconv.FormatInt(playlistId, 10)
 }
 
-func WebUrlOfSong(songId spotify.ID) string {
+func WebURLOfSong(songId spotify.ID) string {
 	return "https://open.spotify.com/track/" + string(songId)
 }
 
-func WebUrlOfArtist(artistId int64) string {
-	return "https://music.163.com/#/artist?id=" + strconv.FormatInt(artistId, 10)
+func WebURLOfArtist(artistId int64) string {
+	return "https://open.spotify.com/artist/" + strconv.FormatInt(artistId, 10)
 }
 
-func WebUrlOfAlbum(artistId int64) string {
-	return "https://music.163.com/#/album?id=" + strconv.FormatInt(artistId, 10)
+func WebURLOfAlbum(artistId int64) string {
+	return "https://open.spotify.com/album/" + strconv.FormatInt(artistId, 10)
 }
 
-func FileUrl(filepath string) string {
-	return "file://" + filepath
+func WebURLOfLibrary() string {
+	return "https://open.spotify.com/collection/tracks"
 }
 
-func IsSameDate(t1, t2 time.Time) bool {
-	y1, m1, d1 := t1.Date()
-	y2, m2, d2 := t2.Date()
-	return y1 == y2 && m1 == m2 && d1 == d2
+func PicURLOfSong(song *spotify.FullTrack) string {
+	if song == nil || len(song.Album.Images) == 0 {
+		return ""
+	}
+	return song.Album.Images[0].URL
 }
 
 func FileOrDirExists(filename string) bool {

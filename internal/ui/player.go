@@ -20,7 +20,6 @@ import (
 	"github.com/go-musicfox/spotifox/internal/state_handler"
 	"github.com/go-musicfox/spotifox/internal/storage"
 	"github.com/go-musicfox/spotifox/utils"
-	"github.com/go-musicfox/spotifox/utils/like_list"
 	"github.com/zmb3/spotify/v2"
 
 	"github.com/mattn/go-runewidth"
@@ -62,7 +61,8 @@ type Player struct {
 	playlistUpdateAt time.Time           // 播放列表更新时间
 	curSongIndex     int                 // 当前歌曲的下标
 	curSong          spotify.FullTrack   // 当前歌曲信息（防止播放列表发生变动后，歌曲信息不匹配）
-	playingMenuKey   string              // 正在播放的菜单Key
+	isCurSongLiked   bool
+	playingMenuKey   string // 正在播放的菜单Key
 	playingMenu      Menu
 	playedTime       time.Duration // 已经播放的时长
 
@@ -274,7 +274,7 @@ func (p *Player) songView() string {
 
 	songId := p.curSong.ID
 	if songId != "" {
-		if like_list.IsLikeSong(songId) {
+		if p.isCurSongLiked {
 			builder.WriteString(util.SetFgStyle("♥ ", termenv.ANSIRed))
 		} else {
 			builder.WriteString(util.SetFgStyle("♥ ", termenv.ANSIWhite))
@@ -405,11 +405,14 @@ func (p *Player) PlaySong(song spotify.FullTrack, direction PlayDirection) model
 	loading.Start()
 	defer loading.Complete()
 
+	p.isCurSongLiked = p.spotifox.CheckLikedSong(song.ID)
+
 	table := storage.NewTable()
 	_ = table.SetByKVModel(storage.PlayerSnapshot{}, storage.PlayerSnapshot{
 		CurSongIndex:     p.curSongIndex,
 		Playlist:         p.playlist,
 		PlaylistUpdateAt: p.playlistUpdateAt,
+		IsCurSongLiked:   p.isCurSongLiked,
 	})
 	p.curSong = song
 	p.playedTime = 0
@@ -443,17 +446,15 @@ func (p *Player) PlaySong(song spotify.FullTrack, direction PlayDirection) model
 		SongInfo:   song,
 	})
 
-	// 上报
 	lastfm.Report(p.spotifox.lastfm, lastfm.ReportPhaseStart, p.curSong, p.PassedTime())
 
 	go utils.Notify(utils.NotifyContent{
 		Title:   "正在播放: " + song.Name,
-		Text:    fmt.Sprintf("%s - %s", utils.ArtistNamesOfSong(&song), song.Album.Name),
+		Text:    fmt.Sprintf("%s - %s", strings.Join(utils.ArtistNamesOfSong(&song), ","), song.Album.Name),
 		Icon:    song.PreviewURL,
-		Url:     utils.WebUrlOfSong(song.ID),
+		Url:     utils.WebURLOfSong(song.ID),
 		GroupId: constants.GroupID,
 	})
-
 	p.playErrCount = 0
 
 	return nil

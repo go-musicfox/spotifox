@@ -5,7 +5,6 @@ import (
 	"os"
 	"path"
 	"runtime"
-	"strconv"
 	"time"
 
 	"github.com/anhoder/foxful-cli/model"
@@ -16,7 +15,6 @@ import (
 	"github.com/go-musicfox/spotifox/internal/configs"
 	"github.com/go-musicfox/spotifox/internal/constants"
 	"github.com/go-musicfox/spotifox/internal/lastfm"
-	"github.com/go-musicfox/spotifox/internal/lyric"
 	"github.com/go-musicfox/spotifox/internal/player"
 	"github.com/go-musicfox/spotifox/internal/storage"
 	"github.com/go-musicfox/spotifox/internal/structs"
@@ -153,6 +151,7 @@ func (s *Spotifox) InitHook(_ *model.App) {
 				p.playlist = snapshot.Playlist
 				p.playlistUpdateAt = snapshot.PlaylistUpdateAt
 				p.curSong = p.playlist[p.curSongIndex]
+				p.isCurSongLiked = snapshot.IsCurSongLiked
 				p.playingMenuKey = "from_local_db" // reset menu key
 			}
 		}
@@ -210,45 +209,4 @@ func (s *Spotifox) CloseHook(_ *model.App) {
 
 func (s *Spotifox) Player() *Player {
 	return s.player
-}
-
-func (s *Spotifox) CheckSession() utils.ResCode {
-	if s.spotifyClient == nil {
-		return utils.NeedLogin
-	}
-	return utils.CheckUserInfo(s.user)
-}
-
-func (s *Spotifox) FetchSongLyrics(songId spotify.ID) *lyric.LRCFile {
-	// get by user's cookie
-	if s.lyricClient != nil {
-		l, err := s.lyricClient.Get(string(songId))
-		if err != nil || l == nil || l.Lyrics == nil {
-			utils.Logger().Printf("get song lyrics failed: %+v", err)
-			return nil
-		}
-		var frags []lyric.LRCFragment
-		for _, v := range l.Lyrics.Lines {
-			frags = append(frags, lyric.LRCFragment{StartTimeMs: int64(v.Time), Content: v.Words})
-		}
-		return lyric.NewLRCFileFromFrags(frags)
-	}
-
-	// get by api: https://github.com/akashrchandran/spotify-lyrics-api
-	resp := utils.GetExternalLyrics(songId)
-	if resp != nil && len(resp.Lines) > 0 {
-		var frags []lyric.LRCFragment
-		for _, v := range resp.Lines {
-			startTimeMs, err := strconv.ParseInt(v.StartTimeMs, 10, 64)
-			if err != nil {
-				continue
-			}
-			frags = append(frags, lyric.LRCFragment{
-				StartTimeMs: startTimeMs,
-				Content:     v.Words,
-			})
-		}
-		return lyric.NewLRCFileFromFrags(frags)
-	}
-	return nil
 }
