@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/go-musicfox/spotifox/internal/structs"
+	"github.com/go-musicfox/spotifox/utils/auth"
 	"github.com/zmb3/spotify/v2"
 
 	"github.com/buger/jsonparser"
@@ -39,6 +41,9 @@ func CheckSpotifyErr(err error) ResCode {
 		return Success
 	}
 	if e, ok := err.(spotify.Error); ok && e.Status == http.StatusUnauthorized {
+		return NeedLogin
+	}
+	if errors.Is(err, auth.ErrTokenExpired) {
 		return NeedLogin
 	}
 	return UnknownError
