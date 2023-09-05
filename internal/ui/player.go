@@ -451,7 +451,7 @@ func (p *Player) PlaySong(song spotify.FullTrack, direction PlayDirection) model
 	go utils.Notify(utils.NotifyContent{
 		Title:   "正在播放: " + song.Name,
 		Text:    fmt.Sprintf("%s - %s", strings.Join(utils.ArtistNamesOfSong(&song), ","), song.Album.Name),
-		Icon:    song.PreviewURL,
+		Icon:    utils.PicURLOfSong(&song),
 		Url:     utils.WebURLOfSong(song.ID),
 		GroupId: constants.GroupID,
 	})

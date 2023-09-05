@@ -52,7 +52,8 @@ func (s *Session) startSession(loginPacket []byte, username string) error {
 
 	err := s.stream.SendPacket(connection.PacketLogin, loginPacket)
 	if err != nil {
-		log.Fatal("bad shannon write", err)
+		log.Printf("bad shannon write: %v", err)
+		return err
 	}
 
 	// Pll once for authentication response

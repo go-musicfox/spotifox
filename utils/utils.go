@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"io"
 	"io/fs"
+	"math"
 	"net/http"
 	"os"
 	"path"
@@ -149,11 +150,17 @@ func WebURLOfLibrary() string {
 	return "https://open.spotify.com/collection/tracks"
 }
 
-func PicURLOfSong(song *spotify.FullTrack) string {
+func PicURLOfSong(song *spotify.FullTrack) (url string) {
 	if song == nil || len(song.Album.Images) == 0 {
-		return ""
+		return
 	}
-	return song.Album.Images[0].URL
+	var minSize = math.MaxInt32
+	for _, v := range song.Album.Images {
+		if v.Width < minSize {
+			url = v.URL
+		}
+	}
+	return
 }
 
 func FileOrDirExists(filename string) bool {
