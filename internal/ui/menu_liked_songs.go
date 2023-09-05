@@ -22,8 +22,7 @@ type LikedSongsMenu struct {
 func NewLikedSongsMenu(base baseMenu) *LikedSongsMenu {
 	return &LikedSongsMenu{
 		baseMenu: base,
-
-		limit: 50,
+		limit:    50,
 	}
 }
 
@@ -84,8 +83,8 @@ func (m *LikedSongsMenu) BottomOutHook() model.Hook {
 			return false, page
 		}
 
-		m.offset += len(m.menus)
-		res, err := m.spotifox.spotifyClient.CurrentUsersTracks(context.Background(), spotify.Limit(m.limit))
+		m.offset += m.limit
+		res, err := m.spotifox.spotifyClient.CurrentUsersTracks(context.Background(), spotify.Limit(m.limit), spotify.Offset(m.offset))
 		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
 			return false, page

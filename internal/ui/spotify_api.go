@@ -13,7 +13,10 @@ func (s *Spotifox) CheckSession() utils.ResCode {
 	if s.spotifyClient == nil {
 		return utils.NeedLogin
 	}
-	return utils.CheckUserInfo(s.user)
+	if s.user == nil || s.user.ID == "" || s.user.Token.AccessToken == "" {
+		return utils.NeedLogin
+	}
+	return utils.Success
 }
 
 func (s *Spotifox) FetchSongLyrics(songId spotify.ID) *lyric.LRCFile {

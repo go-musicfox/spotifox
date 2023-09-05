@@ -1,33 +1,29 @@
 package ui
 
 import (
-	"strconv"
+	"context"
 
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/spotifox/internal/structs"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/pkg/errors"
 	"github.com/zmb3/spotify/v2"
-
-	"github.com/buger/jsonparser"
-	"github.com/go-musicfox/netease-music/service"
 )
 
 type AddToUserPlaylistMenu struct {
 	baseMenu
 	menus     []model.MenuItem
 	playlists []spotify.SimplePlaylist
-	song      structs.Song
+	song      spotify.FullTrack
 	offset    int
 	limit     int
-	hasMore   bool
+	total     int
 	action    bool // true for add, false for del
 }
 
-func NewAddToUserPlaylistMenu(base baseMenu, song structs.Song, action bool) *AddToUserPlaylistMenu {
+func NewAddToUserPlaylistMenu(base baseMenu, song spotify.FullTrack, action bool) *AddToUserPlaylistMenu {
 	return &AddToUserPlaylistMenu{
 		baseMenu: base,
-		offset:   0,
-		limit:    100,
+		limit:    50,
 		action:   action,
 		song:     song,
 	}
@@ -55,76 +51,81 @@ func (m *AddToUserPlaylistMenu) SubMenu(_ *model.App, _ int) model.Menu {
 
 func (m *AddToUserPlaylistMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		// 等于0，获取当前用户歌单
-		if utils.CheckUserInfo(m.spotifox.user) == utils.NeedLogin {
+		if m.spotifox.CheckSession() == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		}
 
-		userId := m.spotifox.user.ID
-
-		userPlaylists := service.UserPlaylistService{
-			Uid:    userId,
-			Limit:  strconv.Itoa(m.limit),
-			Offset: strconv.Itoa(m.offset),
-		}
-		code, response := userPlaylists.UserPlaylist()
-		codeType := utils.CheckCode(code)
-		if codeType == utils.NeedLogin {
+		var (
+			res *spotify.SimplePlaylistPage
+			err error
+		)
+		res, err = m.spotifox.spotifyClient.CurrentUsersPlaylists(context.Background(), spotify.Limit(m.limit))
+		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
-		} else if codeType != utils.Success {
-			return false, nil
 		}
+		if err != nil {
+			return m.handleFetchErr(errors.Wrap(err, "get playlists failed"))
+		}
+		m.total = res.Total
 
-		var menus []model.MenuItem
-		// m.playlists = utils.GetPlaylists(response)
-		for _, playlist := range m.playlists {
-			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name)})
+		var (
+			menus     []model.MenuItem
+			playlists []spotify.SimplePlaylist
+		)
+		for _, playlist := range res.Playlists {
+			if playlist.Owner.ID != m.spotifox.user.ID {
+				continue
+			}
+			playlists = append(playlists, playlist)
+			var owner string
+			if playlist.Owner.DisplayName != "" {
+				owner = "[" + playlist.Owner.DisplayName + "]"
+			}
+			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name), Subtitle: utils.ReplaceSpecialStr(owner)})
 		}
+		m.playlists = playlists
 		m.menus = menus
-
-		// 是否有更多
-		if hasMore, err := jsonparser.GetBoolean(response, "more"); err == nil {
-			m.hasMore = hasMore
-		}
 
 		return true, nil
 	}
 }
 
 func (m *AddToUserPlaylistMenu) BottomOutHook() model.Hook {
-	if !m.hasMore {
+	if m.total <= m.limit+m.offset {
 		return nil
 	}
 	return func(main *model.Main) (bool, model.Page) {
-		userId := m.spotifox.user.ID
-
-		m.offset = m.offset + len(m.menus)
-		userPlaylists := service.UserPlaylistService{
-			Uid:    userId,
-			Limit:  strconv.Itoa(m.limit),
-			Offset: strconv.Itoa(m.offset),
-		}
-		code, response := userPlaylists.UserPlaylist()
-		codeType := utils.CheckCode(code)
-		if codeType == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(nil)
+		if m.spotifox.CheckSession() == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
 			return false, page
-		} else if codeType != utils.Success {
-			return false, nil
 		}
 
-		// list := utils.GetPlaylists(response)
-		// for _, playlist := range list {
-		// 	m.menus = append(m.menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name)})
-		// }
+		m.offset += m.limit
+		var (
+			res *spotify.SimplePlaylistPage
+			err error
+		)
+		res, err = m.spotifox.spotifyClient.CurrentUsersPlaylists(context.Background(), spotify.Limit(m.limit), spotify.Offset(m.offset))
+		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
+			return false, page
+		}
+		if err != nil {
+			return m.handleFetchErr(errors.Wrap(err, "get playlists failed"))
+		}
 
-		// m.playlists = append(m.playlists, list...)
-
-		// 是否有更多
-		if hasMore, err := jsonparser.GetBoolean(response, "more"); err == nil {
-			m.hasMore = hasMore
+		for _, playlist := range res.Playlists {
+			if playlist.Owner.ID != m.spotifox.user.ID {
+				continue
+			}
+			m.playlists = append(m.playlists, playlist)
+			var owner string
+			if playlist.Owner.DisplayName != "" {
+				owner = "[" + playlist.Owner.DisplayName + "]"
+			}
+			m.menus = append(m.menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name), Subtitle: utils.ReplaceSpecialStr(owner)})
 		}
 
 		return true, nil

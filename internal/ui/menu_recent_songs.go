@@ -37,7 +37,7 @@ func (m *RecentSongsMenu) MenuViews() []model.MenuItem {
 
 func (m *RecentSongsMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		if utils.CheckUserInfo(m.spotifox.user) == utils.NeedLogin {
+		if m.spotifox.CheckSession() == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		}

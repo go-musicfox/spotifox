@@ -103,14 +103,13 @@ func (m *UserPlaylistMenu) BottomOutHook() model.Hook {
 			return false, page
 		}
 
-		m.offset += len(m.menus)
-
+		m.offset += m.limit
 		var (
 			res *spotify.SimplePlaylistPage
 			err error
 		)
 		if m.userId == CurUser {
-			res, err = m.spotifox.spotifyClient.CurrentUsersPlaylists(context.Background(), spotify.Limit(m.limit))
+			res, err = m.spotifox.spotifyClient.CurrentUsersPlaylists(context.Background(), spotify.Limit(m.limit), spotify.Offset(m.offset))
 		} else {
 			res, err = m.spotifox.spotifyClient.GetPlaylistsForUser(context.Background(), m.userId, spotify.Limit(m.limit))
 		}
@@ -126,7 +125,11 @@ func (m *UserPlaylistMenu) BottomOutHook() model.Hook {
 		m.playlists = append(m.playlists, res.Playlists...)
 		var menus []model.MenuItem
 		for _, playlist := range m.playlists {
-			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name), Subtitle: utils.ReplaceSpecialStr(playlist.Owner.DisplayName)})
+			var owner string
+			if playlist.Owner.DisplayName != "" {
+				owner = "[" + playlist.Owner.DisplayName + "]"
+			}
+			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(playlist.Name), Subtitle: utils.ReplaceSpecialStr(owner)})
 		}
 		m.menus = menus
 

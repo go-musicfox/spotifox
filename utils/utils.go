@@ -130,8 +130,8 @@ func CopyDirFromEmbed(src, dst string) error {
 	return nil
 }
 
-func WebURLOfPlaylist(playlistId int64) string {
-	return "https://open.spotify.com/playlist/" + strconv.FormatInt(playlistId, 10)
+func WebURLOfPlaylist(playlistId spotify.ID) string {
+	return "https://open.spotify.com/playlist/" + string(playlistId)
 }
 
 func WebURLOfSong(songId spotify.ID) string {

@@ -16,7 +16,7 @@ func NewMainMenu(netease *Spotifox) *MainMenu {
 		baseMenu: base,
 		menus: []model.MenuItem{
 			{Title: "我喜欢的音乐"},
-			{Title: "关注的歌单"},
+			{Title: "我的歌单"},
 			{Title: "帮助"},
 			{Title: "检查更新"},
 		},

@@ -87,8 +87,8 @@ func (m *PlaylistDetailMenu) BottomOutHook() model.Hook {
 			return false, page
 		}
 
-		m.offset += len(m.menus)
-		res, err := m.spotifox.spotifyClient.GetPlaylistItems(context.Background(), m.playlistId, spotify.Limit(m.limit))
+		m.offset += m.limit
+		res, err := m.spotifox.spotifyClient.GetPlaylistItems(context.Background(), m.playlistId, spotify.Limit(m.limit), spotify.Offset(m.offset))
 		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
 			return false, page
