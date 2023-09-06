@@ -125,11 +125,11 @@ brews:
   - name: "{{ .Env.HOMEBREW_NAME }}"
     repository:
       owner: go-musicfox
-      name: homebrew-spotifox
+      name: homebrew-go-musicfox
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     url_template: "https://github.com/go-musicfox/spotifox/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     homepage: "https://github.com/go-musicfox/spotifox"
-    description: "Spotifox is yet another Spotify client in cli."
+    description: "Spotifox is yet another spotify CLI client."
     commit_author:
       name: anhoder
       email: anhoder@88.com
@@ -144,7 +144,7 @@ brews:
 winget:
   - name: spotifox
     publisher: go-musicfox
-    short_description: "Spotifox is yet another Spotify client in cli."
+    short_description: "Spotifox is yet another spotify CLI client."
     license: "MIT"
     publisher_url: https://github.com/go-musicfox/spotifox
     publisher_support_url: "https://github.com/go-musicfox/spotifox/issues/new"
@@ -155,7 +155,7 @@ winget:
       email: anhoder@88.com
     commit_msg_template: "{{ .PackageIdentifier }}: {{ .Tag }}"
     homepage: "https://github.com/go-musicfox/spotifox"
-    description: "Spotifox is yet another Spotify client in cli."
+    description: "Spotifox is yet another spotify CLI client."
     skip_upload: auto
     release_notes: "{{.Changelog}}"
     tags:

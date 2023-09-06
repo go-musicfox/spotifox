@@ -54,7 +54,7 @@ func (m *UserPlaylistMenu) SubMenu(_ *model.App, index int) model.Menu {
 
 func (m *UserPlaylistMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		if m.spotifox.CheckSession() == utils.NeedLogin {
+		if m.spotifox.CheckAuthSession() == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		}
@@ -98,7 +98,7 @@ func (m *UserPlaylistMenu) BottomOutHook() model.Hook {
 		return nil
 	}
 	return func(main *model.Main) (bool, model.Page) {
-		if m.spotifox.CheckSession() == utils.NeedLogin {
+		if m.spotifox.CheckAuthSession() == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
 			return false, page
 		}

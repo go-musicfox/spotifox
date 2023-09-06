@@ -23,7 +23,7 @@ func likePlayingSong(m *Spotifox, likeOrNot bool) model.Page {
 		return nil
 	}
 
-	if m.CheckSession() == utils.NeedLogin {
+	if m.CheckAuthSession() == utils.NeedLogin {
 		page, _ := m.ToLoginPage(func() model.Page {
 			likePlayingSong(m, likeOrNot)
 			return nil
@@ -80,7 +80,7 @@ func likeSelectedSong(m *Spotifox, likeOrNot bool) model.Page {
 	}
 	songs := me.Songs()
 
-	if m.CheckSession() == utils.NeedLogin {
+	if m.CheckAuthSession() == utils.NeedLogin {
 		page, _ := m.ToLoginPage(func() model.Page {
 			likeSelectedSong(m, likeOrNot)
 			return nil
@@ -272,7 +272,7 @@ func followSelectedPlaylist(m *Spotifox, followOrNot bool) model.Page {
 	loading.Start()
 	defer loading.Complete()
 
-	if m.CheckSession() == utils.NeedLogin {
+	if m.CheckAuthSession() == utils.NeedLogin {
 		page, _ := m.ToLoginPage(func() model.Page {
 			followSelectedPlaylist(m, followOrNot)
 			return nil
@@ -311,6 +311,14 @@ func openAddSongToUserPlaylistMenu(m *Spotifox, isSelected, isAdd bool) model.Pa
 	loading := model.NewLoading(m.MustMain())
 	loading.Start()
 	defer loading.Complete()
+
+	if m.CheckAuthSession() == utils.NeedLogin {
+		page, _ := m.ToLoginPage(func() model.Page {
+			openAddSongToUserPlaylistMenu(m, isSelected, isAdd)
+			return nil
+		})
+		return page
+	}
 
 	var (
 		main = m.MustMain()
@@ -351,7 +359,7 @@ func addSongToUserPlaylist(m *Spotifox, isAdd bool) model.Page {
 	loading.Start()
 	defer loading.Complete()
 
-	if m.CheckSession() == utils.NeedLogin {
+	if m.CheckAuthSession() == utils.NeedLogin {
 		page, _ := m.ToLoginPage(func() model.Page {
 			addSongToUserPlaylist(m, isAdd)
 			return nil

@@ -51,7 +51,8 @@ func (m *AddToUserPlaylistMenu) SubMenu(_ *model.App, _ int) model.Menu {
 
 func (m *AddToUserPlaylistMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		if m.spotifox.CheckSession() == utils.NeedLogin {
+		// 等于0，获取当前用户歌单
+		if m.spotifox.CheckAuthSession() == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		}
@@ -97,7 +98,7 @@ func (m *AddToUserPlaylistMenu) BottomOutHook() model.Hook {
 		return nil
 	}
 	return func(main *model.Main) (bool, model.Page) {
-		if m.spotifox.CheckSession() == utils.NeedLogin {
+		if m.spotifox.CheckAuthSession() == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
 			return false, page
 		}

@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/arcspace/go-arc-sdk/stdlib/task"
 	respot "github.com/arcspace/go-librespot/librespot/api-respot"
-	"github.com/arcspace/go-librespot/librespot/core"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-musicfox/spotifox/internal/configs"
 	"github.com/go-musicfox/spotifox/internal/constants"
@@ -41,19 +39,9 @@ type Spotifox struct {
 }
 
 func NewSpotifox(app *model.App) *Spotifox {
-	ctx := respot.DefaultSessionContext(constants.SpotifyDeviceName)
-	sess, err := respot.StartNewSession(ctx)
-	if err != nil {
-		panic(err)
-	}
-	if se, ok := sess.(*core.Session); ok {
-		se.Downloader().SetAudioFormat(configs.ConfigRegistry.SongFormat.ToSpotifyFormat())
-	}
-	ctx.Context, _ = task.Start(&task.Task{Label: "spotifox"})
-
 	var s = &Spotifox{
 		lastfm: lastfm.NewClient(),
-		sess:   sess,
+		sess:   NewSpotifySession(),
 		App:    app,
 	}
 	s.player = NewPlayer(s)
@@ -74,7 +62,9 @@ func (s *Spotifox) ToLoginPage(callback LoginCallback) (model.Page, tea.Cmd) {
 		login := &s.sess.Context().Login
 		login.Username = s.user.Username
 		login.AuthData = s.user.AuthBlob
-		err := s.sess.Login()
+		err := s.ReconnSessionWhenNeed(func() error {
+			return s.sess.Login()
+		})
 		if err == nil {
 			return s.login.handleLoginSuccess()
 		}

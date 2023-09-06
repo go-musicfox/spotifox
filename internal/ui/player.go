@@ -10,6 +10,7 @@ import (
 
 	"github.com/anhoder/foxful-cli/model"
 	"github.com/anhoder/foxful-cli/util"
+	"github.com/arcspace/go-arc-sdk/apis/arc"
 	respot "github.com/arcspace/go-librespot/librespot/api-respot"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-musicfox/spotifox/internal/configs"
@@ -393,7 +394,7 @@ func (p *Player) LocatePlayingSong() {
 
 // PlaySong 播放歌曲
 func (p *Player) PlaySong(song spotify.FullTrack, direction PlayDirection) model.Page {
-	if p.spotifox.CheckSession() == utils.NeedLogin {
+	if p.spotifox.CheckAuthSession() == utils.NeedLogin {
 		page, _ := p.spotifox.ToLoginPage(func() model.Page {
 			p.PlaySong(song, direction)
 			return nil
@@ -420,7 +421,12 @@ func (p *Player) PlaySong(song spotify.FullTrack, direction PlayDirection) model
 	p.LocatePlayingSong()
 	p.Player.Paused()
 
-	asset, err := p.spotifox.sess.PinTrack(string(song.ID), respot.PinOpts{StartInternally: true})
+	var asset arc.MediaAsset
+	err := p.spotifox.ReconnSessionWhenNeed(func() error {
+		var err error
+		asset, err = p.spotifox.sess.PinTrack(string(song.ID), respot.PinOpts{StartInternally: true})
+		return err
+	})
 	if err != nil {
 		utils.Logger().Printf("spotify pin track err: %+v", err)
 		p.progressRamp = []string{}

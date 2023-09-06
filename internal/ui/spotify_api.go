@@ -2,21 +2,63 @@ package ui
 
 import (
 	"context"
+	"errors"
+	"io"
 	"strings"
 
+	"github.com/arcspace/go-arc-sdk/stdlib/task"
+	respot "github.com/arcspace/go-librespot/librespot/api-respot"
+	"github.com/arcspace/go-librespot/librespot/core"
+	"github.com/go-musicfox/spotifox/internal/configs"
+	"github.com/go-musicfox/spotifox/internal/constants"
 	"github.com/go-musicfox/spotifox/internal/lyric"
 	"github.com/go-musicfox/spotifox/utils"
 	"github.com/zmb3/spotify/v2"
 )
 
-func (s *Spotifox) CheckSession() utils.ResCode {
+func NewSpotifySession() respot.Session {
+	ctx := respot.DefaultSessionContext(constants.SpotifyDeviceName)
+	sess, err := respot.StartNewSession(ctx)
+	if err != nil {
+		panic(err)
+	}
+	if se, ok := sess.(*core.Session); ok {
+		se.Downloader().SetAudioFormat(configs.ConfigRegistry.SongFormat.ToSpotifyFormat())
+	}
+	ctx.Context, _ = task.Start(&task.Task{Label: constants.SpotifyDeviceName})
+	return sess
+}
+
+func (s *Spotifox) ReconnSessionWhenNeed(f func() error) error {
+	var err error
+	for i := 0; i < 3; i++ {
+		err = f()
+		if err == nil {
+			return nil
+		}
+		if s.CheckConnectErr(err) == utils.NeedReconnect {
+			s.sess = NewSpotifySession()
+		}
+	}
+	return err
+}
+
+func (s *Spotifox) CheckAuthSession() utils.ResCode {
 	if s.spotifyClient == nil {
 		return utils.NeedLogin
 	}
 	if s.user == nil || s.user.ID == "" || s.user.Token.AccessToken == "" {
 		return utils.NeedLogin
 	}
+
 	return utils.Success
+}
+
+func (s *Spotifox) CheckConnectErr(err error) utils.ResCode {
+	if s.sess == nil || errors.Is(err, io.EOF) {
+		return utils.NeedReconnect
+	}
+	return utils.UnknownError
 }
 
 func (s *Spotifox) FetchSongLyrics(songId spotify.ID) *lyric.LRCFile {

@@ -19,6 +19,7 @@ const (
 	UnknownError
 	NetworkError
 	NeedLogin
+	NeedReconnect
 	PasswordError
 )
 
@@ -47,14 +48,6 @@ func CheckSpotifyErr(err error) ResCode {
 		return NeedLogin
 	}
 	return UnknownError
-}
-
-func CheckUserInfo(user *structs.User) ResCode {
-	if user == nil || user.ID == "" || user.Token.AccessToken == "" {
-		return NeedLogin
-	}
-
-	return Success
 }
 
 var specialCharReplacer = strings.NewReplacer(`“`, `"`, `”`, `"`, `·`, `.`)
