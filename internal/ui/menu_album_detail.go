@@ -2,7 +2,6 @@ package ui
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/anhoder/foxful-cli/model"
 	"github.com/go-musicfox/spotifox/utils"
@@ -33,7 +32,7 @@ func (m *AlbumDetailMenu) IsPlayable() bool {
 }
 
 func (m *AlbumDetailMenu) GetMenuKey() string {
-	return fmt.Sprintf("album_detail_%d", m.album.ID)
+	return "album_detail_" + string(m.album.ID)
 }
 
 func (m *AlbumDetailMenu) MenuViews() []model.MenuItem {
