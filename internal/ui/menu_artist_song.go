@@ -2,23 +2,19 @@ package ui
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/spotifox/internal/structs"
-	"github.com/go-musicfox/spotifox/utils"
-
-	"github.com/go-musicfox/netease-music/service"
+	"github.com/zmb3/spotify/v2"
 )
 
 type ArtistSongMenu struct {
 	baseMenu
 	menus    []model.MenuItem
-	songs    []structs.Song
-	artistId int64
+	songs    []spotify.FullTrack
+	artistId spotify.ID
 }
 
-func NewArtistSongMenu(base baseMenu, artistId int64) *ArtistSongMenu {
+func NewArtistSongMenu(base baseMenu, artistId spotify.ID) *ArtistSongMenu {
 	return &ArtistSongMenu{
 		baseMenu: base,
 		artistId: artistId,
@@ -44,19 +40,19 @@ func (m *ArtistSongMenu) MenuViews() []model.MenuItem {
 func (m *ArtistSongMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
 
-		artistSongService := service.ArtistTopSongService{Id: strconv.FormatInt(m.artistId, 10)}
-		code, response := artistSongService.ArtistTopSong()
-		codeType := utils.CheckCode(code)
-		if codeType != utils.Success {
-			return false, nil
-		}
-		m.songs = utils.GetSongsOfArtist(response)
-		m.menus = utils.GetViewFromSongs(m.songs)
+		// artistSongService := service.ArtistTopSongService{Id: string(m.artistId)}
+		// code, response := artistSongService.ArtistTopSong()
+		// codeType := utils.CheckCode(code)
+		// if codeType != utils.Success {
+		// 	return false, nil
+		// }
+		// m.songs = utils.GetSongsOfArtist(response)
+		// m.menus = utils.GetViewFromSongs(m.songs)
 
 		return true, nil
 	}
 }
 
-func (m *ArtistSongMenu) Songs() []structs.Song {
+func (m *ArtistSongMenu) Songs() []spotify.FullTrack {
 	return m.songs
 }

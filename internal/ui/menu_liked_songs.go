@@ -1,11 +1,7 @@
 package ui
 
 import (
-	"context"
-
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/spotifox/utils"
-	"github.com/pkg/errors"
 	"github.com/zmb3/spotify/v2"
 )
 
@@ -48,26 +44,26 @@ func (m *LikedSongsMenu) SubMenu(_ *model.App, _ int) model.Menu {
 
 func (m *LikedSongsMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		if m.spotifox.CheckAuthSession() == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
-			return false, page
-		}
-		res, err := m.spotifox.spotifyClient.CurrentUsersTracks(context.Background(), spotify.Limit(m.limit))
-		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
-			return false, page
-		}
-		if err != nil {
-			return m.handleFetchErr(errors.Wrap(err, "get current user tracks failed"))
-		}
-		m.total = res.Total
+		// if m.spotifox.CheckAuthSession() == utils.NeedLogin {
+		// 	page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+		// 	return false, page
+		// }
+		// res, err := m.spotifox.spotifyClient.CurrentUsersTracks(context.Background(), spotify.Limit(m.limit))
+		// if utils.CheckSpotifyErr(err) == utils.NeedLogin {
+		// 	page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+		// 	return false, page
+		// }
+		// if err != nil {
+		// 	return m.handleFetchErr(errors.Wrap(err, "get current user tracks failed"))
+		// }
+		// m.total = res.Total
 
-		var songs []spotify.FullTrack
-		for i := range res.Tracks {
-			songs = append(songs, res.Tracks[i].FullTrack)
-		}
-		m.songs = songs
-		m.menus = utils.MenuItemsFromSongs(m.songs)
+		// var songs []spotify.FullTrack
+		// for i := range res.Tracks {
+		// 	songs = append(songs, res.Tracks[i].FullTrack)
+		// }
+		// m.songs = songs
+		// m.menus = utils.MenuItemsFromSongs(m.songs)
 
 		return true, nil
 	}
@@ -78,24 +74,24 @@ func (m *LikedSongsMenu) BottomOutHook() model.Hook {
 		return nil
 	}
 	return func(main *model.Main) (bool, model.Page) {
-		if m.spotifox.CheckAuthSession() == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
-			return false, page
-		}
+		// if m.spotifox.CheckAuthSession() == utils.NeedLogin {
+		// 	page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
+		// 	return false, page
+		// }
 
-		m.offset += m.limit
-		res, err := m.spotifox.spotifyClient.CurrentUsersTracks(context.Background(), spotify.Limit(m.limit), spotify.Offset(m.offset))
-		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
-			return false, page
-		}
-		if err != nil {
-			return m.handleFetchErr(errors.Wrap(err, "get current user tracks failed"))
-		}
-		for i := range res.Tracks {
-			m.songs = append(m.songs, res.Tracks[i].FullTrack)
-		}
-		m.menus = utils.MenuItemsFromSongs(m.songs)
+		// m.offset += m.limit
+		// res, err := m.spotifox.spotifyClient.CurrentUsersTracks(context.Background(), spotify.Limit(m.limit), spotify.Offset(m.offset))
+		// if utils.CheckSpotifyErr(err) == utils.NeedLogin {
+		// 	page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
+		// 	return false, page
+		// }
+		// if err != nil {
+		// 	return m.handleFetchErr(errors.Wrap(err, "get current user tracks failed"))
+		// }
+		// for i := range res.Tracks {
+		// 	m.songs = append(m.songs, res.Tracks[i].FullTrack)
+		// }
+		// m.menus = utils.MenuItemsFromSongs(m.songs)
 
 		return true, nil
 	}

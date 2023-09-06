@@ -710,17 +710,15 @@ func (p *Player) handleControlSignal(signal CtrlSignal) {
 }
 
 func (p *Player) PlayingInfo() state_handler.PlayingInfo {
-	// music := p.curSong
 	return state_handler.PlayingInfo{
-		// TotalDuration:  music.Duration,
-		// PassedDuration: p.PassedTime(),
-		// State:          p.State(),
-		// Volume:         p.Volume(),
-		// TrackID:        music.Id,
-		// PicUrl:         music.PicUrl,
-		// Name:           music.Name,
-		// Album:          music.Album.Name,
-		// Artist:         music.ArtistName(),
-		// AlbumArtist:    music.Album.ArtistName(),
+		TotalDuration:  p.curSong.TimeDuration(),
+		PassedDuration: p.PassedTime(),
+		State:          p.State(),
+		Volume:         p.Volume(),
+		TrackID:        string(p.curSong.ID),
+		PicUrl:         utils.PicURLOfSong(&p.curSong),
+		Name:           p.curSong.Name,
+		Album:          p.curSong.Album.Name,
+		Artist:         strings.Join(utils.ArtistNamesOfSong(&p.curSong), ","),
 	}
 }

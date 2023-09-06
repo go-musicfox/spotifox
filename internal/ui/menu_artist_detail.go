@@ -4,15 +4,16 @@ import (
 	"fmt"
 
 	"github.com/anhoder/foxful-cli/model"
+	"github.com/zmb3/spotify/v2"
 )
 
 type ArtistDetailMenu struct {
 	baseMenu
 	menus    []model.MenuItem
-	artistId int64
+	artistId spotify.ID
 }
 
-func NewArtistDetailMenu(base baseMenu, artistId int64, artistName string) *ArtistDetailMenu {
+func NewArtistDetailMenu(base baseMenu, artistId spotify.ID, artistName string) *ArtistDetailMenu {
 	artistMenu := &ArtistDetailMenu{
 		baseMenu: base,
 		menus: []model.MenuItem{

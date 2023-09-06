@@ -11,10 +11,9 @@ type PlayingInfo struct {
 	PassedDuration time.Duration
 	State          player.State
 	Volume         int
-	TrackID        int64
+	TrackID        string
 	PicUrl         string
 	Name           string
 	Artist         string
 	Album          string
-	AlbumArtist    string
 }

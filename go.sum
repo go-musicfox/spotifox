@@ -60,6 +60,7 @@ github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5P
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
+github.com/cocoonlife/goflac v0.0.0-20170210142907-50ea06ed5a9d/go.mod h1:swNVb00X8NOH/qeHuqnqiyfecAnWlThLX+NbH8r6yHw=
 github.com/cocoonlife/testify v0.0.0-20160218172820-792cc1faeb64/go.mod h1:LoCAz53rbPcqs8Da2BjB/yDy4gxMtiSQmqnYI/DGH+U=
 github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 h1:q2hJAaP1k2wIvVRd/hEHD7lacgqrCPS+k8g1MndzfWY=
 github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81/go.mod h1:YynlIjWYF8myEu6sdkwKIvGQq+cOckRm6So2avqoYAk=
@@ -94,7 +95,6 @@ github.com/go-musicfox/bubbletea v0.24.1 h1:ElKRFpwu18vjWmxb0DTfyY1rEgIz6UfRkIOl
 github.com/go-musicfox/bubbletea v0.24.1/go.mod h1:CH++FOcBybavOwuOrKgYOl5Xr+Hac0Gk5afQIpk5WMQ=
 github.com/go-musicfox/go-mp3 v0.3.3 h1:xBfUaYhbG6LipvPLDSlawLSO1A5z3InSJz8vB3+3bHc=
 github.com/go-musicfox/go-mp3 v0.3.3/go.mod h1:fRtZraRFcWb0pu7ok0LqyFhCUrPeMsGRSVop0eemFmo=
-github.com/go-musicfox/goflac v0.1.5/go.mod h1:vSxTubJfc8EfFFMmJqxdSp4/iwBVf9TPcapx8I/+W5g=
 github.com/go-musicfox/lastfm-go v0.0.2 h1:S/jXVK/bSi9JGZGm7ynQWY3nQ8gvMzbpHf2yKZ9ge+g=
 github.com/go-musicfox/lastfm-go v0.0.2/go.mod h1:QAs3ciul8v40zzwgDPDVq12CSACAIZUHXSSeBJLCdQE=
 github.com/go-musicfox/netease-music v1.4.1 h1:rRmAhZX4SA++CN3OrVXUXgpqb/Jl0Fg8Liqa6Cl1H7g=

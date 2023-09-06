@@ -279,7 +279,7 @@ func (s *Handler) SetPlayingInfo(info PlayingInfo) {
 		}
 
 		// Current song metadata
-		if info.TrackID != 0 {
+		if info.TrackID != "" {
 			s.setProp("org.mpris.MediaPlayer2.Player", "Metadata", dbus.MakeVariant(MapFromPlayingInfo(info)))
 		}
 

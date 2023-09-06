@@ -2,23 +2,19 @@ package ui
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/spotifox/internal/structs"
-	"github.com/go-musicfox/spotifox/utils"
-
-	"github.com/go-musicfox/netease-music/service"
+	"github.com/zmb3/spotify/v2"
 )
 
 type ArtistAlbumMenu struct {
 	baseMenu
 	menus    []model.MenuItem
-	albums   []structs.Album
-	artistId int64
+	albums   []spotify.FullAlbum
+	artistId spotify.ID
 }
 
-func NewArtistAlbumMenu(base baseMenu, artistId int64) *ArtistAlbumMenu {
+func NewArtistAlbumMenu(base baseMenu, artistId spotify.ID) *ArtistAlbumMenu {
 	return &ArtistAlbumMenu{
 		baseMenu: base,
 		artistId: artistId,
@@ -42,30 +38,30 @@ func (m *ArtistAlbumMenu) SubMenu(_ *model.App, index int) model.Menu {
 		return nil
 	}
 
-	return NewAlbumDetailMenu(m.baseMenu, m.albums[index].Id)
+	return NewAlbumDetailMenu(m.baseMenu, m.albums[index].ID)
 }
 
 func (m *ArtistAlbumMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
 
-		artistAlbumService := service.ArtistAlbumService{
-			ID:     strconv.FormatInt(m.artistId, 10),
-			Offset: "0",
-			Limit:  "50",
-		}
-		code, response := artistAlbumService.ArtistAlbum()
-		codeType := utils.CheckCode(code)
-		if codeType != utils.Success {
-			return false, nil
-		}
+		// artistAlbumService := service.ArtistAlbumService{
+		// 	ID:     string(m.artistId),
+		// 	Offset: "0",
+		// 	Limit:  "50",
+		// }
+		// code, response := artistAlbumService.ArtistAlbum()
+		// codeType := utils.CheckCode(code)
+		// if codeType != utils.Success {
+		// 	return false, nil
+		// }
 
-		m.albums = utils.GetArtistHotAlbums(response)
-		m.menus = utils.GetViewFromAlbums(m.albums)
+		// m.albums = utils.GetArtistHotAlbums(response)
+		// m.menus = utils.GetViewFromAlbums(m.albums)
 
 		return true, nil
 	}
 }
 
-func (m *ArtistAlbumMenu) Albums() []structs.Album {
+func (m *ArtistAlbumMenu) Albums() []spotify.FullAlbum {
 	return m.albums
 }

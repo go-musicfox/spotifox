@@ -180,22 +180,22 @@ func (s *SearchPage) enterHandler() (model.Page, tea.Cmd) {
 		return s, tickSearch(time.Nanosecond)
 	case utils.Success:
 		s.result = response
-		switch s.searchType {
-		case StSingleSong:
-			s.result = utils.GetSongsOfSearchResult(response)
-		case StAlbum:
-			s.result = utils.GetAlbumsOfSearchResult(response)
-		case StSinger:
-			s.result = utils.GetArtistsOfSearchResult(response)
-		case StPlaylist:
-			s.result = utils.GetPlaylistsOfSearchResult(response)
-		case StUser:
-			s.result = utils.GetUsersOfSearchResult(response)
-		case StLyric:
-			s.result = utils.GetSongsOfSearchResult(response)
-		case StRadio:
-			s.result = utils.GetDjRadiosOfSearchResult(response)
-		}
+		// switch s.searchType {
+		// case StSingleSong:
+		// 	s.result = utils.GetSongsOfSearchResult(response)
+		// case StAlbum:
+		// 	s.result = utils.GetAlbumsOfSearchResult(response)
+		// case StSinger:
+		// 	s.result = utils.GetArtistsOfSearchResult(response)
+		// case StPlaylist:
+		// 	s.result = utils.GetPlaylistsOfSearchResult(response)
+		// case StUser:
+		// 	s.result = utils.GetUsersOfSearchResult(response)
+		// case StLyric:
+		// 	s.result = utils.GetSongsOfSearchResult(response)
+		// case StRadio:
+		// 	s.result = utils.GetDjRadiosOfSearchResult(response)
+		// }
 		s.netease.MustMain().EnterMenu(nil, nil)
 	}
 

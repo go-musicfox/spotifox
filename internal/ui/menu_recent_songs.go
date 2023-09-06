@@ -2,15 +2,13 @@ package ui
 
 import (
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/netease-music/service"
-	"github.com/go-musicfox/spotifox/internal/structs"
-	"github.com/go-musicfox/spotifox/utils"
+	"github.com/zmb3/spotify/v2"
 )
 
 type RecentSongsMenu struct {
 	baseMenu
 	menus []model.MenuItem
-	songs []structs.Song
+	songs []spotify.FullTrack
 }
 
 func NewRecentSongsMenu(base baseMenu) *RecentSongsMenu {
@@ -37,27 +35,27 @@ func (m *RecentSongsMenu) MenuViews() []model.MenuItem {
 
 func (m *RecentSongsMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		if m.spotifox.CheckAuthSession() == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
-			return false, page
-		}
+		// if m.spotifox.CheckAuthSession() == utils.NeedLogin {
+		// 	page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+		// 	return false, page
+		// }
 
-		recentSongService := service.RecordRecentSongsService{}
-		code, response := recentSongService.RecordRecentSongs()
-		codeType := utils.CheckCode(code)
-		if codeType == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
-			return false, page
-		} else if codeType != utils.Success {
-			return false, nil
-		}
-		m.songs = utils.GetRecentSongs(response)
-		m.menus = utils.GetViewFromSongs(m.songs)
+		// recentSongService := service.RecordRecentSongsService{}
+		// code, response := recentSongService.RecordRecentSongs()
+		// codeType := utils.CheckCode(code)
+		// if codeType == utils.NeedLogin {
+		// 	page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+		// 	return false, page
+		// } else if codeType != utils.Success {
+		// 	return false, nil
+		// }
+		// m.songs = utils.GetRecentSongs(response)
+		// m.menus = utils.GetViewFromSongs(m.songs)
 
 		return true, nil
 	}
 }
 
-func (m *RecentSongsMenu) Songs() []structs.Song {
+func (m *RecentSongsMenu) Songs() []spotify.FullTrack {
 	return m.songs
 }

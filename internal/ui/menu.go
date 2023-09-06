@@ -2,7 +2,6 @@ package ui
 
 import (
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/spotifox/internal/structs"
 	"github.com/go-musicfox/spotifox/utils"
 	"github.com/zmb3/spotify/v2"
 )
@@ -30,12 +29,12 @@ type PlaylistsMenu interface {
 
 type AlbumsMenu interface {
 	Menu
-	Albums() []structs.Album
+	Albums() []spotify.SimpleAlbum
 }
 
 type ArtistsMenu interface {
 	Menu
-	Artists() []structs.Artist
+	Artists() []spotify.SimpleArtist
 }
 
 type baseMenu struct {

@@ -98,7 +98,7 @@ func (s *Handler) SetPlayingInfo(info PlayingInfo) {
 	}
 
 	setKV(core.String(mediaplayer.MPMediaItemPropertyPlaybackDuration), core.NSNumber_numberWithInt(int32(total)).NSObject)
-	setKV(core.String(mediaplayer.MPMediaItemPropertyPersistentID), core.NSNumber_numberWithInt(int32(info.TrackID)).NSObject)
+	setKV(core.String(mediaplayer.MPMediaItemPropertyPersistentID), core.String(info.TrackID).NSObject)
 	setKV(core.String(mediaplayer.MPNowPlayingInfoPropertyElapsedPlaybackTime), core.NSNumber_numberWithInt(int32(ur)).NSObject)
 	setKV(core.String(mediaplayer.MPNowPlayingInfoPropertyDefaultPlaybackRate), core.NSNumber_numberWithDouble(1.0).NSObject)
 	setKV(core.String(mediaplayer.MPNowPlayingInfoPropertyPlaybackProgress), core.NSNumber_numberWithDouble(ur/total).NSObject)
@@ -107,7 +107,6 @@ func (s *Handler) SetPlayingInfo(info PlayingInfo) {
 	setKV(core.String(mediaplayer.MPMediaItemPropertyTitle), core.String(info.Name).NSObject)
 	setKV(core.String(mediaplayer.MPMediaItemPropertyAlbumTitle), core.String(info.Album).NSObject)
 	setKV(core.String(mediaplayer.MPMediaItemPropertyArtist), core.String(info.Artist).NSObject)
-	setKV(core.String(mediaplayer.MPMediaItemPropertyAlbumArtist), core.String(info.AlbumArtist).NSObject)
 
 	if info.PicUrl != "" {
 		picUrl := info.PicUrl

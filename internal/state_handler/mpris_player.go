@@ -3,7 +3,6 @@
 package state_handler
 
 import (
-	"fmt"
 	"log"
 	"math"
 	"time"
@@ -172,7 +171,7 @@ func (m *MetadataMap) nonEmptySlice(field string, values []string) {
 }
 
 func MapFromPlayingInfo(info PlayingInfo) MetadataMap {
-	if info.TrackID == 0 {
+	if info.TrackID == "" {
 		// No song
 		return MetadataMap{
 			"mpris:trackid": dbus.ObjectPath("/org/mpris/MediaPlayer2/TrackList/NoTrack"),
@@ -180,14 +179,13 @@ func MapFromPlayingInfo(info PlayingInfo) MetadataMap {
 	}
 
 	m := &MetadataMap{
-		"mpris:trackid": dbus.ObjectPath(fmt.Sprintf("/org/mpd/Tracks/%d", info.TrackID)),
+		"mpris:trackid": dbus.ObjectPath("/org/mpd/Tracks/%d" + info.TrackID),
 		"mpris:length":  info.TotalDuration / time.Microsecond,
 		"mpris:artUrl":  info.PicUrl,
 	}
 
 	m.nonEmptyString("xesam:album", info.Album)
 	m.nonEmptyString("xesam:title", info.Name)
-	m.nonEmptySlice("xesam:albumArtist", []string{info.AlbumArtist})
 	m.nonEmptySlice("xesam:artist", []string{info.Artist})
 
 	return *m
