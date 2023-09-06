@@ -111,7 +111,7 @@ func (m *UserPlaylistMenu) BottomOutHook() model.Hook {
 		if m.userId == CurUser {
 			res, err = m.spotifox.spotifyClient.CurrentUsersPlaylists(context.Background(), spotify.Limit(m.limit), spotify.Offset(m.offset))
 		} else {
-			res, err = m.spotifox.spotifyClient.GetPlaylistsForUser(context.Background(), m.userId, spotify.Limit(m.limit))
+			res, err = m.spotifox.spotifyClient.GetPlaylistsForUser(context.Background(), m.userId, spotify.Limit(m.limit), spotify.Offset(m.offset))
 		}
 
 		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
