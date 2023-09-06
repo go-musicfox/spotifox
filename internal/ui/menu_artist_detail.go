@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"fmt"
-
 	"github.com/anhoder/foxful-cli/model"
 	"github.com/zmb3/spotify/v2"
 )
@@ -18,7 +16,7 @@ func NewArtistDetailMenu(base baseMenu, artistId spotify.ID, artistName string) 
 		baseMenu: base,
 		menus: []model.MenuItem{
 			{Title: "热门歌曲", Subtitle: artistName},
-			{Title: "热门专辑", Subtitle: artistName},
+			{Title: "Ta的专辑", Subtitle: artistName},
 		},
 		artistId: artistId,
 	}
@@ -27,7 +25,7 @@ func NewArtistDetailMenu(base baseMenu, artistId spotify.ID, artistName string) 
 }
 
 func (m *ArtistDetailMenu) GetMenuKey() string {
-	return fmt.Sprintf("artist_detail_%d", m.artistId)
+	return "artist_detail_" + string(m.artistId)
 }
 
 func (m *ArtistDetailMenu) MenuViews() []model.MenuItem {

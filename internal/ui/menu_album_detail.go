@@ -1,23 +1,26 @@
 package ui
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/anhoder/foxful-cli/model"
+	"github.com/go-musicfox/spotifox/utils"
+	"github.com/pkg/errors"
 	"github.com/zmb3/spotify/v2"
 )
 
 type AlbumDetailMenu struct {
 	baseMenu
-	menus   []model.MenuItem
-	songs   []spotify.FullTrack
-	albumId spotify.ID
+	menus []model.MenuItem
+	songs []spotify.FullTrack
+	album spotify.SimpleAlbum
 }
 
-func NewAlbumDetailMenu(base baseMenu, albumId spotify.ID) *AlbumDetailMenu {
+func NewAlbumDetailMenu(base baseMenu, album spotify.SimpleAlbum) *AlbumDetailMenu {
 	return &AlbumDetailMenu{
 		baseMenu: base,
-		albumId:  albumId,
+		album:    album,
 	}
 }
 
@@ -30,7 +33,7 @@ func (m *AlbumDetailMenu) IsPlayable() bool {
 }
 
 func (m *AlbumDetailMenu) GetMenuKey() string {
-	return fmt.Sprintf("album_detail_%d", m.albumId)
+	return fmt.Sprintf("album_detail_%d", m.album.ID)
 }
 
 func (m *AlbumDetailMenu) MenuViews() []model.MenuItem {
@@ -39,21 +42,29 @@ func (m *AlbumDetailMenu) MenuViews() []model.MenuItem {
 
 func (m *AlbumDetailMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
+		if m.spotifox.CheckAuthSession() == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+			return false, page
+		}
 
-		// albumService := service.AlbumService{
-		// 	ID: string(m.albumId),
-		// }
-		// code, response := albumService.Album()
-		// codeType := utils.CheckCode(code)
-		// if codeType == utils.NeedLogin {
-		// 	page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
-		// 	return false, page
-		// } else if codeType != utils.Success {
-		// 	return false, nil
-		// }
+		res, err := m.spotifox.spotifyClient.GetAlbumTracks(context.Background(), m.album.ID, spotify.Limit(50))
+		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+			return false, page
+		}
+		if err != nil {
+			return m.handleFetchErr(errors.Wrap(err, "get album's songs failed"))
+		}
 
-		// m.songs = utils.GetSongsOfAlbum(response)
-		// m.menus = utils.GetViewFromSongs(m.songs)
+		var songs []spotify.FullTrack
+		for _, song := range res.Tracks {
+			songs = append(songs, spotify.FullTrack{
+				Album:       m.album,
+				SimpleTrack: song,
+			})
+		}
+		m.songs = songs
+		m.menus = utils.MenuItemsFromSongs(m.songs)
 
 		return true, nil
 	}

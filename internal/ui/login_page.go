@@ -398,6 +398,7 @@ func (l *LoginPage) handleLoginSuccess() (model.Page, tea.Cmd) {
 	user.Email = u.Email
 	user.Product = u.Product
 	user.Birthdate = u.Birthdate
+	user.Country = u.Country
 
 	l.spotifox.user = &user
 

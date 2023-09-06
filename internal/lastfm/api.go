@@ -2,7 +2,6 @@ package lastfm
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/go-musicfox/spotifox/internal/constants"
@@ -145,7 +144,7 @@ func Report(client *Client, phase ReportPhase, song spotify.FullTrack, passedTim
 	case ReportPhaseStart:
 		go func(song spotify.FullTrack) {
 			_ = client.UpdateNowPlaying(map[string]any{
-				"artist":   strings.Join(utils.ArtistNamesOfSong(&song), ","),
+				"artist":   utils.ArtistNameStrOfSong(&song),
 				"track":    song.Name,
 				"album":    song.Album.Name,
 				"duration": song.TimeDuration(),
@@ -157,7 +156,7 @@ func Report(client *Client, phase ReportPhase, song spotify.FullTrack, passedTim
 		if passedSeconds >= duration/2 {
 			go func(song spotify.FullTrack, duration float64) {
 				_ = client.Scrobble(map[string]interface{}{
-					"artist":    strings.Join(utils.ArtistNamesOfSong(&song), ","),
+					"artist":    utils.ArtistNameStrOfSong(&song),
 					"track":     song.Name,
 					"album":     song.Album.Name,
 					"timestamp": time.Now().Unix(),

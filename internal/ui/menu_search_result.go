@@ -73,7 +73,7 @@ func (m *SearchResultMenu) SubMenu(_ *model.App, index int) model.Menu {
 		if index >= len(resultWithType) {
 			return nil
 		}
-		return NewAlbumDetailMenu(m.baseMenu, resultWithType[index].ID)
+		return NewAlbumDetailMenu(m.baseMenu, resultWithType[index])
 	case []spotify.SimplePlaylist:
 		if index >= len(resultWithType) {
 			return nil

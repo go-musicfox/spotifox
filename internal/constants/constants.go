@@ -14,7 +14,7 @@ var (
 const AppName = "spotifox"
 const GroupID = "com.go-musicfox.spotifox"
 const SpotifyDeviceName = "Spotifox"
-const SpotifyOAuthScopes = "streaming,playlist-read,playlist-read-private,playlist-read-collaborative,playlist-modify-private,playlist-modify-public,user-top-read,user-read-recently-played,user-library-modify,user-library-read,user-read-private"
+const SpotifyOAuthScopes = "streaming,playlist-read,playlist-read-private,playlist-read-collaborative,playlist-modify-private,playlist-modify-public,user-top-read,user-read-recently-played,user-library-modify,user-library-read,user-read-private,user-follow-modify,user-follow-read"
 const AppDescription = "<cyan>Spotifox - Using Spotify on the Command Line</>"
 const AppGithubUrl = "https://github.com/go-musicfox/spotifox"
 const AppLatestReleases = "https://github.com/go-musicfox/spotifox/releases/latest"

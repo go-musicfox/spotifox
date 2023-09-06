@@ -17,12 +17,14 @@ func NewMainMenu(netease *Spotifox) *MainMenu {
 		menus: []model.MenuItem{
 			{Title: "我喜欢的音乐"},
 			{Title: "关注的歌单"},
+			{Title: "关注的歌手"},
 			{Title: "帮助"},
 			{Title: "检查更新"},
 		},
 		menuList: []Menu{
 			NewLikedSongsMenu(base),
 			NewUserPlaylistMenu(base, CurUser),
+			NewUserArtistMenu(base),
 			NewHelpMenu(base),
 			NewCheckUpdateMenu(base),
 		},

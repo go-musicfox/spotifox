@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"strings"
+
 	"github.com/zmb3/spotify/v2"
 )
 
@@ -17,6 +19,22 @@ func ArtistNamesOfSong(s *spotify.FullTrack) []string {
 		names = append(names, a.Name)
 	}
 	return names
+}
+
+func ArtistNameStrOfSong(s *spotify.FullTrack) string {
+	return strings.Join(ArtistNamesOfSong(s), ",")
+}
+
+func ArtistNamesOfAlbum(s *spotify.SimpleAlbum) []string {
+	var names []string
+	for _, a := range s.Artists {
+		names = append(names, a.Name)
+	}
+	return names
+}
+
+func ArtistNameStrOfAlbum(s *spotify.SimpleAlbum) string {
+	return strings.Join(ArtistNamesOfAlbum(s), ",")
 }
 
 type LyricsResp struct {

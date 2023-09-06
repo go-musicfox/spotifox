@@ -1,9 +1,11 @@
 package ui
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/anhoder/foxful-cli/model"
+	"github.com/go-musicfox/spotifox/utils"
+	"github.com/pkg/errors"
 	"github.com/zmb3/spotify/v2"
 )
 
@@ -30,7 +32,7 @@ func (m *ArtistSongMenu) IsPlayable() bool {
 }
 
 func (m *ArtistSongMenu) GetMenuKey() string {
-	return fmt.Sprintf("artist_song_%d", m.artistId)
+	return "artist_song_" + string(m.artistId)
 }
 
 func (m *ArtistSongMenu) MenuViews() []model.MenuItem {
@@ -39,15 +41,26 @@ func (m *ArtistSongMenu) MenuViews() []model.MenuItem {
 
 func (m *ArtistSongMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
+		if m.spotifox.CheckAuthSession() == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+			return false, page
+		}
 
-		// artistSongService := service.ArtistTopSongService{Id: string(m.artistId)}
-		// code, response := artistSongService.ArtistTopSong()
-		// codeType := utils.CheckCode(code)
-		// if codeType != utils.Success {
-		// 	return false, nil
-		// }
-		// m.songs = utils.GetSongsOfArtist(response)
-		// m.menus = utils.GetViewFromSongs(m.songs)
+		var country = "ES"
+		if m.spotifox.user.Country != "" {
+			country = m.spotifox.user.Country
+		}
+		res, err := m.spotifox.spotifyClient.GetArtistsTopTracks(context.Background(), m.artistId, country)
+		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+			return false, page
+		}
+		if err != nil {
+			return m.handleFetchErr(errors.Wrap(err, "get artist's songs failed"))
+		}
+
+		m.songs = res
+		m.menus = utils.MenuItemsFromSongs(m.songs)
 
 		return true, nil
 	}
