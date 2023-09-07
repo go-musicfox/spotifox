@@ -166,7 +166,7 @@ func (p *Player) Update(_ tea.Msg, _ *model.App) {
 		p.showLyric = false
 	} else {
 		p.showLyric = true
-		if spaceHeight > 6 {
+		if spaceHeight > 7 {
 			p.lyricStartRow = (p.spotifox.WindowHeight()-3+main.MenuBottomRow())/2 - 3
 			p.lyricLines = 5
 		} else {
