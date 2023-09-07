@@ -1,37 +1,35 @@
 package ui
 
 import (
+	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/anhoder/foxful-cli/model"
 	"github.com/go-musicfox/spotifox/internal/constants"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/pkg/errors"
 	"github.com/zmb3/spotify/v2"
-
-	"github.com/go-musicfox/netease-music/service"
 )
 
 type SearchResultMenu struct {
 	baseMenu
 	menus      []model.MenuItem
 	offset     int
-	searchType SearchType
+	searchType spotify.SearchType
 	keyword    string
-	result     interface{}
+	result     any
 }
 
-var playableTypes = map[SearchType]bool{
-	StSingleSong: true,
-	StAlbum:      false,
-	StSinger:     false,
-	StPlaylist:   false,
-	StUser:       false,
-	StLyric:      true,
-	StRadio:      false,
+var playableTypes = map[spotify.SearchType]bool{
+	spotify.SearchTypeTrack:    true,
+	spotify.SearchTypeAlbum:    false,
+	spotify.SearchTypeArtist:   false,
+	spotify.SearchTypePlaylist: false,
+	// spotify.SearchTypeShow:     false,
+	// spotify.SearchTypeEpisode:  false,
 }
 
-func NewSearchResultMenu(base baseMenu, searchType SearchType) *SearchResultMenu {
+func NewSearchResultMenu(base baseMenu, searchType spotify.SearchType) *SearchResultMenu {
 	return &SearchResultMenu{
 		baseMenu:   base,
 		offset:     0,
@@ -84,11 +82,6 @@ func (m *SearchResultMenu) SubMenu(_ *model.App, index int) model.Menu {
 			return nil
 		}
 		return NewArtistDetailMenu(m.baseMenu, resultWithType[index].ID, resultWithType[index].Name)
-	case []spotify.User:
-		if index >= len(resultWithType) {
-			return nil
-		}
-		return NewUserPlaylistMenu(m.baseMenu, resultWithType[index].ID)
 	}
 
 	return nil
@@ -96,26 +89,41 @@ func (m *SearchResultMenu) SubMenu(_ *model.App, index int) model.Menu {
 
 func (m *SearchResultMenu) BottomOutHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		var (
-			code     float64
-			response []byte
-		)
 		m.offset += constants.SearchPageSize
-		searchService := service.SearchService{
-			S:      m.keyword,
-			Type:   strconv.Itoa(int(m.searchType)),
-			Limit:  strconv.Itoa(constants.SearchPageSize),
-			Offset: strconv.Itoa(m.offset),
-		}
-		code, response = searchService.Search()
 
-		codeType := utils.CheckCode(code)
-		if codeType != utils.Success {
-			m.offset -= constants.SearchPageSize
-			return false, nil
+		res, err := m.spotifox.spotifyClient.Search(context.Background(), m.keyword, m.searchType, spotify.Limit(constants.SearchPageSize), spotify.Offset(m.offset))
+		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
+			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
+			return false, page
+		}
+		if err != nil {
+			return m.handleFetchErr(errors.Wrap(err, "search item failed"))
 		}
 
-		m.appendResult(response)
+		switch m.searchType {
+		case spotify.SearchTypeTrack:
+			var tracks, _ = m.result.([]spotify.FullTrack)
+			m.result = append(tracks, res.Tracks.Tracks...)
+		case spotify.SearchTypeAlbum:
+			var albums, _ = m.result.([]spotify.SimpleAlbum)
+			m.result = append(albums, res.Albums.Albums...)
+		case spotify.SearchTypeArtist:
+			var artists, _ = m.result.([]spotify.SimpleArtist)
+			for _, artist := range res.Artists.Artists {
+				artists = append(artists, artist.SimpleArtist)
+			}
+			m.result = artists
+		case spotify.SearchTypePlaylist:
+			var playlists, _ = m.result.([]spotify.SimplePlaylist)
+			m.result = append(playlists, res.Playlists.Playlists...)
+		case spotify.SearchTypeShow:
+			var shows, _ = m.result.([]spotify.FullShow)
+			m.result = append(shows, res.Shows.Shows...)
+		case spotify.SearchTypeEpisode:
+			var episodes, _ = m.result.([]spotify.EpisodePage)
+			m.result = append(episodes, res.Episodes.Episodes...)
+		}
+
 		m.convertMenus()
 		return true, nil
 	}
@@ -137,44 +145,17 @@ func (m *SearchResultMenu) BeforeEnterMenuHook() model.Hook {
 	}
 }
 
-func (m *SearchResultMenu) appendResult(response []byte) {
-	switch m.searchType {
-	case StSingleSong, StLyric:
-		songs, _ := m.result.([]spotify.FullTrack)
-		// songs = append(songs, appendSongs...)
-		m.result = songs
-	case StAlbum:
-		albums, _ := m.result.([]spotify.SimpleAlbum)
-		// albums = append(albums, appendAlbums...)
-		m.result = albums
-	case StSinger:
-		artists, _ := m.result.([]spotify.SimpleArtist)
-		// artists = append(artists, appendArtists...)
-		m.result = artists
-	case StPlaylist:
-		playlists, _ := m.result.([]spotify.SimplePlaylist)
-		// playlists = append(playlists, appendPlaylists...)
-		m.result = playlists
-	case StUser:
-		users, _ := m.result.([]spotify.User)
-		// users = append(users, appendUsers...)
-		m.result = users
-	}
-}
-
 func (m *SearchResultMenu) convertMenus() {
-	// switch resultWithType := m.result.(type) {
-	// case []spotify.FullTrack:
-	// 	m.menus = utils.GetViewFromSongs(resultWithType)
-	// case []spotify.SimpleAlbum:
-	// 	m.menus = utils.GetViewFromAlbums(resultWithType)
-	// case []spotify.SimplePlaylist:
-	// 	m.menus = utils.GetViewFromPlaylists(resultWithType)
-	// case []spotify.SimpleArtist:
-	// 	m.menus = utils.GetViewFromArtists(resultWithType)
-	// case []spotify.User:
-	// 	m.menus = utils.GetViewFromUsers(resultWithType)
-	// }
+	switch resultWithType := m.result.(type) {
+	case []spotify.FullTrack:
+		m.menus = utils.MenuItemsFromSongs(resultWithType)
+	case []spotify.SimpleAlbum:
+		m.menus = utils.MenuItemsFromAlbums(resultWithType)
+	case []spotify.SimplePlaylist:
+		m.menus = utils.MenuItemsFromPlaylists(resultWithType)
+	case []spotify.SimpleArtist:
+		m.menus = utils.MenuItemsFromArtists(resultWithType)
+	}
 }
 
 func (m *SearchResultMenu) Songs() []spotify.FullTrack {

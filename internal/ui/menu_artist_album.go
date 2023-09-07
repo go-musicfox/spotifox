@@ -67,11 +67,7 @@ func (m *ArtistAlbumMenu) BeforeEnterMenuHook() model.Hook {
 		m.total = res.Total
 
 		m.albums = res.Albums
-		var menus []model.MenuItem
-		for _, album := range m.albums {
-			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(album.Name), Subtitle: "[" + utils.ReplaceSpecialStr(utils.ArtistNameStrOfAlbum(&album)) + "]"})
-		}
-		m.menus = menus
+		m.menus = utils.MenuItemsFromAlbums(m.albums)
 
 		return true, nil
 	}
@@ -102,11 +98,7 @@ func (m *ArtistAlbumMenu) BottomOutHook() model.Hook {
 		}
 
 		m.albums = append(m.albums, res.Albums...)
-		var menus []model.MenuItem
-		for _, album := range m.albums {
-			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(album.Name), Subtitle: "[" + utils.ReplaceSpecialStr(utils.ArtistNameStrOfAlbum(&album)) + "]"})
-		}
-		m.menus = menus
+		m.menus = utils.MenuItemsFromAlbums(m.albums)
 
 		return true, nil
 	}

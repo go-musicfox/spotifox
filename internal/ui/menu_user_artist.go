@@ -65,16 +65,12 @@ func (m *UserArtistMenu) BeforeEnterMenuHook() model.Hook {
 		}
 		m.total = res.Total
 
-		var (
-			artists []spotify.SimpleArtist
-			menus   []model.MenuItem
-		)
+		var artists []spotify.SimpleArtist
 		for _, artist := range res.Artists {
 			artists = append(artists, artist.SimpleArtist)
-			menus = append(menus, model.MenuItem{Title: utils.ReplaceSpecialStr(artist.Name)})
 		}
 		m.artists = artists
-		m.menus = menus
+		m.menus = utils.MenuItemsFromArtists(m.artists)
 
 		return true, nil
 	}
@@ -102,8 +98,8 @@ func (m *UserArtistMenu) BottomOutHook() model.Hook {
 
 		for _, artist := range res.Artists {
 			m.artists = append(m.artists, artist.SimpleArtist)
-			m.menus = append(m.menus, model.MenuItem{Title: utils.ReplaceSpecialStr(artist.Name)})
 		}
+		m.menus = utils.MenuItemsFromArtists(m.artists)
 
 		return true, nil
 	}

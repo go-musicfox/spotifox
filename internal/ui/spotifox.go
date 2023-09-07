@@ -46,7 +46,7 @@ func NewSpotifox(app *model.App) *Spotifox {
 	}
 	s.player = NewPlayer(s)
 	s.login = NewLoginPage(s)
-	// n.search = NewSearchPage(n)
+	s.search = NewSearchPage(s)
 
 	if configs.ConfigRegistry.ShowLyric && configs.ConfigRegistry.SpotifyCookie != "" {
 		s.lyricClient = lyricsapi.NewLyricsApi(configs.ConfigRegistry.SpotifyCookie)
@@ -75,7 +75,7 @@ func (s *Spotifox) ToLoginPage(callback LoginCallback) (model.Page, tea.Cmd) {
 }
 
 // ToSearchPage
-func (s *Spotifox) ToSearchPage(searchType SearchType) (model.Page, tea.Cmd) {
+func (s *Spotifox) ToSearchPage(searchType spotify.SearchType) (model.Page, tea.Cmd) {
 	s.search.searchType = searchType
 	return s.search, tickSearch(time.Nanosecond)
 }

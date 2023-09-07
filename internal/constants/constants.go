@@ -42,7 +42,7 @@ const OsxPlayer = "osx"   // osx
 const BeepGoMp3Decoder = "go-mp3"
 const BeepMiniMp3Decoder = "minimp3"
 
-const SearchPageSize = 100
+const SearchPageSize = 50
 
 const AppHelpTemplate = `%s
 

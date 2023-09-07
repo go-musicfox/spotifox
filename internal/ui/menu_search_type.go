@@ -1,6 +1,9 @@
 package ui
 
-import "github.com/anhoder/foxful-cli/model"
+import (
+	"github.com/anhoder/foxful-cli/model"
+	"github.com/zmb3/spotify/v2"
+)
 
 type SearchTypeMenu struct {
 	baseMenu
@@ -11,12 +14,12 @@ func NewSearchTypeMenu(base baseMenu) *SearchTypeMenu {
 	typeMenu := &SearchTypeMenu{
 		baseMenu: base,
 		menus: []model.MenuItem{
-			{Title: "按单曲"},
-			{Title: "按专辑"},
-			{Title: "按歌手"},
-			{Title: "按歌单"},
-			{Title: "按用户"},
-			{Title: "按歌词"},
+			{Title: "搜单曲"},
+			{Title: "搜专辑"},
+			{Title: "搜歌手"},
+			{Title: "搜歌单"},
+			// {Title: "搜插曲"},
+			// {Title: "搜演出"},
 		},
 	}
 
@@ -32,13 +35,13 @@ func (m *SearchTypeMenu) MenuViews() []model.MenuItem {
 }
 
 func (m *SearchTypeMenu) SubMenu(_ *model.App, index int) model.Menu {
-	typeArr := []SearchType{
-		StSingleSong,
-		StAlbum,
-		StSinger,
-		StPlaylist,
-		StUser,
-		StLyric,
+	typeArr := []spotify.SearchType{
+		spotify.SearchTypeTrack,
+		spotify.SearchTypeAlbum,
+		spotify.SearchTypeArtist,
+		spotify.SearchTypePlaylist,
+		// spotify.SearchTypeEpisode,
+		// spotify.SearchTypeShow,
 	}
 
 	if index >= len(typeArr) {

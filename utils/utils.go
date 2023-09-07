@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"strconv"
 
 	"github.com/go-musicfox/spotifox/internal/configs"
 	"github.com/go-musicfox/spotifox/internal/constants"
@@ -138,12 +137,12 @@ func WebURLOfSong(songId spotify.ID) string {
 	return "https://open.spotify.com/track/" + string(songId)
 }
 
-func WebURLOfArtist(artistId int64) string {
-	return "https://open.spotify.com/artist/" + strconv.FormatInt(artistId, 10)
+func WebURLOfArtist(artistId spotify.ID) string {
+	return "https://open.spotify.com/artist/" + string(artistId)
 }
 
-func WebURLOfAlbum(artistId int64) string {
-	return "https://open.spotify.com/album/" + strconv.FormatInt(artistId, 10)
+func WebURLOfAlbum(artistId spotify.ID) string {
+	return "https://open.spotify.com/album/" + string(artistId)
 }
 
 func WebURLOfLibrary() string {

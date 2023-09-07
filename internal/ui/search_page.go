@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"strconv"
+	"context"
 	"strings"
 	"time"
 
@@ -10,25 +10,12 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/go-musicfox/netease-music/service"
 	"github.com/go-musicfox/spotifox/internal/configs"
 	"github.com/go-musicfox/spotifox/internal/constants"
 	"github.com/go-musicfox/spotifox/utils"
 	"github.com/mattn/go-runewidth"
 	"github.com/muesli/termenv"
-)
-
-type SearchType uint32
-
-const (
-	StNull       SearchType = 0
-	StSingleSong SearchType = 1
-	StAlbum      SearchType = 10
-	StSinger     SearchType = 100
-	StPlaylist   SearchType = 1000
-	StUser       SearchType = 1002
-	StLyric      SearchType = 1006
-	StRadio      SearchType = 1009
+	"github.com/zmb3/spotify/v2"
 )
 
 const PageTypeSearch model.PageType = "search"
@@ -42,20 +29,20 @@ func tickSearch(duration time.Duration) tea.Cmd {
 }
 
 type SearchPage struct {
-	netease   *Spotifox
+	spotifox  *Spotifox
 	menuTitle *model.MenuItem
 
 	index        int
 	wordsInput   textinput.Model
 	submitButton string
 	tips         string
-	searchType   SearchType
+	searchType   spotify.SearchType
 	result       interface{}
 }
 
 func NewSearchPage(netease *Spotifox) (search *SearchPage) {
 	search = &SearchPage{
-		netease:      netease,
+		spotifox:     netease,
 		menuTitle:    &model.MenuItem{Title: "搜索"},
 		wordsInput:   textinput.New(),
 		submitButton: model.GetBlurredSubmitButton(),
@@ -89,11 +76,11 @@ func (s *SearchPage) Update(msg tea.Msg, _ *model.App) (model.Page, tea.Cmd) {
 	switch key.String() {
 	case "esc":
 		s.Reset()
-		return s.netease.MustMain(), s.netease.RerenderCmd(true)
+		return s.spotifox.MustMain(), s.spotifox.RerenderCmd(true)
 
 	// Cycle between inputs
 	case "tab", "shift+tab", "enter", "up", "down":
-		if s.searchType == StNull {
+		if s.searchType == 0 {
 			return s, nil
 		}
 
@@ -155,59 +142,60 @@ func (s *SearchPage) enterHandler() (model.Page, tea.Cmd) {
 		s.tips = util.SetFgStyle("关键词不得为空", termenv.ANSIBrightRed)
 		return s, nil
 	}
-	loading := model.NewLoading(s.netease.MustMain(), s.menuTitle)
+	loading := model.NewLoading(s.spotifox.MustMain(), s.menuTitle)
 	loading.Start()
 	defer loading.Complete()
 
-	var (
-		code     float64
-		response []byte
-	)
-	searchService := service.SearchService{
-		S:     s.wordsInput.Value(),
-		Type:  strconv.Itoa(int(s.searchType)),
-		Limit: strconv.Itoa(constants.SearchPageSize),
+	if s.spotifox.CheckAuthSession() == utils.NeedLogin {
+		page, _ := s.spotifox.ToLoginPage(func() model.Page {
+			s.enterHandler()
+			return nil
+		})
+		return page, func() tea.Msg { return page.Msg() }
 	}
-	code, response = searchService.Search()
 
-	codeType := utils.CheckCode(code)
-	switch codeType {
-	case utils.UnknownError:
-		s.tips = util.SetFgStyle("未知错误，请稍后再试~", termenv.ANSIBrightRed)
-		return s, tickSearch(time.Nanosecond)
-	case utils.NetworkError:
-		s.tips = util.SetFgStyle("网络异常，请稍后再试~", termenv.ANSIBrightRed)
-		return s, tickSearch(time.Nanosecond)
-	case utils.Success:
-		s.result = response
-		// switch s.searchType {
-		// case StSingleSong:
-		// 	s.result = utils.GetSongsOfSearchResult(response)
-		// case StAlbum:
-		// 	s.result = utils.GetAlbumsOfSearchResult(response)
-		// case StSinger:
-		// 	s.result = utils.GetArtistsOfSearchResult(response)
-		// case StPlaylist:
-		// 	s.result = utils.GetPlaylistsOfSearchResult(response)
-		// case StUser:
-		// 	s.result = utils.GetUsersOfSearchResult(response)
-		// case StLyric:
-		// 	s.result = utils.GetSongsOfSearchResult(response)
-		// case StRadio:
-		// 	s.result = utils.GetDjRadiosOfSearchResult(response)
-		// }
-		s.netease.MustMain().EnterMenu(nil, nil)
+	res, err := s.spotifox.spotifyClient.Search(context.Background(), s.wordsInput.Value(), s.searchType, spotify.Limit(constants.SearchPageSize))
+	if utils.CheckSpotifyErr(err) == utils.NeedLogin {
+		page, _ := s.spotifox.ToLoginPage(func() model.Page {
+			s.enterHandler()
+			return nil
+		})
+		return page, func() tea.Msg { return page.Msg() }
 	}
+	if err != nil {
+		utils.Logger().Printf("search items failed: %+v", err)
+		return nil, nil
+	}
+
+	switch s.searchType {
+	case spotify.SearchTypeTrack:
+		s.result = res.Tracks.Tracks
+	case spotify.SearchTypeAlbum:
+		s.result = res.Albums.Albums
+	case spotify.SearchTypeArtist:
+		var artists []spotify.SimpleArtist
+		for _, artist := range res.Artists.Artists {
+			artists = append(artists, artist.SimpleArtist)
+		}
+		s.result = artists
+	case spotify.SearchTypePlaylist:
+		s.result = res.Playlists.Playlists
+	case spotify.SearchTypeShow:
+		s.result = res.Shows.Shows
+	case spotify.SearchTypeEpisode:
+		s.result = res.Episodes.Episodes
+	}
+	s.spotifox.MustMain().EnterMenu(nil, nil)
 
 	s.Reset()
-	return s.netease.MustMain(), s.netease.Tick(time.Nanosecond)
+	return s.spotifox.MustMain(), s.spotifox.Tick(time.Nanosecond)
 }
 
 func (s *SearchPage) View(a *model.App) string {
 	var (
 		builder strings.Builder
 		top     int // 距离顶部的行数
-		main    = s.netease.MustMain()
+		main    = s.spotifox.MustMain()
 	)
 
 	// title

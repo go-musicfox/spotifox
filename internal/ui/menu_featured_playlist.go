@@ -9,74 +9,64 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
-type UserPlaylistMenu struct {
+type FeaturedPlaylistMenu struct {
 	baseMenu
 	menus     []model.MenuItem
 	playlists []spotify.SimplePlaylist
-	userId    string
 	offset    int
 	limit     int
 	total     int
 }
 
-const CurUser = "me"
-
-func NewUserPlaylistMenu(base baseMenu, userId string) *UserPlaylistMenu {
-	return &UserPlaylistMenu{
+func NewFeaturedPlaylistMenu(base baseMenu) *FeaturedPlaylistMenu {
+	return &FeaturedPlaylistMenu{
 		baseMenu: base,
-		userId:   userId,
 		limit:    50,
 	}
 }
 
-func (m *UserPlaylistMenu) IsSearchable() bool {
+func (m *FeaturedPlaylistMenu) IsSearchable() bool {
 	return true
 }
 
-func (m *UserPlaylistMenu) GetMenuKey() string {
-	return "user_playlist_" + m.userId
+func (m *FeaturedPlaylistMenu) GetMenuKey() string {
+	return "featured_playlist"
 }
 
-func (m *UserPlaylistMenu) MenuViews() []model.MenuItem {
+func (m *FeaturedPlaylistMenu) MenuViews() []model.MenuItem {
 	return m.menus
 }
 
-func (m *UserPlaylistMenu) Playlists() []spotify.SimplePlaylist {
+func (m *FeaturedPlaylistMenu) Playlists() []spotify.SimplePlaylist {
 	return m.playlists
 }
 
-func (m *UserPlaylistMenu) SubMenu(_ *model.App, index int) model.Menu {
+func (m *FeaturedPlaylistMenu) SubMenu(_ *model.App, index int) model.Menu {
 	if len(m.playlists) < index {
 		return nil
 	}
 	return NewPlaylistDetailMenu(m.baseMenu, m.playlists[index].ID)
 }
 
-func (m *UserPlaylistMenu) BeforeEnterMenuHook() model.Hook {
+func (m *FeaturedPlaylistMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
 		if m.spotifox.CheckAuthSession() == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		}
 
-		var (
-			res *spotify.SimplePlaylistPage
-			err error
-		)
-		if m.userId == CurUser {
-			res, err = m.spotifox.spotifyClient.CurrentUsersPlaylists(context.Background(), spotify.Limit(m.limit))
-		} else {
-			res, err = m.spotifox.spotifyClient.GetPlaylistsForUser(context.Background(), m.userId, spotify.Limit(m.limit))
-		}
-
+		msg, res, err := m.spotifox.spotifyClient.FeaturedPlaylists(context.Background(), spotify.Limit(m.limit))
 		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
 			return false, page
 		}
 		if err != nil {
-			return m.handleFetchErr(errors.Wrap(err, "get playlists failed"))
+			return m.handleFetchErr(errors.Wrap(err, "get featured playlists failed"))
 		}
 		m.total = res.Total
+
+		tips := model.NewMenuTips(main, main.MenuTitle())
+		tips.DisplayTips("「" + msg + "」")
 
 		m.playlists = res.Playlists
 		m.menus = utils.MenuItemsFromPlaylists(m.playlists)
@@ -85,7 +75,7 @@ func (m *UserPlaylistMenu) BeforeEnterMenuHook() model.Hook {
 	}
 }
 
-func (m *UserPlaylistMenu) BottomOutHook() model.Hook {
+func (m *FeaturedPlaylistMenu) BottomOutHook() model.Hook {
 	if m.total <= m.limit+m.offset {
 		return nil
 	}
@@ -96,22 +86,13 @@ func (m *UserPlaylistMenu) BottomOutHook() model.Hook {
 		}
 
 		m.offset += m.limit
-		var (
-			res *spotify.SimplePlaylistPage
-			err error
-		)
-		if m.userId == CurUser {
-			res, err = m.spotifox.spotifyClient.CurrentUsersPlaylists(context.Background(), spotify.Limit(m.limit), spotify.Offset(m.offset))
-		} else {
-			res, err = m.spotifox.spotifyClient.GetPlaylistsForUser(context.Background(), m.userId, spotify.Limit(m.limit), spotify.Offset(m.offset))
-		}
-
+		_, res, err := m.spotifox.spotifyClient.FeaturedPlaylists(context.Background(), spotify.Limit(m.limit), spotify.Offset(m.offset))
 		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
 			return false, page
 		}
 		if err != nil {
-			return m.handleFetchErr(errors.Wrap(err, "get playlists failed"))
+			return m.handleFetchErr(errors.Wrap(err, "get featured playlists failed"))
 		}
 
 		m.playlists = append(m.playlists, res.Playlists...)
