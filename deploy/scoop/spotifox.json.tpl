@@ -10,8 +10,8 @@
     "bin": "spotifox.exe",
     "homepage": "https://github.com/go-musicfox/spotifox",
     "license": "MIT",
-    "description": "go-musicfox是用Go写的又一款网易云音乐命令行客户端，支持UnblockNeteaseMusic、各种音质级别、lastfm、MPRIS...",
-    "post_install": "Write-Host '好用记得给go-musicfox一个star✨哦~'",
+    "description": "Spotifox is yet another spotify CLI client.",
+    "post_install": "Write-Host 'Star✨ please~'",
     "env_set": {
         "SPOTIFOX_ROOT": "\$dir\\\\data"
     },
