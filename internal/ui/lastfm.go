@@ -5,6 +5,7 @@ import (
 
 	"github.com/anhoder/foxful-cli/model"
 	"github.com/go-musicfox/spotifox/internal/storage"
+	"github.com/go-musicfox/spotifox/utils/locale"
 
 	"github.com/skratchdot/open-golang/open"
 )
@@ -28,12 +29,12 @@ func (m *Lastfm) GetMenuKey() string {
 func (m *Lastfm) MenuViews() []model.MenuItem {
 	if m.spotifox.lastfmUser == nil || m.spotifox.lastfmUser.SessionKey == "" {
 		return []model.MenuItem{
-			{Title: "去授权"},
+			{Title: locale.MustT("to_auth")},
 		}
 	}
 	return []model.MenuItem{
-		{Title: "查看用户信息"},
-		{Title: "清除授权"},
+		{Title: locale.MustT("view_user_info")},
+		{Title: locale.MustT("clear_auth")},
 	}
 }
 
@@ -47,14 +48,14 @@ func (m *Lastfm) SubMenu(_ *model.App, index int) model.Menu {
 	case 1:
 		m.spotifox.lastfmUser = &storage.LastfmUser{}
 		m.spotifox.lastfmUser.Clear()
-		return NewLastfmRes(m.baseMenu, "清除授权", nil, 2)
+		return NewLastfmRes(m.baseMenu, locale.MustT("clear_auth"), nil, 2)
 	}
 	return nil
 }
 
 func (m *Lastfm) FormatMenuItem(item *model.MenuItem) {
 	if m.spotifox.lastfmUser == nil || m.spotifox.lastfmUser.SessionKey == "" {
-		item.Subtitle = "[未授权]"
+		item.Subtitle = "[" + locale.MustT("unauth") + "]"
 	} else {
 		item.Subtitle = fmt.Sprintf("[%s]", m.spotifox.lastfmUser.Name)
 	}

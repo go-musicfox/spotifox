@@ -11,8 +11,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/go-musicfox/spotifox/internal/configs"
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/go-musicfox/spotifox/utils/locale"
 	"github.com/mattn/go-runewidth"
 	"github.com/muesli/termenv"
 	"github.com/zmb3/spotify/v2"
@@ -43,11 +44,11 @@ type SearchPage struct {
 func NewSearchPage(netease *Spotifox) (search *SearchPage) {
 	search = &SearchPage{
 		spotifox:     netease,
-		menuTitle:    &model.MenuItem{Title: "搜索"},
+		menuTitle:    &model.MenuItem{Title: locale.MustT("search")},
 		wordsInput:   textinput.New(),
 		submitButton: model.GetBlurredSubmitButton(),
 	}
-	search.wordsInput.Placeholder = " 输入关键词"
+	search.wordsInput.Placeholder = " " + locale.MustT("input_keyword")
 	search.wordsInput.Focus()
 	search.wordsInput.Prompt = model.GetFocusedPrompt()
 	search.wordsInput.TextStyle = util.GetPrimaryFontStyle()
@@ -139,10 +140,11 @@ func (s *SearchPage) Update(msg tea.Msg, _ *model.App) (model.Page, tea.Cmd) {
 
 func (s *SearchPage) enterHandler() (model.Page, tea.Cmd) {
 	if len(s.wordsInput.Value()) <= 0 {
-		s.tips = util.SetFgStyle("关键词不得为空", termenv.ANSIBrightRed)
+		s.tips = util.SetFgStyle(locale.MustT("keyword_cannot_be_empty"), termenv.ANSIBrightRed)
 		return s, nil
 	}
 	loading := model.NewLoading(s.spotifox.MustMain(), s.menuTitle)
+	loading.DisplayNotOnlyOnMain()
 	loading.Start()
 	defer loading.Complete()
 
@@ -154,7 +156,7 @@ func (s *SearchPage) enterHandler() (model.Page, tea.Cmd) {
 		return page, func() tea.Msg { return page.Msg() }
 	}
 
-	res, err := s.spotifox.spotifyClient.Search(context.Background(), s.wordsInput.Value(), s.searchType, spotify.Limit(constants.SearchPageSize))
+	res, err := s.spotifox.spotifyClient.Search(context.Background(), s.wordsInput.Value(), s.searchType, spotify.Limit(types.SearchPageSize))
 	if utils.CheckSpotifyErr(err) == utils.NeedLogin {
 		page, _ := s.spotifox.ToLoginPage(func() model.Page {
 			s.enterHandler()
@@ -194,12 +196,12 @@ func (s *SearchPage) enterHandler() (model.Page, tea.Cmd) {
 func (s *SearchPage) View(a *model.App) string {
 	var (
 		builder strings.Builder
-		top     int // 距离顶部的行数
+		top     int
 		main    = s.spotifox.MustMain()
 	)
 
 	// title
-	if configs.ConfigRegistry.ShowTitle {
+	if configs.ConfigRegistry.Main.ShowTitle {
 		builder.WriteString(main.TitleView(a, &top))
 	} else {
 		top++
@@ -256,7 +258,7 @@ func (s *SearchPage) View(a *model.App) string {
 		builder.WriteString(strings.Repeat(" ", main.MenuStartColumn()))
 	}
 	builder.WriteString(s.submitButton)
-	spaceLen := a.WindowWidth() - main.MenuStartColumn() - runewidth.StringWidth(model.SubmitText)
+	spaceLen := a.WindowWidth() - main.MenuStartColumn() - runewidth.StringWidth(locale.MustT("submit_text"))
 	if spaceLen > 0 {
 		builder.WriteString(strings.Repeat(" ", spaceLen))
 	}

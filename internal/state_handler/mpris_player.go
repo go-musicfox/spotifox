@@ -136,7 +136,7 @@ func (p *Player) Play() *dbus.Error {
 // https://specifications.freedesktop.org/mpris-spec/latest/Player_Interface.html#Method:Stop
 func (p *Player) Stop() *dbus.Error {
 	log.Printf("Stop requested\n")
-	p.Handler.player.CtrlPaused() // 只暂停
+	p.Handler.player.CtrlPaused()
 	return nil
 }
 

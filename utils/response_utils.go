@@ -14,25 +14,9 @@ type ResCode uint8
 const (
 	Success ResCode = iota
 	UnknownError
-	NetworkError
 	NeedLogin
 	NeedReconnect
-	PasswordError
 )
-
-// CheckCode 验证响应码
-func CheckCode(code float64) ResCode {
-	switch code {
-	case 301, 302, 20001:
-		return NeedLogin
-	case 520:
-		return NetworkError
-	case 200:
-		return Success
-	}
-
-	return PasswordError
-}
 
 func CheckSpotifyErr(err error) ResCode {
 	if err == nil {
@@ -49,7 +33,6 @@ func CheckSpotifyErr(err error) ResCode {
 
 var specialCharReplacer = strings.NewReplacer(`“`, `"`, `”`, `"`, `·`, `.`)
 
-// ReplaceSpecialStr 替换特殊字符
 func ReplaceSpecialStr(str string) string {
 	return specialCharReplacer.Replace(str)
 }

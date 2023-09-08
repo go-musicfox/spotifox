@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	playerpkg "github.com/go-musicfox/spotifox/internal/player"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/go-musicfox/spotifox/utils/locale"
 	"github.com/zmb3/spotify/v2"
 )
 
@@ -34,9 +35,9 @@ func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.P
 		if _, ok := menu.(*CurPlaylist); !ok {
 			var subTitle string
 			if !player.playlistUpdateAt.IsZero() {
-				subTitle = player.playlistUpdateAt.Format("[更新于2006-01-02 15:04:05]")
+				subTitle = player.playlistUpdateAt.Format("[" + locale.MustT("update_at") + "2006-01-02 15:04:05]")
 			}
-			main.EnterMenu(NewCurPlaylist(newBaseMenu(h.spotifox), player.playlist), &model.MenuItem{Title: "当前播放列表", Subtitle: subTitle})
+			main.EnterMenu(NewCurPlaylist(newBaseMenu(h.spotifox), player.playlist), &model.MenuItem{Title: locale.MustT("current_playlist"), Subtitle: subTitle})
 			player.LocatePlayingSong()
 		}
 	case " ", "　":
@@ -89,8 +90,7 @@ func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.P
 		newPage := likeSelectedSong(h.spotifox, false)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "?", "？":
-		// 帮助
-		main.EnterMenu(NewHelpMenu(newBaseMenu(h.spotifox)), &model.MenuItem{Title: "帮助"})
+		main.EnterMenu(NewHelpMenu(newBaseMenu(h.spotifox)), &model.MenuItem{Title: locale.MustT("help")})
 	case "tab":
 		newPage := openAddSongToUserPlaylistMenu(h.spotifox, true, true)
 		return true, newPage, a.Tick(time.Nanosecond)
@@ -104,29 +104,21 @@ func (h *EventHandler) KeyMsgHandle(msg tea.KeyMsg, a *model.App) (bool, model.P
 		newPage := openAddSongToUserPlaylistMenu(h.spotifox, false, false)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "a":
-		// 当前歌曲所属专辑
 		albumOfPlayingSong(h.spotifox)
 	case "A":
-		// 选中歌曲所属专辑
 		albumOfSelectedSong(h.spotifox)
 	case "s":
-		// 当前歌曲所属歌手
 		artistOfPlayingSong(h.spotifox)
 	case "S":
-		// 选中歌曲所属歌手
 		artistOfSelectedSong(h.spotifox)
 	case "o":
-		// 网页打开当前歌曲
 		openPlayingSongInWeb(h.spotifox)
 	case "O":
-		// 网页打开选中项
 		openSelectedItemInWeb(h.spotifox)
 	case ";", ":", "：", "；":
-		// 收藏选中歌单
 		newPage := followSelectedPlaylist(h.spotifox, true)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "'", "\"":
-		// 取消收藏选中歌单
 		newPage := followSelectedPlaylist(h.spotifox, false)
 		return true, newPage, a.Tick(time.Nanosecond)
 	case "r", "R":

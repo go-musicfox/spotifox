@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/go-musicfox/spotifox/internal/configs"
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 
 	"github.com/go-musicfox/notificator"
 	"github.com/pkg/errors"
@@ -116,20 +116,19 @@ type NotifyContent struct {
 }
 
 func Notify(content NotifyContent) {
-	if !configs.ConfigRegistry.ShowNotify {
+	if !configs.ConfigRegistry.Main.ShowNotify {
 		return
 	}
 
 	notify := NewNotificator(notificator.Options{
-		AppName: constants.AppName,
+		AppName: types.AppName,
 	})
 
 	if runtime.GOOS != "darwin" {
 		localDir := GetLocalDataDir()
-		content.Icon = path.Join(localDir, configs.ConfigRegistry.NotifyIcon)
+		content.Icon = path.Join(localDir, configs.ConfigRegistry.Main.NotifyIcon)
 		if _, err := os.Stat(content.Icon); os.IsNotExist(err) {
-			content.Icon = path.Join(localDir, constants.DefaultNotifyIcon)
-			// 写入logo文件
+			content.Icon = path.Join(localDir, types.DefaultNotifyIcon)
 			err = CopyFileFromEmbed("embed/logo.png", content.Icon)
 			if err != nil {
 				log.Printf("copy logo.png failed, err: %+v", errors.WithStack(err))

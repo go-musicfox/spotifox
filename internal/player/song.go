@@ -7,7 +7,6 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
-// SongType 歌曲类型
 type SongType uint8
 
 const (

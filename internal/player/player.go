@@ -4,7 +4,8 @@ import (
 	"time"
 
 	"github.com/go-musicfox/spotifox/internal/configs"
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
+	"github.com/go-musicfox/spotifox/utils/locale"
 )
 
 type Player interface {
@@ -29,8 +30,8 @@ type Player interface {
 func NewPlayerFromConfig() Player {
 	registry := configs.ConfigRegistry
 	var player Player
-	switch registry.PlayerEngine {
-	case constants.BeepPlayer, constants.OsxPlayer:
+	switch registry.Player.Engine {
+	case types.BeepPlayer, types.OsxPlayer:
 		player = NewBeepPlayer()
 	// case constants.OsxPlayer:
 	// 	player = NewOsxPlayer()
@@ -62,15 +63,15 @@ const (
 )
 
 var modeNames = map[Mode]string{
-	PmListLoop:   "列表",
-	PmOrder:      "顺序",
-	PmSingleLoop: "单曲",
-	PmRandom:     "随机",
+	PmListLoop:   locale.MustT("list_loop"),
+	PmOrder:      locale.MustT("order"),
+	PmSingleLoop: locale.MustT("single_loop"),
+	PmRandom:     locale.MustT("random"),
 }
 
 func ModeName(mode Mode) string {
 	if name, ok := modeNames[mode]; ok {
 		return name
 	}
-	return "未知"
+	return locale.MustT("unknown")
 }

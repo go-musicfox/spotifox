@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/anhoder/foxful-cli/model"
+	"github.com/go-musicfox/spotifox/utils/locale"
 	"github.com/zmb3/spotify/v2"
 )
 
@@ -15,8 +16,8 @@ func NewArtistDetailMenu(base baseMenu, artistId spotify.ID, artistName string) 
 	artistMenu := &ArtistDetailMenu{
 		baseMenu: base,
 		menus: []model.MenuItem{
-			{Title: "热门歌曲", Subtitle: artistName},
-			{Title: "Ta的专辑", Subtitle: artistName},
+			{Title: locale.MustT("artist_top_track"), Subtitle: artistName},
+			{Title: locale.MustT("artist_album"), Subtitle: artistName},
 		},
 		artistId: artistId,
 	}

@@ -11,7 +11,7 @@ import (
 	"path"
 
 	"github.com/go-musicfox/spotifox/internal/configs"
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/zmb3/spotify/v2"
 
 	"github.com/buger/jsonparser"
@@ -29,7 +29,7 @@ func GetLocalDataDir() string {
 	if nil != err {
 		panic("cannot find local storage dir:" + err.Error())
 	}
-	return path.Join(configDir, constants.AppLocalDataDir)
+	return path.Join(configDir, types.AppLocalDataDir)
 }
 
 // IDToBin convert autoincrement ID to []byte
@@ -48,7 +48,7 @@ func BinToID(bin []byte) uint64 {
 
 func LoadIniConfig() {
 	projectDir := GetLocalDataDir()
-	configFile := path.Join(projectDir, constants.AppIniFile)
+	configFile := path.Join(projectDir, types.AppIniFile)
 	if !FileOrDirExists(configFile) {
 		_ = CopyFileFromEmbed("embed/spotifox.ini", configFile)
 	}
@@ -56,7 +56,7 @@ func LoadIniConfig() {
 }
 
 func CheckUpdate() (bool, string) {
-	response, err := http.Get(constants.AppCheckUpdateUrl)
+	response, err := http.Get(types.AppCheckUpdateUrl)
 	if err != nil {
 		return false, ""
 	}
@@ -74,7 +74,7 @@ func CheckUpdate() (bool, string) {
 		return false, ""
 	}
 
-	return semver.Compare(tag, constants.AppVersion) > 0, tag
+	return semver.Compare(tag, types.AppVersion) > 0, tag
 }
 
 func CopyFileFromEmbed(src, dst string) error {

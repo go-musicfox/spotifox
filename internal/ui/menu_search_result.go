@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/go-musicfox/spotifox/utils"
 	"github.com/pkg/errors"
 	"github.com/zmb3/spotify/v2"
@@ -89,9 +89,9 @@ func (m *SearchResultMenu) SubMenu(_ *model.App, index int) model.Menu {
 
 func (m *SearchResultMenu) BottomOutHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
-		m.offset += constants.SearchPageSize
+		m.offset += types.SearchPageSize
 
-		res, err := m.spotifox.spotifyClient.Search(context.Background(), m.keyword, m.searchType, spotify.Limit(constants.SearchPageSize), spotify.Offset(m.offset))
+		res, err := m.spotifox.spotifyClient.Search(context.Background(), m.keyword, m.searchType, spotify.Limit(types.SearchPageSize), spotify.Offset(m.offset))
 		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
 			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
 			return false, page
@@ -132,7 +132,6 @@ func (m *SearchResultMenu) BottomOutHook() model.Hook {
 func (m *SearchResultMenu) BeforeEnterMenuHook() model.Hook {
 	return func(main *model.Main) (bool, model.Page) {
 		if m.spotifox.search.wordsInput.Value() == "" {
-			// 显示搜索页面
 			page, _ := m.spotifox.ToSearchPage(m.searchType)
 			return false, page
 		}

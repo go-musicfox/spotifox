@@ -2,8 +2,9 @@ package ui
 
 import (
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/go-musicfox/spotifox/utils/locale"
 
 	"github.com/skratchdot/open-golang/open"
 )
@@ -26,18 +27,18 @@ func (m *CheckUpdateMenu) GetMenuKey() string {
 func (m *CheckUpdateMenu) MenuViews() []model.MenuItem {
 	if m.hasUpdate {
 		return []model.MenuItem{
-			{Title: "检查到新版本，回车查看~", Subtitle: "ENTER"},
+			{Title: locale.MustT("has_new_version"), Subtitle: "ENTER"},
 		}
 	}
 
 	return []model.MenuItem{
-		{Title: "已是最新版本"},
+		{Title: locale.MustT("has_no_new_version")},
 	}
 }
 
 func (m *CheckUpdateMenu) SubMenu(_ *model.App, _ int) model.Menu {
 	if m.hasUpdate {
-		_ = open.Start(constants.AppGithubUrl)
+		_ = open.Start(types.AppGithubUrl)
 	}
 	return nil
 }

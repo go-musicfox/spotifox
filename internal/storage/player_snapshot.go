@@ -3,7 +3,7 @@ package storage
 import (
 	"time"
 
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/zmb3/spotify/v2"
 )
 
@@ -15,7 +15,7 @@ type PlayerSnapshot struct {
 }
 
 func (p PlayerSnapshot) GetDbName() string {
-	return constants.AppDBName
+	return types.AppDBName
 }
 
 func (p PlayerSnapshot) GetTableName() string {

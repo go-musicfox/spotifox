@@ -2,7 +2,8 @@ package ui
 
 import (
 	"github.com/anhoder/foxful-cli/model"
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
+	"github.com/go-musicfox/spotifox/utils/locale"
 
 	"github.com/skratchdot/open-golang/open"
 )
@@ -16,54 +17,45 @@ func NewHelpMenu(base baseMenu) *HelpMenu {
 	menu := &HelpMenu{
 		baseMenu: base,
 		menus: []model.MenuItem{
-			{Title: "进来给个star⭐️呗~"},
-			{Title: "SPACE", Subtitle: "播放/暂停"},
-			{Title: "h/H/LEFT", Subtitle: "左"},
-			{Title: "l/L/RIGHT", Subtitle: "右"},
-			{Title: "k/K/UP", Subtitle: "上"},
-			{Title: "j/J/DOWN", Subtitle: "下"},
-			{Title: "g", Subtitle: "上移到顶部"},
-			{Title: "G", Subtitle: "下移到底部"},
-			{Title: "[", Subtitle: "上一首"},
-			{Title: "]", Subtitle: "下一首"},
-			{Title: "-", Subtitle: "减小音量"},
-			{Title: "=", Subtitle: "加大音量"},
-			{Title: "n/N/ENTER", Subtitle: "进入"},
-			{Title: "b/B/ESC", Subtitle: "返回"},
-			{Title: "q/Q", Subtitle: "退出"},
-			{Title: "w/W", Subtitle: "注销并退出"},
-			{Title: "p", Subtitle: "切换播放模式"},
-			{Title: "P", Subtitle: "心动模式"},
-			{Title: ",", Subtitle: "喜欢播放中歌曲"},
-			{Title: "<", Subtitle: "喜欢选中歌曲"},
-			{Title: ".", Subtitle: "取消喜欢播放中歌曲"},
-			{Title: ">", Subtitle: "取消喜欢选中歌曲"},
-			{Title: "`", Subtitle: "将播放中歌曲加入歌单"},
-			{Title: "Tab", Subtitle: "将选中歌曲加入歌单"},
-			{Title: "~", Subtitle: "将播放中歌曲从歌单中删除"},
-			{Title: "Shift+Tab", Subtitle: "将选中歌曲从歌单中删除"},
-			{Title: "t", Subtitle: "标记播放中歌曲为不喜欢"},
-			{Title: "T", Subtitle: "标记选中歌曲为不喜欢"},
-			{Title: "d", Subtitle: "下载播放中音乐"},
-			{Title: "D", Subtitle: "下载当前选中音乐"},
-			{Title: "c/C", Subtitle: "当前播放列表"},
-			{Title: "r/R", Subtitle: "重新渲染UI"},
-			{Title: "/", Subtitle: "搜索当前列表"},
-			{Title: "?", Subtitle: "帮助信息"},
-			{Title: "a", Subtitle: "播放中歌曲的所属专辑"},
-			{Title: "A", Subtitle: "选中歌曲的所属专辑"},
-			{Title: "s", Subtitle: "播放中歌曲的所属歌手"},
-			{Title: "S", Subtitle: "选中歌曲的所属歌手"},
-			{Title: "o", Subtitle: "网页打开播放中歌曲"},
-			{Title: "O", Subtitle: "网页打开选中歌曲/专辑..."},
-			{Title: "e", Subtitle: "添加为下一曲播放"},
-			{Title: "E", Subtitle: "添加到播放列表末尾"},
-			{Title: "\\", Subtitle: "从播放列表删除选中歌曲"},
-			{Title: "v/V", Subtitle: "快进5s/10s"},
-			{Title: "x/X", Subtitle: "快退1s/5s"},
-			{Title: ";/:", Subtitle: "收藏选中歌单"},
-			{Title: "'/\"", Subtitle: "取消收藏选中歌单"},
-			{Title: "u/U", Subtitle: "清除音乐缓存"},
+			{Title: locale.MustT("star_me")},
+			{Title: "SPACE", Subtitle: locale.MustT("play_paused")},
+			{Title: "h/H/LEFT", Subtitle: locale.MustT("move_left")},
+			{Title: "l/L/RIGHT", Subtitle: locale.MustT("move_right")},
+			{Title: "k/K/UP", Subtitle: locale.MustT("move_up")},
+			{Title: "j/J/DOWN", Subtitle: locale.MustT("move_down")},
+			{Title: "g", Subtitle: locale.MustT("move_top")},
+			{Title: "G", Subtitle: locale.MustT("move_bottom")},
+			{Title: "[", Subtitle: locale.MustT("pre_track")},
+			{Title: "]", Subtitle: locale.MustT("next_track")},
+			{Title: "-", Subtitle: locale.MustT("up_volume")},
+			{Title: "=", Subtitle: locale.MustT("down_volume")},
+			{Title: "n/N/ENTER", Subtitle: locale.MustT("enter")},
+			{Title: "b/B/ESC", Subtitle: locale.MustT("back")},
+			{Title: "q/Q", Subtitle: locale.MustT("quit")},
+			{Title: "w/W", Subtitle: locale.MustT("logout_and_quit")},
+			{Title: "p/P", Subtitle: locale.MustT("switch_play_mode")},
+			{Title: ",", Subtitle: locale.MustT("like_playing_track")},
+			{Title: "<", Subtitle: locale.MustT("like_selected_track")},
+			{Title: ".", Subtitle: locale.MustT("dislike_playing_track")},
+			{Title: ">", Subtitle: locale.MustT("dislike_selected_track")},
+			{Title: "`", Subtitle: locale.MustT("add_playing_track_to_playlist")},
+			{Title: "Tab", Subtitle: locale.MustT("add_selected_track_to_playlist")},
+			{Title: "~", Subtitle: locale.MustT("remove_playing_track_from_playlist")},
+			{Title: "Shift+Tab", Subtitle: locale.MustT("remove_selected_track_from_playlist")},
+			{Title: "d", Subtitle: locale.MustT("download_playing_track")},
+			{Title: "D", Subtitle: locale.MustT("download_selected_track")},
+			{Title: "c/C", Subtitle: locale.MustT("current_playlist")},
+			{Title: "r/R", Subtitle: locale.MustT("rerender_ui")},
+			{Title: "/", Subtitle: locale.MustT("search_cur_menulist")},
+			{Title: "?", Subtitle: locale.MustT("help")},
+			{Title: "a", Subtitle: locale.MustT("album_of_playing_track")},
+			{Title: "A", Subtitle: locale.MustT("album_of_selected_track")},
+			{Title: "s", Subtitle: locale.MustT("artist_of_playing_track")},
+			{Title: "S", Subtitle: locale.MustT("artist_of_selected_track")},
+			{Title: "o", Subtitle: locale.MustT("open_playing_track_url")},
+			{Title: "O", Subtitle: locale.MustT("open_selected_item_url")},
+			{Title: ";/:", Subtitle: locale.MustT("follow_selected_playlist")},
+			{Title: "'/\"", Subtitle: locale.MustT("unfollow_selected_playlist")},
 		},
 	}
 
@@ -80,7 +72,7 @@ func (m *HelpMenu) MenuViews() []model.MenuItem {
 
 func (m *HelpMenu) SubMenu(_ *model.App, index int) model.Menu {
 	if index == 0 {
-		_ = open.Start(constants.AppGithubUrl)
+		_ = open.Start(types.AppGithubUrl)
 	}
 	return nil
 }

@@ -13,11 +13,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/go-musicfox/spotifox/internal/configs"
-	"github.com/go-musicfox/spotifox/internal/constants"
 	"github.com/go-musicfox/spotifox/internal/storage"
 	"github.com/go-musicfox/spotifox/internal/structs"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/go-musicfox/spotifox/utils"
 	"github.com/go-musicfox/spotifox/utils/auth"
+	"github.com/go-musicfox/spotifox/utils/locale"
 	"github.com/mattn/go-runewidth"
 	"github.com/muesli/termenv"
 	"github.com/zmb3/spotify/v2"
@@ -57,14 +58,14 @@ type LoginPage struct {
 
 func NewLoginPage(spotifox *Spotifox) (login *LoginPage) {
 	accountInput := textinput.New()
-	accountInput.Placeholder = " 账号"
+	accountInput.Placeholder = " " + locale.MustT("account")
 	accountInput.Focus()
 	accountInput.Prompt = model.GetFocusedPrompt()
 	accountInput.TextStyle = util.GetPrimaryFontStyle()
 	accountInput.CharLimit = 32
 
 	passwordInput := textinput.New()
-	passwordInput.Placeholder = " 密码"
+	passwordInput.Placeholder = " " + locale.MustT("password")
 	passwordInput.Prompt = "> "
 	passwordInput.EchoMode = textinput.EchoPassword
 	passwordInput.EchoCharacter = '•'
@@ -73,7 +74,7 @@ func NewLoginPage(spotifox *Spotifox) (login *LoginPage) {
 	login = &LoginPage{
 		spotifox: spotifox,
 
-		menuTitle:     &model.MenuItem{Title: "用户登录", Subtitle: "账号密码登录"},
+		menuTitle:     &model.MenuItem{Title: locale.MustT("user_login"), Subtitle: locale.MustT("by_account_pwd")},
 		accountInput:  accountInput,
 		passwordInput: passwordInput,
 		submitButton:  model.GetBlurredSubmitButton(),
@@ -151,11 +152,11 @@ func (l *LoginPage) Update(msg tea.Msg, _ *model.App) (model.Page, tea.Cmd) {
 			l.index++
 		}
 
-		// if l.index > authIndex {
-		// 	l.index = 0
-		// } else if l.index < 0 {
-		// 	l.index = authIndex
-		// }
+		if l.index > submitIndex {
+			l.index = 0
+		} else if l.index < 0 {
+			l.index = submitIndex
+		}
 
 		for i := 0; i <= len(inputs)-1; i++ {
 			if i != l.index {
@@ -201,7 +202,7 @@ func (l *LoginPage) View(a *model.App) string {
 	)
 
 	// title
-	if configs.ConfigRegistry.ShowTitle {
+	if configs.ConfigRegistry.Main.ShowTitle {
 		builder.WriteString(mainPage.TitleView(a, &top))
 	} else {
 		top++
@@ -260,7 +261,7 @@ func (l *LoginPage) View(a *model.App) string {
 	// builder.WriteString(l.authButton)
 
 	// spaceLen := a.WindowWidth() - mainPage.MenuStartColumn() - runewidth.StringWidth(model.SubmitText) - runewidth.StringWidth(l.authButtonTextByStep()) - len(btnBlank)
-	spaceLen := a.WindowWidth() - mainPage.MenuStartColumn() - runewidth.StringWidth(model.SubmitText) - len(btnBlank)
+	spaceLen := a.WindowWidth() - mainPage.MenuStartColumn() - runewidth.StringWidth(locale.MustT("submit_text")) - len(btnBlank)
 	if spaceLen > 0 {
 		builder.WriteString(strings.Repeat(" ", spaceLen))
 	}
@@ -305,13 +306,14 @@ func (l *LoginPage) updateLoginInputs(msg tea.Msg) (model.Page, tea.Cmd) {
 
 func (l *LoginPage) enterHandler() (model.Page, tea.Cmd) {
 	loading := model.NewLoading(l.spotifox.MustMain(), l.menuTitle)
+	loading.DisplayNotOnlyOnMain()
 	loading.Start()
 	defer loading.Complete()
 
 	switch l.index {
 	case submitIndex:
 		if len(l.accountInput.Value()) <= 0 || len(l.passwordInput.Value()) <= 0 {
-			l.tips = util.SetFgStyle("请输入账号及密码", termenv.ANSIBrightRed)
+			l.tips = util.SetFgStyle(locale.MustT("input_account_pwd"), termenv.ANSIBrightRed)
 			return l, nil
 		}
 		return l.loginByAccount()
@@ -372,7 +374,7 @@ func (l *LoginPage) loginByAccount() (model.Page, tea.Cmd) {
 func (l *LoginPage) handleLoginSuccess() (model.Page, tea.Cmd) {
 	user := structs.NewUserFromSession(l.spotifox.sess.Context().Info)
 
-	token, err := l.spotifox.sess.Mercury().GetToken(configs.ConfigRegistry.SpotifyClientId, constants.SpotifyOAuthScopes)
+	token, err := l.spotifox.sess.Mercury().GetToken(configs.ConfigRegistry.Spotify.ClientId, types.SpotifyOAuthScopes)
 	if err != nil {
 		return l.handleLoginFail(err)
 	}
@@ -386,7 +388,7 @@ func (l *LoginPage) handleLoginSuccess() (model.Page, tea.Cmd) {
 		TokenType:   token.TokenType,
 		Expiry:      time.Now().Add(time.Duration(token.ExpiresIn-30) * time.Second),
 	}))
-	httpClient.Timeout = constants.AppHttpTimeout
+	httpClient.Timeout = types.AppHttpTimeout
 	l.spotifox.spotifyClient = spotify.New(httpClient)
 
 	// get user profile

@@ -1,13 +1,13 @@
 package storage
 
 import (
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 )
 
 type PlayMode struct{}
 
 func (p PlayMode) GetDbName() string {
-	return constants.AppDBName
+	return types.AppDBName
 }
 
 func (p PlayMode) GetTableName() string {

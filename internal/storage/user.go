@@ -1,13 +1,13 @@
 package storage
 
 import (
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 )
 
 type User struct{}
 
 func (u User) GetDbName() string {
-	return constants.AppDBName
+	return types.AppDBName
 }
 
 func (u User) GetTableName() string {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/anhoder/foxful-cli/model"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 
 	"github.com/gookit/ini/v2"
 )
@@ -14,99 +14,73 @@ import (
 var ConfigRegistry *Registry
 
 type Registry struct {
-	StartupShow              bool          // 显示启动页
-	StartupProgressOutBounce bool          // 是否启动页进度条回弹效果
-	StartupLoadingDuration   time.Duration // 启动页加载时长
-	StartupWelcome           string        // 启动页欢迎语
-	StartupCheckUpdate       bool          // 启动检查更新
-
-	ProgressFirstEmptyChar rune // 进度条第一个未加载字符
-	ProgressEmptyChar      rune // 进度条未加载字符
-	ProgressLastEmptyChar  rune // 进度条最后一个未加载字符
-	ProgressFirstFullChar  rune // 进度条第一个已加载字符
-	ProgressFullChar       rune // 进度条已加载字符
-	ProgressLastFullChar   rune // 进度条最后一个已加载字符
-
-	SpotifyClientId  string
-	SpotifyCookie    string
-	ShowTitle        bool       // 主界面是否显示标题
-	LoadingText      string     // 主页面加载中提示
-	SongFormat       SongFormat // 歌曲音质级别
-	PrimaryColor     string     // 主题色
-	ShowLyric        bool       // 显示歌词
-	LyricOffset      int        // 偏移:ms
-	ShowLyricTrans   bool       // 显示歌词翻译
-	ShowNotify       bool       // 显示通知
-	NotifyIcon       string     // logo 图片名
-	PProfPort        int        // pprof端口
-	AltScreen        bool       // AltScreen显示模式
-	EnableMouseEvent bool       // 启用鼠标事件
-	DoubleColumn     bool       // 是否双列显示
-
-	PlayerEngine         string // 播放引擎
-	PlayerBeepMp3Decoder string // beep mp3解码器
+	Startup  StartupOptions
+	Progress ProgressOptions
+	Spotify  SpotifyOptions
+	Main     MainOptions
+	Player   PlayerOptions
 }
 
 func (r *Registry) FillToModelOpts(opts *model.Options) {
-	opts.StartupOptions.EnableStartup = r.StartupShow
-	opts.StartupOptions.LoadingDuration = r.StartupLoadingDuration
-	opts.StartupOptions.TickDuration = constants.StartupTickDuration
-	opts.StartupOptions.ProgressOutBounce = r.StartupProgressOutBounce
-	opts.StartupOptions.Welcome = r.StartupWelcome
+	opts.StartupOptions = r.Startup.StartupOptions
+	opts.ProgressOptions = r.Progress.ProgressOptions
 
-	opts.ProgressOptions.FirstFullChar = r.ProgressFirstFullChar
-	opts.ProgressOptions.FullChar = r.ProgressFullChar
-	opts.ProgressOptions.LastFullChar = r.ProgressLastFullChar
-	opts.ProgressOptions.FirstEmptyChar = r.ProgressFirstEmptyChar
-	opts.ProgressOptions.EmptyChar = r.ProgressEmptyChar
-	opts.ProgressOptions.LastEmptyChar = r.ProgressLastEmptyChar
+	opts.AppName = types.AppName
+	opts.WhetherDisplayTitle = r.Main.ShowTitle
+	opts.LoadingText = r.Main.LoadingText
+	opts.PrimaryColor = r.Main.PrimaryColor
+	opts.DualColumn = r.Main.DoubleColumn
 
-	opts.AppName = constants.AppName
-	opts.WhetherDisplayTitle = r.ShowTitle
-	opts.LoadingText = r.LoadingText
-	opts.PrimaryColor = r.PrimaryColor
-	opts.DualColumn = r.DoubleColumn
-
-	if r.EnableMouseEvent {
+	if r.Main.EnableMouseEvent {
 		opts.TeaOptions = append(opts.TeaOptions, tea.WithMouseCellMotion())
 	}
-	if r.AltScreen {
+	if r.Main.AltScreen {
 		opts.TeaOptions = append(opts.TeaOptions, tea.WithAltScreen())
 	}
 }
 
 func NewRegistryWithDefault() *Registry {
 	registry := &Registry{
-		StartupShow:              true,
-		StartupProgressOutBounce: true,
-		StartupLoadingDuration:   time.Second * constants.StartupLoadingSeconds,
-		StartupWelcome:           constants.AppName,
-		StartupCheckUpdate:       true,
-
-		ProgressFirstEmptyChar: []rune(constants.ProgressEmptyChar)[0],
-		ProgressEmptyChar:      []rune(constants.ProgressEmptyChar)[0],
-		ProgressLastEmptyChar:  []rune(constants.ProgressEmptyChar)[0],
-		ProgressFirstFullChar:  []rune(constants.ProgressFullChar)[0],
-		ProgressFullChar:       []rune(constants.ProgressFullChar)[0],
-		ProgressLastFullChar:   []rune(constants.ProgressFullChar)[0],
-
-		ShowTitle:            true,
-		LoadingText:          constants.MainLoadingText,
-		SongFormat:           Ogg_320,
-		PrimaryColor:         constants.AppPrimaryColor,
-		ShowLyric:            true,
-		ShowLyricTrans:       true,
-		ShowNotify:           true,
-		NotifyIcon:           constants.DefaultNotifyIcon,
-		PProfPort:            constants.MainPProfPort,
-		AltScreen:            true,
-		EnableMouseEvent:     true,
-		PlayerEngine:         constants.BeepPlayer,
-		PlayerBeepMp3Decoder: constants.BeepGoMp3Decoder,
+		Startup: StartupOptions{
+			StartupOptions: model.StartupOptions{
+				EnableStartup:     true,
+				LoadingDuration:   time.Second * types.StartupLoadingSeconds,
+				TickDuration:      types.StartupTickDuration,
+				ProgressOutBounce: true,
+				Welcome:           types.AppName,
+			},
+			CheckUpdate: true,
+		},
+		Progress: ProgressOptions{
+			ProgressOptions: model.ProgressOptions{
+				FirstEmptyChar: []rune(types.ProgressEmptyChar)[0],
+				EmptyChar:      []rune(types.ProgressEmptyChar)[0],
+				LastEmptyChar:  []rune(types.ProgressEmptyChar)[0],
+				FirstFullChar:  []rune(types.ProgressFullChar)[0],
+				FullChar:       []rune(types.ProgressFullChar)[0],
+				LastFullChar:   []rune(types.ProgressFullChar)[0],
+			},
+		},
+		Main: MainOptions{
+			ShowTitle:        true,
+			LoadingText:      types.DefaultLoadingText,
+			SongFormat:       Ogg320,
+			PrimaryColor:     types.AppPrimaryColor,
+			ShowLyric:        true,
+			ShowLyricTrans:   true,
+			ShowNotify:       true,
+			NotifyIcon:       types.DefaultNotifyIcon,
+			PProfPort:        types.MainPProfPort,
+			AltScreen:        true,
+			EnableMouseEvent: true,
+		},
+		Player: PlayerOptions{
+			Engine: types.BeepPlayer,
+		},
 	}
 
 	if runtime.GOOS == "darwin" {
-		registry.PlayerEngine = constants.OsxPlayer
+		registry.Player.Engine = types.OsxPlayer
 	}
 
 	return registry
@@ -119,56 +93,55 @@ func NewRegistryFromIniFile(filepath string) *Registry {
 		return registry
 	}
 
-	registry.StartupShow = ini.Bool("startup.show", true)
-	registry.StartupProgressOutBounce = ini.Bool("startup.progressOutBounce", true)
-	registry.StartupLoadingDuration = time.Second * time.Duration(ini.Int("startup.loadingSeconds", constants.StartupLoadingSeconds))
-	registry.StartupWelcome = ini.String("startup.welcome", constants.AppName)
-	registry.StartupCheckUpdate = ini.Bool("startup.checkUpdate", true)
+	registry.Startup.EnableStartup = ini.Bool("startup.show", true)
+	registry.Startup.ProgressOutBounce = ini.Bool("startup.progressOutBounce", true)
+	registry.Startup.LoadingDuration = time.Second * time.Duration(ini.Int("startup.loadingSeconds", types.StartupLoadingSeconds))
+	registry.Startup.Welcome = ini.String("startup.welcome", types.AppName)
+	registry.Startup.CheckUpdate = ini.Bool("startup.checkUpdate", true)
 
-	emptyChar := ini.String("progress.emptyChar", constants.ProgressEmptyChar)
-	registry.ProgressEmptyChar = firstCharOrDefault(emptyChar, constants.ProgressEmptyChar)
-	firstEmptyChar := ini.String("progress.firstEmptyChar", constants.ProgressEmptyChar)
-	registry.ProgressFirstEmptyChar = firstCharOrDefault(firstEmptyChar, constants.ProgressEmptyChar)
-	lastEmptyChar := ini.String("progress.lastEmptyChar", constants.ProgressEmptyChar)
-	registry.ProgressLastEmptyChar = firstCharOrDefault(lastEmptyChar, constants.ProgressEmptyChar)
+	emptyChar := ini.String("progress.emptyChar", types.ProgressEmptyChar)
+	registry.Progress.EmptyChar = firstCharOrDefault(emptyChar, types.ProgressEmptyChar)
+	firstEmptyChar := ini.String("progress.firstEmptyChar", types.ProgressEmptyChar)
+	registry.Progress.FirstEmptyChar = firstCharOrDefault(firstEmptyChar, types.ProgressEmptyChar)
+	lastEmptyChar := ini.String("progress.lastEmptyChar", types.ProgressEmptyChar)
+	registry.Progress.LastEmptyChar = firstCharOrDefault(lastEmptyChar, types.ProgressEmptyChar)
 
-	fullChar := ini.String("progress.fullChar", constants.ProgressFullChar)
-	registry.ProgressFullChar = firstCharOrDefault(fullChar, constants.ProgressFullChar)
-	firstFullChar := ini.String("progress.firstFullChar", constants.ProgressFullChar)
-	registry.ProgressFirstFullChar = firstCharOrDefault(firstFullChar, constants.ProgressFullChar)
-	lastFullChar := ini.String("progress.lastFullChar", constants.ProgressFullChar)
-	registry.ProgressLastFullChar = firstCharOrDefault(lastFullChar, constants.ProgressFullChar)
+	fullChar := ini.String("progress.fullChar", types.ProgressFullChar)
+	registry.Progress.FullChar = firstCharOrDefault(fullChar, types.ProgressFullChar)
+	firstFullChar := ini.String("progress.firstFullChar", types.ProgressFullChar)
+	registry.Progress.FirstFullChar = firstCharOrDefault(firstFullChar, types.ProgressFullChar)
+	lastFullChar := ini.String("progress.lastFullChar", types.ProgressFullChar)
+	registry.Progress.LastFullChar = firstCharOrDefault(lastFullChar, types.ProgressFullChar)
 
-	registry.SpotifyClientId = ini.Get("main.spotifyClientId", "")
-	registry.SpotifyCookie = ini.Get("main.spotifyCookie", "")
-	registry.ShowTitle = ini.Bool("main.showTitle", true)
-	registry.LoadingText = ini.String("main.loadingText", constants.MainLoadingText)
-	songFormat := SongFormat(ini.String("main.songFormat", string(Ogg_320)))
+	registry.Spotify.ClientId = ini.Get("main.spotifyClientId", "")
+	registry.Spotify.Cookie = ini.Get("main.spotifyCookie", "")
+	registry.Main.ShowTitle = ini.Bool("main.showTitle", true)
+	registry.Main.LoadingText = ini.String("main.loadingText", types.DefaultLoadingText)
+	songFormat := SongFormat(ini.String("main.songFormat", string(Ogg320)))
 	if songFormat.IsValid() {
-		registry.SongFormat = songFormat
+		registry.Main.SongFormat = songFormat
 	}
-	primaryColor := ini.String("main.primaryColor", constants.AppPrimaryColor)
+	primaryColor := ini.String("main.primaryColor", types.AppPrimaryColor)
 	if primaryColor != "" {
-		registry.PrimaryColor = primaryColor
+		registry.Main.PrimaryColor = primaryColor
 	} else {
-		registry.PrimaryColor = constants.AppPrimaryColor
+		registry.Main.PrimaryColor = types.AppPrimaryColor
 	}
-	registry.ShowLyric = ini.Bool("main.showLyric", true)
-	registry.LyricOffset = ini.Int("main.lyricOffset", 0)
-	registry.ShowLyricTrans = ini.Bool("main.showLyricTrans", true)
-	registry.ShowNotify = ini.Bool("main.showNotify", true)
-	registry.NotifyIcon = ini.String("main.notifyIcon", constants.DefaultNotifyIcon)
-	registry.PProfPort = ini.Int("main.pprofPort", constants.MainPProfPort)
-	registry.AltScreen = ini.Bool("main.altScreen", true)
-	registry.EnableMouseEvent = ini.Bool("main.enableMouseEvent", true)
-	registry.DoubleColumn = ini.Bool("main.doubleColumn", true)
+	registry.Main.ShowLyric = ini.Bool("main.showLyric", true)
+	registry.Main.LyricOffset = ini.Int("main.lyricOffset", 0)
+	registry.Main.ShowLyricTrans = ini.Bool("main.showLyricTrans", true)
+	registry.Main.ShowNotify = ini.Bool("main.showNotify", true)
+	registry.Main.NotifyIcon = ini.String("main.notifyIcon", types.DefaultNotifyIcon)
+	registry.Main.PProfPort = ini.Int("main.pprofPort", types.MainPProfPort)
+	registry.Main.AltScreen = ini.Bool("main.altScreen", true)
+	registry.Main.EnableMouseEvent = ini.Bool("main.enableMouseEvent", true)
+	registry.Main.DoubleColumn = ini.Bool("main.doubleColumn", true)
 
-	defaultPlayer := constants.BeepPlayer
+	defaultPlayer := types.BeepPlayer
 	if runtime.GOOS == "darwin" {
-		defaultPlayer = constants.OsxPlayer
+		defaultPlayer = types.OsxPlayer
 	}
-	registry.PlayerEngine = ini.String("player.engine", defaultPlayer)
-	registry.PlayerBeepMp3Decoder = ini.String("player.beepMp3Decoder", constants.BeepGoMp3Decoder)
+	registry.Player.Engine = ini.String("player.engine", defaultPlayer)
 
 	return registry
 }

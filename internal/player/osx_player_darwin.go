@@ -55,7 +55,6 @@ func NewOsxPlayer() Player {
 	return p
 }
 
-// listen 开始监听
 func (p *osxPlayer) listen() {
 	for {
 		select {
@@ -75,7 +74,6 @@ func (p *osxPlayer) listen() {
 				item := avcore.AVPlayerItem_playerItemWithURL(core.NSURL_URLWithString(core.String(string(p.curMusic.SongInfo.ID))))
 				p.player.ReplaceCurrentItemWithPlayerItem(item)
 
-				// 计时器
 				p.timer = utils.NewTimer(utils.Options{
 					Duration:       8760 * time.Hour,
 					TickerInternal: 500 * time.Millisecond,

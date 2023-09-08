@@ -14,20 +14,20 @@ import (
 	respot "github.com/arcspace/go-librespot/librespot/api-respot"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-musicfox/spotifox/internal/configs"
-	"github.com/go-musicfox/spotifox/internal/constants"
 	"github.com/go-musicfox/spotifox/internal/lastfm"
 	"github.com/go-musicfox/spotifox/internal/lyric"
 	"github.com/go-musicfox/spotifox/internal/player"
 	"github.com/go-musicfox/spotifox/internal/state_handler"
 	"github.com/go-musicfox/spotifox/internal/storage"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/go-musicfox/spotifox/utils/locale"
 	"github.com/zmb3/spotify/v2"
 
 	"github.com/mattn/go-runewidth"
 	"github.com/muesli/termenv"
 )
 
-// PlayDirection 下首歌的方向
 type PlayDirection uint8
 
 const (
@@ -53,37 +53,35 @@ const (
 	CtrlRerender CtrlType = "Rerender"
 )
 
-// Player 网易云音乐播放器
 type Player struct {
 	spotifox *Spotifox
 	cancel   context.CancelFunc
 
-	playlist         []spotify.FullTrack // 歌曲列表
-	playlistUpdateAt time.Time           // 播放列表更新时间
-	curSongIndex     int                 // 当前歌曲的下标
-	curSong          spotify.FullTrack   // 当前歌曲信息（防止播放列表发生变动后，歌曲信息不匹配）
+	playlist         []spotify.FullTrack
+	playlistUpdateAt time.Time
+	curSongIndex     int
+	curSong          spotify.FullTrack
 	isCurSongLiked   bool
-	playingMenuKey   string // 正在播放的菜单Key
+	playingMenuKey   string
 	playingMenu      Menu
-	playedTime       time.Duration // 已经播放的时长
+	playedTime       time.Duration
 
-	lrcTimer          *lyric.LRCTimer   // 歌词计时器
-	lyrics            [5]string         // 歌词信息，保留5行
-	showLyric         bool              // 显示歌词
-	lyricStartRow     int               // 歌词开始行
-	lyricLines        int               // 歌词显示行数，3或5
-	lyricNowScrollBar *utils.XScrollBar // 当前歌词滚动
+	lrcTimer          *lyric.LRCTimer
+	lyrics            [5]string
+	showLyric         bool
+	lyricStartRow     int
+	lyricLines        int
+	lyricNowScrollBar *utils.XScrollBar
 
-	// 播放进度条
 	progressLastWidth float64
 	progressRamp      []string
 
-	playErrCount int // 错误计数，当错误连续超过5次，停止播放
+	playErrCount int
 	mode         player.Mode
 	stateHandler *state_handler.Handler
 	ctrl         chan CtrlSignal
 
-	player.Player // 播放器
+	player.Player
 }
 
 func NewPlayer(spotifox *Spotifox) *Player {
@@ -111,7 +109,6 @@ func NewPlayer(spotifox *Spotifox) *Player {
 		}
 	})
 
-	// 状态监听
 	go utils.PanicRecoverWrapper(false, func() {
 		for {
 			select {
@@ -130,23 +127,20 @@ func NewPlayer(spotifox *Spotifox) *Player {
 		}
 	})
 
-	// 时间监听
 	go utils.PanicRecoverWrapper(false, func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case duration := <-p.TimeChan():
-				// 200ms 为刷新间隔，刷新间隔修改时此处需要保持同步
 				p.playedTime += time.Millisecond * 200
 				if duration.Seconds()-p.CurMusic().Duration().Seconds() > 10 {
-					// 上报
 					lastfm.Report(p.spotifox.lastfm, lastfm.ReportPhaseComplete, p.curSong, p.PassedTime())
 					_ = p.NextSong(false)
 				}
 				if p.lrcTimer != nil {
 					select {
-					case p.lrcTimer.Timer() <- duration + time.Millisecond*time.Duration(configs.ConfigRegistry.LyricOffset):
+					case p.lrcTimer.Timer() <- duration + time.Millisecond*time.Duration(configs.ConfigRegistry.Main.LyricOffset):
 					default:
 					}
 				}
@@ -162,11 +156,11 @@ func NewPlayer(spotifox *Spotifox) *Player {
 func (p *Player) Update(_ tea.Msg, _ *model.App) {
 	var main = p.spotifox.MustMain()
 	spaceHeight := p.spotifox.WindowHeight() - 5 - main.MenuBottomRow()
-	if spaceHeight < 4 || !configs.ConfigRegistry.ShowLyric {
+	if spaceHeight < 3 || !configs.ConfigRegistry.Main.ShowLyric {
 		p.showLyric = false
 	} else {
 		p.showLyric = true
-		if spaceHeight > 7 {
+		if spaceHeight >= 5 {
 			p.lyricStartRow = (p.spotifox.WindowHeight()-3+main.MenuBottomRow())/2 - 3
 			p.lyricLines = 5
 		} else {
@@ -182,7 +176,7 @@ func (p *Player) View(a *model.App, main *model.Main) (view string, lines int) {
 	playerBuilder.WriteString(p.songView())
 	playerBuilder.WriteString("\n\n")
 	playerBuilder.WriteString(p.progressView())
-	return playerBuilder.String(), a.WindowHeight() - main.SearchBarBottomRow()
+	return playerBuilder.String(), a.WindowHeight() - main.MenuBottomRow()
 }
 
 func (p *Player) lyricView() string {
@@ -192,16 +186,16 @@ func (p *Player) lyricView() string {
 	)
 
 	if !p.showLyric {
-		if endRow-main.SearchBarBottomRow() > 0 {
-			return strings.Repeat("\n", endRow-main.SearchBarBottomRow())
+		if endRow-main.MenuBottomRow() > 0 {
+			return strings.Repeat("\n", endRow-main.MenuBottomRow())
 		} else {
 			return ""
 		}
 	}
 
 	var lyricBuilder strings.Builder
-	if p.lyricStartRow > main.SearchBarBottomRow() {
-		lyricBuilder.WriteString(strings.Repeat("\n", p.lyricStartRow-main.SearchBarBottomRow()))
+	if p.lyricStartRow > main.MenuBottomRow() {
+		lyricBuilder.WriteString(strings.Repeat("\n", p.lyricStartRow-main.MenuBottomRow()))
 	}
 
 	var startCol int
@@ -213,7 +207,7 @@ func (p *Player) lyricView() string {
 
 	maxLen := p.spotifox.WindowWidth() - startCol - 4
 	switch p.lyricLines {
-	// 3行歌词
+	// 3 line
 	case 3:
 		for i := 1; i <= 3; i++ {
 			if startCol > 0 {
@@ -229,7 +223,7 @@ func (p *Player) lyricView() string {
 
 			lyricBuilder.WriteString("\n")
 		}
-	// 5行歌词
+	// 5 line
 	case 5:
 		for i := 0; i < 5; i++ {
 			if startCol > 0 {
@@ -253,7 +247,6 @@ func (p *Player) lyricView() string {
 	return lyricBuilder.String()
 }
 
-// songView 歌曲信息UI
 func (p *Player) songView() string {
 	var (
 		builder strings.Builder
@@ -283,8 +276,7 @@ func (p *Player) songView() string {
 	}
 
 	if p.curSongIndex < len(p.playlist) {
-		// 按剩余长度截断字符串
-		truncateSong := runewidth.Truncate(p.curSong.Name, p.spotifox.WindowWidth()-main.MenuStartColumn()-prefixLen, "") // 多减，避免剩余1个中文字符
+		truncateSong := runewidth.Truncate(p.curSong.Name, p.spotifox.WindowWidth()-main.MenuStartColumn()-prefixLen, "")
 		builder.WriteString(util.SetFgStyle(truncateSong, util.GetPrimaryColor()))
 		builder.WriteString(" ")
 
@@ -296,7 +288,6 @@ func (p *Player) songView() string {
 			artists.WriteString(v)
 		}
 
-		// 按剩余长度截断字符串
 		remainLen := p.spotifox.WindowWidth() - main.MenuStartColumn() - prefixLen - runewidth.StringWidth(p.curSong.Name)
 		truncateArtists := runewidth.Truncate(
 			runewidth.FillRight(artists.String(), remainLen),
@@ -307,7 +298,6 @@ func (p *Player) songView() string {
 	return builder.String()
 }
 
-// progressView 进度条UI
 func (p *Player) progressView() string {
 	allDuration := int(p.CurMusic().Duration().Seconds())
 	if allDuration == 0 {
@@ -335,19 +325,16 @@ func (p *Player) progressView() string {
 
 }
 
-// InPlayingMenu 是否处于正在播放的菜单中
 func (p *Player) InPlayingMenu() bool {
 	var key = p.spotifox.MustMain().CurMenu().GetMenuKey()
 	return key == p.playingMenuKey || key == CurPlaylistKey
 }
 
-// CompareWithCurPlaylist 与当前播放列表对比，是否一致
 func (p *Player) CompareWithCurPlaylist(playlist []spotify.FullTrack) bool {
 	if len(playlist) != len(p.playlist) {
 		return false
 	}
 
-	// 如果前20个一致，则认为相同
 	for i := 0; i < 20 && i < len(playlist); i++ {
 		if !utils.CompareSong(playlist[i], p.playlist[i]) {
 			return false
@@ -357,7 +344,6 @@ func (p *Player) CompareWithCurPlaylist(playlist []spotify.FullTrack) bool {
 	return true
 }
 
-// LocatePlayingSong 定位到正在播放的音乐
 func (p *Player) LocatePlayingSong() {
 	var (
 		main        = p.spotifox.MustMain()
@@ -392,7 +378,6 @@ func (p *Player) LocatePlayingSong() {
 	main.SetSelectedIndex(p.curSongIndex)
 }
 
-// PlaySong 播放歌曲
 func (p *Player) PlaySong(song spotify.FullTrack, direction PlayDirection) model.Page {
 	if p.spotifox.CheckAuthSession() == utils.NeedLogin {
 		page, _ := p.spotifox.ToLoginPage(func() model.Page {
@@ -443,7 +428,7 @@ func (p *Player) PlaySong(song spotify.FullTrack, direction PlayDirection) model
 		return nil
 	}
 
-	if configs.ConfigRegistry.ShowLyric {
+	if configs.ConfigRegistry.Main.ShowLyric {
 		go p.updateLyric(song.ID)
 	}
 
@@ -455,11 +440,11 @@ func (p *Player) PlaySong(song spotify.FullTrack, direction PlayDirection) model
 	lastfm.Report(p.spotifox.lastfm, lastfm.ReportPhaseStart, p.curSong, p.PassedTime())
 
 	go utils.Notify(utils.NotifyContent{
-		Title:   "正在播放: " + song.Name,
+		Title:   locale.MustT("now_playing", locale.WithTplData(map[string]string{"TrackName": song.Name})),
 		Text:    fmt.Sprintf("%s - %s", utils.ArtistNameStrOfSong(&song), song.Album.Name),
 		Icon:    utils.PicURLOfSong(&song),
 		Url:     utils.WebURLOfSong(song.ID),
-		GroupId: constants.GroupID,
+		GroupId: types.GroupID,
 	})
 	p.playErrCount = 0
 
@@ -518,7 +503,6 @@ func (p *Player) NextSong(isManual bool) model.Page {
 	return p.PlaySong(song, DurationNext)
 }
 
-// PreviousSong 上一曲
 func (p *Player) PreviousSong(isManual bool) model.Page {
 	if len(p.playlist) == 0 || p.curSongIndex >= len(p.playlist)-1 {
 		var main = p.spotifox.MustMain()
@@ -579,7 +563,6 @@ func (p *Player) Seek(duration time.Duration) {
 	p.stateHandler.SetPlayingInfo(p.PlayingInfo())
 }
 
-// SetPlayMode 播放模式切换
 func (p *Player) SetPlayMode(playMode player.Mode) {
 	if playMode > 0 {
 		p.mode = playMode
@@ -598,7 +581,6 @@ func (p *Player) SetPlayMode(playMode player.Mode) {
 	_ = table.SetByKVModel(storage.PlayMode{}, p.mode)
 }
 
-// Close 关闭
 func (p *Player) Close() {
 	p.cancel()
 	if p.stateHandler != nil {
@@ -607,7 +589,6 @@ func (p *Player) Close() {
 	p.Player.Close()
 }
 
-// lyricListener 歌词变更监听
 func (p *Player) lyricListener(_ int64, content, transContent string, _ bool, index int) {
 	curIndex := len(p.lyrics) / 2
 

@@ -10,22 +10,22 @@ import (
 	respot "github.com/arcspace/go-librespot/librespot/api-respot"
 	"github.com/arcspace/go-librespot/librespot/core"
 	"github.com/go-musicfox/spotifox/internal/configs"
-	"github.com/go-musicfox/spotifox/internal/constants"
 	"github.com/go-musicfox/spotifox/internal/lyric"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/go-musicfox/spotifox/utils"
 	"github.com/zmb3/spotify/v2"
 )
 
 func NewSpotifySession() respot.Session {
-	ctx := respot.DefaultSessionContext(constants.SpotifyDeviceName)
+	ctx := respot.DefaultSessionContext(types.SpotifyDeviceName)
 	sess, err := respot.StartNewSession(ctx)
 	if err != nil {
 		panic(err)
 	}
 	if se, ok := sess.(*core.Session); ok {
-		se.Downloader().SetAudioFormat(configs.ConfigRegistry.SongFormat.ToSpotifyFormat())
+		se.Downloader().SetAudioFormat(configs.ConfigRegistry.Main.SongFormat.ToSpotifyFormat())
 	}
-	ctx.Context, _ = task.Start(&task.Task{Label: constants.SpotifyDeviceName})
+	ctx.Context, _ = task.Start(&task.Task{Label: types.SpotifyDeviceName})
 	return sess
 }
 

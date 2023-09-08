@@ -9,9 +9,10 @@ import (
 	"github.com/skratchdot/open-golang/open"
 	"github.com/zmb3/spotify/v2"
 
-	"github.com/go-musicfox/spotifox/internal/constants"
 	"github.com/go-musicfox/spotifox/internal/storage"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/go-musicfox/spotifox/utils/locale"
 )
 
 func likePlayingSong(m *Spotifox, likeOrNot bool) model.Page {
@@ -36,15 +37,15 @@ func likePlayingSong(m *Spotifox, likeOrNot bool) model.Page {
 	}
 	m.player.isCurSongLiked = likeOrNot
 
-	var title = "已添加到我喜欢的歌曲"
+	var title = locale.MustT("like_song_success")
 	if !likeOrNot {
-		title = "已从我喜欢的歌曲移除"
+		title = locale.MustT("dislike_song_success")
 	}
 	utils.Notify(utils.NotifyContent{
 		Title:   title,
 		Text:    m.player.playlist[m.player.curSongIndex].Name,
 		Url:     utils.WebURLOfLibrary(),
-		GroupId: constants.GroupID,
+		GroupId: types.GroupID,
 	})
 	return nil
 }
@@ -56,10 +57,10 @@ func logout(clearAll bool) {
 		(&storage.LastfmUser{}).Clear()
 	}
 	utils.Notify(utils.NotifyContent{
-		Title:   "登出成功",
-		Text:    "已清理用户信息",
-		Url:     constants.AppGithubUrl,
-		GroupId: constants.GroupID,
+		Title:   locale.MustT("logout_success"),
+		Text:    locale.MustT("cleaned_up_user_info"),
+		Url:     types.AppGithubUrl,
+		GroupId: types.GroupID,
 	})
 	_ = os.Remove(path.Join(utils.GetLocalDataDir(), "cookie"))
 }
@@ -92,15 +93,15 @@ func likeSelectedSong(m *Spotifox, likeOrNot bool) model.Page {
 		return nil
 	}
 
-	var title = "已添加到我喜欢的歌曲"
+	var title = locale.MustT("like_song_success")
 	if !likeOrNot {
-		title = "已从我喜欢的歌曲移除"
+		title = locale.MustT("dislike_song_success")
 	}
 	utils.Notify(utils.NotifyContent{
 		Title:   title,
 		Text:    songs[selectedIndex].Name,
 		Url:     utils.WebURLOfLibrary(),
-		GroupId: constants.GroupID,
+		GroupId: types.GroupID,
 	})
 	return nil
 }
@@ -123,7 +124,7 @@ func albumOfPlayingSong(m *Spotifox) {
 		return
 	}
 
-	main.EnterMenu(NewAlbumDetailMenu(newBaseMenu(m), curSong.Album), &model.MenuItem{Title: curSong.Album.Name, Subtitle: "「" + curSong.Name + "」所属专辑"})
+	main.EnterMenu(NewAlbumDetailMenu(newBaseMenu(m), curSong.Album), &model.MenuItem{Title: curSong.Album.Name, Subtitle: locale.MustT("album_of_track", locale.WithTplData(map[string]string{"TrackName": curSong.Name}))})
 }
 
 func albumOfSelectedSong(m *Spotifox) {
@@ -146,7 +147,7 @@ func albumOfSelectedSong(m *Spotifox) {
 		return
 	}
 
-	main.EnterMenu(NewAlbumDetailMenu(newBaseMenu(m), songs[selectedIndex].Album), &model.MenuItem{Title: songs[selectedIndex].Album.Name, Subtitle: "「" + songs[selectedIndex].Name + "」所属专辑"})
+	main.EnterMenu(NewAlbumDetailMenu(newBaseMenu(m), songs[selectedIndex].Album), &model.MenuItem{Title: songs[selectedIndex].Album.Name, Subtitle: locale.MustT("album_of_track", locale.WithTplData(map[string]string{"TrackName": songs[selectedIndex].Name}))})
 }
 
 func artistOfPlayingSong(m *Spotifox) {
@@ -170,13 +171,13 @@ func artistOfPlayingSong(m *Spotifox) {
 		if detail, ok := menu.(*ArtistDetailMenu); ok && detail.artistId == curSong.Artists[0].ID {
 			return
 		}
-		main.EnterMenu(NewArtistDetailMenu(newBaseMenu(m), curSong.Artists[0].ID, curSong.Artists[0].Name), &model.MenuItem{Title: curSong.Artists[0].Name, Subtitle: "「" + curSong.Name + "」所属歌手"})
+		main.EnterMenu(NewArtistDetailMenu(newBaseMenu(m), curSong.Artists[0].ID, curSong.Artists[0].Name), &model.MenuItem{Title: curSong.Artists[0].Name, Subtitle: locale.MustT("artist_of_track", locale.WithTplData(map[string]string{"TrackName": curSong.Name}))})
 		return
 	}
 	if artists, ok := menu.(*ArtistsOfSongMenu); ok && artists.song.ID == curSong.ID {
 		return
 	}
-	main.EnterMenu(NewArtistsOfSongMenu(newBaseMenu(m), curSong), &model.MenuItem{Title: "「" + curSong.Name + "」所属歌手"})
+	main.EnterMenu(NewArtistsOfSongMenu(newBaseMenu(m), curSong), &model.MenuItem{Title: locale.MustT("artist_of_track", locale.WithTplData(map[string]string{"TrackName": curSong.Name}))})
 }
 
 func artistOfSelectedSong(m *Spotifox) {
@@ -204,14 +205,14 @@ func artistOfSelectedSong(m *Spotifox) {
 		if detail, ok := menu.(*ArtistDetailMenu); ok && detail.artistId == song.Artists[0].ID {
 			return
 		}
-		main.EnterMenu(NewArtistDetailMenu(newBaseMenu(m), song.Artists[0].ID, song.Artists[0].Name), &model.MenuItem{Title: song.Artists[0].Name, Subtitle: "「" + song.Name + "」所属歌手"})
+		main.EnterMenu(NewArtistDetailMenu(newBaseMenu(m), song.Artists[0].ID, song.Artists[0].Name), &model.MenuItem{Title: song.Artists[0].Name, Subtitle: locale.MustT("artist_of_track", locale.WithTplData(map[string]string{"TrackName": song.Name}))})
 		return
 	}
 	// 避免重复进入
 	if artists, ok := menu.(*ArtistsOfSongMenu); ok && artists.song.ID == song.ID {
 		return
 	}
-	main.EnterMenu(NewArtistsOfSongMenu(newBaseMenu(m), song), &model.MenuItem{Title: "「" + song.Name + "」所属歌手"})
+	main.EnterMenu(NewArtistsOfSongMenu(newBaseMenu(m), song), &model.MenuItem{Title: locale.MustT("artist_of_track", locale.WithTplData(map[string]string{"TrackName": song.Name}))})
 }
 
 func openPlayingSongInWeb(m *Spotifox) {
@@ -286,15 +287,15 @@ func followSelectedPlaylist(m *Spotifox, followOrNot bool) model.Page {
 		return nil
 	}
 
-	var title = "已关注歌单"
+	var title = locale.MustT("follow_playlist_success")
 	if !followOrNot {
-		title = "已取消关注歌单"
+		title = locale.MustT("unfollow_playlist_success")
 	}
 	utils.Notify(utils.NotifyContent{
 		Title:   title,
 		Text:    playlists[main.SelectedIndex()].Name,
-		Url:     constants.AppGithubUrl,
-		GroupId: constants.GroupID,
+		Url:     types.AppGithubUrl,
+		GroupId: types.GroupID,
 	})
 	return nil
 }
@@ -338,11 +339,11 @@ func openAddSongToUserPlaylistMenu(m *Spotifox, isSelected, isAdd bool) model.Pa
 		song = m.player.curSong
 	}
 	if isAdd {
-		subtitle = "将「" + song.Name + "」加入歌单"
+		subtitle = locale.MustT("add_song_to_playlist", locale.WithTplData(map[string]string{"TrackName": song.Name}))
 	} else {
-		subtitle = "将「" + song.Name + "」从歌单中删除"
+		subtitle = locale.MustT("remove_song_to_playlist", locale.WithTplData(map[string]string{"TrackName": song.Name}))
 	}
-	main.EnterMenu(NewAddToUserPlaylistMenu(newBaseMenu(m), song, isAdd), &model.MenuItem{Title: "我的歌单", Subtitle: subtitle})
+	main.EnterMenu(NewAddToUserPlaylistMenu(newBaseMenu(m), song, isAdd), &model.MenuItem{Title: locale.MustT("my_playlists"), Subtitle: subtitle})
 	return nil
 }
 
@@ -385,15 +386,15 @@ func addSongToUserPlaylist(m *Spotifox, isAdd bool) model.Page {
 
 	var title string
 	if isAdd {
-		title = "已添加到歌单「" + playlist.Name + "」"
+		title = locale.MustT("add_song_to_playlist_success", locale.WithTplData(map[string]string{"PlaylistName": playlist.Name}))
 	} else {
-		title = "已从歌单「" + playlist.Name + "」中删除"
+		title = locale.MustT("remove_song_from_playlist_success", locale.WithTplData(map[string]string{"PlaylistName": playlist.Name}))
 	}
 	utils.Notify(utils.NotifyContent{
 		Title:   title,
 		Text:    me.song.Name,
 		Url:     utils.WebURLOfPlaylist(playlist.ID),
-		GroupId: constants.GroupID,
+		GroupId: types.GroupID,
 	})
 	main.BackMenu()
 

@@ -7,9 +7,10 @@ import (
 
 	"github.com/anhoder/foxful-cli/model"
 	"github.com/go-musicfox/spotifox/internal/configs"
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/go-musicfox/spotifox/internal/ui"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/go-musicfox/spotifox/utils/locale"
 
 	"github.com/gookit/gcli/v2"
 )
@@ -26,11 +27,17 @@ func NewPlayerCommand() *gcli.Command {
 func runPlayer(_ *gcli.Command, _ []string) error {
 	if GlobalOptions.PProfMode {
 		go utils.PanicRecoverWrapper(true, func() {
-			panic(http.ListenAndServe(":"+strconv.Itoa(configs.ConfigRegistry.PProfPort), nil))
+			panic(http.ListenAndServe(":"+strconv.Itoa(configs.ConfigRegistry.Main.PProfPort), nil))
 		})
 	}
 
-	http.DefaultClient.Timeout = constants.AppHttpTimeout
+	http.DefaultClient.Timeout = types.AppHttpTimeout
+
+	// replace text
+	configs.ConfigRegistry.Main.LoadingText = locale.MustT("loading")
+	model.Submit = locale.MustT("submit_text")
+	model.SearchPlaceholder = locale.MustT("search_placehoder")
+	model.SearchResult = locale.MustT("search_result")
 
 	var opts = model.DefaultOptions()
 	configs.ConfigRegistry.FillToModelOpts(opts)

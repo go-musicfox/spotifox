@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 )
 
 type VolumeStorable interface {
@@ -12,7 +12,7 @@ type VolumeStorable interface {
 type Volume struct{}
 
 func (v Volume) GetDbName() string {
-	return constants.AppDBName
+	return types.AppDBName
 }
 
 func (v Volume) GetTableName() string {

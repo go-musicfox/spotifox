@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/anhoder/foxful-cli/model"
+	"github.com/go-musicfox/spotifox/utils/locale"
 	"github.com/zmb3/spotify/v2"
 )
 
@@ -16,7 +17,7 @@ func NewArtistsOfSongMenu(base baseMenu, song spotify.FullTrack) *ArtistsOfSongM
 	artistsMenu := &ArtistsOfSongMenu{
 		song: song,
 	}
-	var subTitle = "「" + song.Name + "」所属歌手"
+	var subTitle = locale.MustT("artist_of_track", locale.WithTplData(map[string]string{"TrackName": song.Name}))
 	for _, artist := range song.Artists {
 		artistsMenu.menus = append(artistsMenu.menus, model.MenuItem{Title: artist.Name, Subtitle: subTitle})
 		artistsMenu.menuList = append(artistsMenu.menuList, NewArtistDetailMenu(base, artist.ID, artist.Name))

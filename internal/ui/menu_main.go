@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/anhoder/foxful-cli/model"
+	"github.com/go-musicfox/spotifox/utils/locale"
 )
 
 type MainMenu struct {
@@ -15,15 +16,15 @@ func NewMainMenu(netease *Spotifox) *MainMenu {
 	mainMenu := &MainMenu{
 		baseMenu: base,
 		menus: []model.MenuItem{
-			{Title: "我喜欢的音乐"},
-			{Title: "关注的歌单"},
-			{Title: "关注的歌手"},
-			{Title: "Spotify特色歌单"},
-			// {Title: "我的听歌排行"},
-			{Title: "搜索"},
+			{Title: locale.MustT("liked_tracks")},
+			{Title: locale.MustT("followed_playlists")},
+			{Title: locale.MustT("followed_artists")},
+			{Title: locale.MustT("featured_playlist")},
+			// {Title: locale.MustT("my_top_tracks")},
+			{Title: locale.MustT("search")},
 			{Title: "LastFM"},
-			{Title: "帮助"},
-			{Title: "检查更新"},
+			{Title: locale.MustT("help")},
+			{Title: locale.MustT("check_update")},
 		},
 		menuList: []Menu{
 			NewLikedSongsMenu(base),
@@ -42,7 +43,7 @@ func NewMainMenu(netease *Spotifox) *MainMenu {
 
 func (m *MainMenu) FormatMenuItem(item *model.MenuItem) {
 	if m.spotifox.user == nil {
-		item.Subtitle = "[未登录]"
+		item.Subtitle = "[" + locale.MustT("no_login") + "]"
 		return
 	}
 	if m.spotifox.user.DisplayName != "" {

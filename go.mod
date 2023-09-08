@@ -3,7 +3,7 @@ module github.com/go-musicfox/spotifox
 go 1.21
 
 require (
-	github.com/anhoder/foxful-cli v0.1.3
+	github.com/anhoder/foxful-cli v0.1.4
 	github.com/arcspace/go-arc-sdk v0.0.0-20230811172934-db6c05cc94b2
 	github.com/arcspace/go-librespot v0.0.0-20230811173922-2e901b172fbe
 	github.com/buger/jsonparser v1.1.1
@@ -19,6 +19,7 @@ require (
 	github.com/gookit/ini/v2 v2.2.2
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/muesli/termenv v0.15.2
+	github.com/nicksnyder/go-i18n/v2 v2.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/raitonoberu/lyricsapi v0.0.0-20230113141433-eded40b42d7c
 	github.com/shkh/lastfm-go v0.0.0-20191215035245-89a801c244e0
@@ -77,7 +78,7 @@ require (
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/term v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
+	golang.org/x/text v0.13.0
 )
 
 replace (

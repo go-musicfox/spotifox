@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/anhoder/foxful-cli/model"
+	"github.com/go-musicfox/spotifox/utils/locale"
 	"github.com/zmb3/spotify/v2"
 )
 
@@ -14,12 +15,10 @@ func NewSearchTypeMenu(base baseMenu) *SearchTypeMenu {
 	typeMenu := &SearchTypeMenu{
 		baseMenu: base,
 		menus: []model.MenuItem{
-			{Title: "搜单曲"},
-			{Title: "搜专辑"},
-			{Title: "搜歌手"},
-			{Title: "搜歌单"},
-			// {Title: "搜插曲"},
-			// {Title: "搜演出"},
+			{Title: locale.MustT("search_track")},
+			{Title: locale.MustT("search_album")},
+			{Title: locale.MustT("search_artist")},
+			{Title: locale.MustT("search_playlist")},
 		},
 	}
 
@@ -40,8 +39,6 @@ func (m *SearchTypeMenu) SubMenu(_ *model.App, index int) model.Menu {
 		spotify.SearchTypeAlbum,
 		spotify.SearchTypeArtist,
 		spotify.SearchTypePlaylist,
-		// spotify.SearchTypeEpisode,
-		// spotify.SearchTypeShow,
 	}
 
 	if index >= len(typeArr) {

@@ -11,12 +11,13 @@ import (
 	respot "github.com/arcspace/go-librespot/librespot/api-respot"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-musicfox/spotifox/internal/configs"
-	"github.com/go-musicfox/spotifox/internal/constants"
 	"github.com/go-musicfox/spotifox/internal/lastfm"
 	"github.com/go-musicfox/spotifox/internal/player"
 	"github.com/go-musicfox/spotifox/internal/storage"
 	"github.com/go-musicfox/spotifox/internal/structs"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/go-musicfox/spotifox/utils/locale"
 	lyricsapi "github.com/raitonoberu/lyricsapi/lyrics"
 	"github.com/zmb3/spotify/v2"
 	"golang.org/x/mod/semver"
@@ -48,14 +49,13 @@ func NewSpotifox(app *model.App) *Spotifox {
 	s.login = NewLoginPage(s)
 	s.search = NewSearchPage(s)
 
-	if configs.ConfigRegistry.ShowLyric && configs.ConfigRegistry.SpotifyCookie != "" {
-		s.lyricClient = lyricsapi.NewLyricsApi(configs.ConfigRegistry.SpotifyCookie)
+	if configs.ConfigRegistry.Main.ShowLyric && configs.ConfigRegistry.Spotify.Cookie != "" {
+		s.lyricClient = lyricsapi.NewLyricsApi(configs.ConfigRegistry.Spotify.Cookie)
 	}
 
 	return s
 }
 
-// ToLoginPage
 func (s *Spotifox) ToLoginPage(callback LoginCallback) (model.Page, tea.Cmd) {
 	s.login.AfterLogin = callback
 	if s.user != nil && s.user.Username != "" && len(s.user.AuthBlob) > 0 {
@@ -74,7 +74,6 @@ func (s *Spotifox) ToLoginPage(callback LoginCallback) (model.Page, tea.Cmd) {
 	return s.login, tickLogin(time.Nanosecond)
 }
 
-// ToSearchPage
 func (s *Spotifox) ToSearchPage(searchType spotify.SearchType) (model.Page, tea.Cmd) {
 	s.search.searchType = searchType
 	return s.search, tickSearch(time.Nanosecond)
@@ -147,7 +146,7 @@ func (s *Spotifox) InitHook(_ *model.App) {
 		}
 		s.Rerender(false)
 
-		// 获取扩展信息
+		// get ext info
 		{
 			var (
 				extInfo    storage.ExtInfo
@@ -155,7 +154,7 @@ func (s *Spotifox) InitHook(_ *model.App) {
 			)
 			jsonStr, _ := table.GetByKVModel(extInfo)
 			if len(jsonStr) != 0 {
-				if err := json.Unmarshal(jsonStr, &extInfo); err == nil && semver.Compare(extInfo.StorageVersion, constants.AppVersion) >= 0 {
+				if err := json.Unmarshal(jsonStr, &extInfo); err == nil && semver.Compare(extInfo.StorageVersion, types.AppVersion) >= 0 {
 					needUpdate = false
 				}
 			}
@@ -166,27 +165,30 @@ func (s *Spotifox) InitHook(_ *model.App) {
 				_ = os.RemoveAll(path.Join(localDir, "musicfox-notifier.app"))
 
 				// refresh logo
-				_ = os.Remove(path.Join(localDir, constants.DefaultNotifyIcon))
+				_ = os.Remove(path.Join(localDir, types.DefaultNotifyIcon))
 
-				extInfo.StorageVersion = constants.AppVersion
+				extInfo.StorageVersion = types.AppVersion
 				_ = table.SetByKVModel(extInfo, extInfo)
 			}
 		}
 
-		// 检查更新
-		if config.StartupCheckUpdate {
+		// check update
+		if config.Startup.CheckUpdate {
 			if ok, newVersion := utils.CheckUpdate(); ok {
 				if runtime.GOOS == "windows" {
 					s.MustMain().EnterMenu(
 						NewCheckUpdateMenu(newBaseMenu(s)),
-						&model.MenuItem{Title: "新版本: " + newVersion, Subtitle: "当前版本: " + constants.AppVersion},
+						&model.MenuItem{
+							Title:    locale.MustT("new_version_title", locale.WithTplData(map[string]string{"NewVersion": newVersion})),
+							Subtitle: locale.MustT("new_version_subtitle", locale.WithTplData(map[string]string{"CurVersion": types.AppVersion})),
+						},
 					)
 				}
 
 				utils.Notify(utils.NotifyContent{
-					Title: "发现新版本: " + newVersion,
-					Text:  "去看看呗",
-					Url:   constants.AppLatestReleases,
+					Title: locale.MustT("new_version_notify_title", locale.WithTplData(map[string]string{"NewVersion": newVersion})),
+					Text:  locale.MustT("new_version_notify_txt"),
+					Url:   types.AppLatestReleases,
 				})
 			}
 		}

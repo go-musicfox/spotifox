@@ -9,8 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-musicfox/spotifox/internal/configs"
-	"github.com/go-musicfox/spotifox/internal/constants"
 	"github.com/go-musicfox/spotifox/utils"
 	"github.com/zmb3/spotify/v2"
 
@@ -66,7 +64,6 @@ func NewBeepPlayer() Player {
 	return p
 }
 
-// listen 开始监听
 func (p *beepPlayer) listen() {
 	var (
 		done       = make(chan struct{})
@@ -99,7 +96,7 @@ func (p *beepPlayer) listen() {
 			if p.timer != nil {
 				p.timer.SetPassed(0)
 			}
-			// 清理上一轮
+			// clean pre
 			if cancel != nil {
 				cancel()
 			}
@@ -136,7 +133,7 @@ func (p *beepPlayer) listen() {
 						return
 					}
 					// 除了MP3格式，其他格式无需重载
-					if p.curMusic.SongType() == Mp3 && configs.ConfigRegistry.PlayerBeepMp3Decoder != constants.BeepMiniMp3Decoder {
+					if p.curMusic.SongType() == Mp3 {
 						// 需再开一次文件，保证其指针变化，否则将概率导致 p.ctrl.Streamer = beep.Seq(……) 直接停止播放
 						cacheReader, _ := os.OpenFile(cacheFile, os.O_RDONLY, 0666)
 						// 使用新的文件后需手动Seek到上次播放处
@@ -254,8 +251,7 @@ func (p *beepPlayer) Seek(duration time.Duration) {
 	// FIXME: 暂时仅对MP3格式提供跳转功能
 	// FLAC格式(其他未测)跳转会占用大量CPU资源，比特率越高占用越高
 	// 导致Seek方法卡住20-40秒的时间，之后方可随意跳转
-	// minimp3未实现Seek
-	if p.curStreamer == nil || p.curMusic.SongType() != Mp3 || configs.ConfigRegistry.PlayerBeepMp3Decoder == constants.BeepMiniMp3Decoder {
+	if p.curStreamer == nil || p.curMusic.SongType() != Mp3 {
 		return
 	}
 	if p.state == Playing || p.state == Paused {
@@ -281,7 +277,6 @@ func (p *beepPlayer) Seek(duration time.Duration) {
 	}
 }
 
-// UpVolume 调大音量
 func (p *beepPlayer) UpVolume() {
 	if p.volume.Volume >= 0 {
 		return
@@ -293,7 +288,6 @@ func (p *beepPlayer) UpVolume() {
 	p.volume.Volume += 0.25
 }
 
-// DownVolume 调小音量
 func (p *beepPlayer) DownVolume() {
 	if p.volume.Volume <= -5 {
 		return
@@ -309,7 +303,7 @@ func (p *beepPlayer) DownVolume() {
 }
 
 func (p *beepPlayer) Volume() int {
-	return int((p.volume.Volume + 5) * 100 / 5) // 转为0~100存储
+	return int((p.volume.Volume + 5) * 100 / 5) // to 0~100
 }
 
 func (p *beepPlayer) SetVolume(volume int) {
@@ -334,7 +328,6 @@ func (p *beepPlayer) pausedNoLock() {
 	p.setState(Paused)
 }
 
-// Paused 暂停播放
 func (p *beepPlayer) Paused() {
 	p.l.Lock()
 	defer p.l.Unlock()
@@ -350,7 +343,6 @@ func (p *beepPlayer) resumeNoLock() {
 	p.setState(Playing)
 }
 
-// Resume 继续播放
 func (p *beepPlayer) Resume() {
 	p.l.Lock()
 	defer p.l.Unlock()
@@ -366,14 +358,12 @@ func (p *beepPlayer) stopNoLock() {
 	p.setState(Stopped)
 }
 
-// Stop 停止
 func (p *beepPlayer) Stop() {
 	p.l.Lock()
 	defer p.l.Unlock()
 	p.stopNoLock()
 }
 
-// Toggle 切换状态
 func (p *beepPlayer) Toggle() {
 	switch p.State() {
 	case Paused, Stopped:
@@ -383,7 +373,6 @@ func (p *beepPlayer) Toggle() {
 	}
 }
 
-// Close 关闭
 func (p *beepPlayer) Close() {
 	p.l.Lock()
 	defer p.l.Unlock()
@@ -398,7 +387,7 @@ func (p *beepPlayer) Close() {
 func (p *beepPlayer) reset() {
 	speaker.Clear()
 	speaker.Close()
-	// 关闭旧计时器
+	// close pre timer
 	if p.timer != nil {
 		p.timer.Stop()
 	}

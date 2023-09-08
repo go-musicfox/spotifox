@@ -11,7 +11,7 @@ capnproto.org/go/capnp/v3/internal/str
 capnproto.org/go/capnp/v3/internal/strquote
 capnproto.org/go/capnp/v3/packed
 capnproto.org/go/capnp/v3/schemas
-# github.com/anhoder/foxful-cli v0.1.3
+# github.com/anhoder/foxful-cli v0.1.4
 ## explicit; go 1.20
 github.com/anhoder/foxful-cli/model
 github.com/anhoder/foxful-cli/util
@@ -25,7 +25,7 @@ github.com/arcspace/go-arc-sdk/stdlib/log
 github.com/arcspace/go-arc-sdk/stdlib/symbol
 github.com/arcspace/go-arc-sdk/stdlib/task
 github.com/arcspace/go-arc-sdk/stdlib/utils
-# github.com/arcspace/go-librespot v0.0.0-20230811173922-2e901b172fbe => ../go-librespot
+# github.com/arcspace/go-librespot v0.0.0-20230811173922-2e901b172fbe
 ## explicit; go 1.18
 github.com/arcspace/go-librespot/Spotify
 github.com/arcspace/go-librespot/librespot/api-respot
@@ -61,22 +61,6 @@ github.com/charmbracelet/bubbletea
 github.com/charmbracelet/lipgloss
 # github.com/cnsilvan/UnblockNeteaseMusic v0.0.0-20230310083816-92b59c95a366 => github.com/go-musicfox/UnblockNeteaseMusic v0.1.2
 ## explicit; go 1.16
-github.com/cnsilvan/UnblockNeteaseMusic/cache
-github.com/cnsilvan/UnblockNeteaseMusic/common
-github.com/cnsilvan/UnblockNeteaseMusic/config
-github.com/cnsilvan/UnblockNeteaseMusic/cookiestxt
-github.com/cnsilvan/UnblockNeteaseMusic/network
-github.com/cnsilvan/UnblockNeteaseMusic/pool
-github.com/cnsilvan/UnblockNeteaseMusic/processor
-github.com/cnsilvan/UnblockNeteaseMusic/processor/crypto
-github.com/cnsilvan/UnblockNeteaseMusic/provider
-github.com/cnsilvan/UnblockNeteaseMusic/provider/base
-github.com/cnsilvan/UnblockNeteaseMusic/provider/kugou
-github.com/cnsilvan/UnblockNeteaseMusic/provider/kuwo
-github.com/cnsilvan/UnblockNeteaseMusic/provider/migu
-github.com/cnsilvan/UnblockNeteaseMusic/provider/qq
-github.com/cnsilvan/UnblockNeteaseMusic/utils
-github.com/cnsilvan/UnblockNeteaseMusic/version
 # github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81
 ## explicit; go 1.13
 github.com/containerd/console
@@ -92,7 +76,6 @@ github.com/ebitengine/purego/objc
 ## explicit; go 1.14
 github.com/faiface/beep
 github.com/faiface/beep/effects
-github.com/faiface/beep/minimp3
 github.com/faiface/beep/mp3
 github.com/faiface/beep/speaker
 github.com/faiface/beep/vorbis
@@ -101,17 +84,13 @@ github.com/faiface/beep/vorbis
 github.com/fogleman/ease
 # github.com/forgoer/openssl v1.6.0
 ## explicit; go 1.13
-github.com/forgoer/openssl
 # github.com/go-musicfox/netease-music v1.4.1
 ## explicit; go 1.12
-github.com/go-musicfox/netease-music/service
-github.com/go-musicfox/netease-music/util
 # github.com/go-musicfox/notificator v0.1.0
 ## explicit; go 1.16
 github.com/go-musicfox/notificator
 # github.com/go-musicfox/requests v0.2.0
 ## explicit; go 1.13
-github.com/go-musicfox/requests
 # github.com/godbus/dbus/v5 v5.1.0
 ## explicit; go 1.12
 github.com/godbus/dbus/v5
@@ -219,6 +198,11 @@ github.com/muesli/reflow/wrap
 # github.com/muesli/termenv v0.15.2
 ## explicit; go 1.17
 github.com/muesli/termenv
+# github.com/nicksnyder/go-i18n/v2 v2.2.1
+## explicit; go 1.12
+github.com/nicksnyder/go-i18n/v2/i18n
+github.com/nicksnyder/go-i18n/v2/internal
+github.com/nicksnyder/go-i18n/v2/internal/plural
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
@@ -242,7 +226,6 @@ github.com/shkh/lastfm-go
 github.com/skratchdot/open-golang/open
 # github.com/tosone/minimp3 v1.0.2
 ## explicit; go 1.18
-github.com/tosone/minimp3
 # github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
 ## explicit; go 1.19
 github.com/xo/terminfo
@@ -313,8 +296,12 @@ golang.org/x/sys/windows
 # golang.org/x/term v0.11.0
 ## explicit; go 1.17
 golang.org/x/term
-# golang.org/x/text v0.12.0
+# golang.org/x/text v0.13.0
 ## explicit; go 1.17
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/tag
+golang.org/x/text/language
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
@@ -419,6 +406,6 @@ google.golang.org/protobuf/types/known/timestamppb
 # zenhack.net/go/util v0.0.0-20230607025951-8b02fee814ae
 ## explicit; go 1.19
 zenhack.net/go/util/sync/mutex
-# github.com/arcspace/go-librespot => ../go-librespot
+# github.com/cnsilvan/UnblockNeteaseMusic v0.0.0-20230310083816-92b59c95a366 => github.com/go-musicfox/UnblockNeteaseMusic v0.1.2
 # github.com/frolovo22/tag v0.0.2 => github.com/go-musicfox/tag v1.0.2
 # github.com/shkh/lastfm-go => github.com/go-musicfox/lastfm-go v0.0.2

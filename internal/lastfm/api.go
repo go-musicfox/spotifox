@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-musicfox/spotifox/internal/constants"
+	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/go-musicfox/spotifox/utils/locale"
 	"github.com/zmb3/spotify/v2"
 
 	"github.com/pkg/errors"
@@ -22,11 +23,11 @@ type Client struct {
 
 func NewClient() *Client {
 	client := &Client{}
-	if constants.LastfmKey == "" || constants.LastfmSecret == "" {
-		err := errors.New("lastfm key或secret为空")
+	if types.LastfmKey == "" || types.LastfmSecret == "" {
+		err := errors.New(locale.MustT("lastfm_config_empty"))
 		_, _ = client.errorHandle(err)
 	} else {
-		client.api = lastfmgo.New(constants.LastfmKey, constants.LastfmSecret)
+		client.api = lastfmgo.New(types.LastfmKey, types.LastfmSecret)
 	}
 	return client
 }
@@ -52,14 +53,14 @@ func (c *Client) errorHandle(e error) (bool, error) {
 
 func (c *Client) GetAuthUrlWithToken() (token, url string, err error) {
 	if c.api == nil {
-		return "", "", errors.New("lastfm key或secret为空")
+		return "", "", errors.New(locale.MustT("lastfm_config_empty"))
 	}
 	token, err = c.api.GetToken()
 	if _, err = c.errorHandle(err); err != nil {
 		return
 	}
 
-	url = fmt.Sprintf(constants.LastfmAuthUrl, constants.LastfmKey, token)
+	url = fmt.Sprintf(types.LastfmAuthUrl, types.LastfmKey, token)
 	return
 }
 
@@ -71,7 +72,7 @@ func (c *Client) SetSession(session string) {
 
 func (c *Client) GetSession(token string) (sessionKey string, err error) {
 	if c.api == nil {
-		return "", errors.New("lastfm key或secret为空")
+		return "", errors.New(locale.MustT("lastfm_config_empty"))
 	}
 	err = c.api.LoginWithToken(token)
 	if _, err = c.errorHandle(err); err != nil {
@@ -83,7 +84,7 @@ func (c *Client) GetSession(token string) (sessionKey string, err error) {
 
 func (c *Client) UpdateNowPlaying(args map[string]interface{}) error {
 	if c.api == nil {
-		return errors.New("lastfm key或secret为空")
+		return errors.New(locale.MustT("lastfm_config_empty"))
 	}
 	if c.api.GetSessionKey() == "" {
 		_, err := c.errorHandle(errors.New("empty session key"))
@@ -100,7 +101,7 @@ func (c *Client) UpdateNowPlaying(args map[string]interface{}) error {
 
 func (c *Client) Scrobble(args map[string]interface{}) error {
 	if c.api == nil {
-		return errors.New("lastfm key或secret为空")
+		return errors.New(locale.MustT("lastfm_config_empty"))
 	}
 	if c.api.GetSessionKey() == "" {
 		_, err := c.errorHandle(errors.New("empty session key"))
@@ -117,7 +118,7 @@ func (c *Client) Scrobble(args map[string]interface{}) error {
 
 func (c *Client) GetUserInfo(args map[string]interface{}) (lastfmgo.UserGetInfo, error) {
 	if c.api == nil {
-		return lastfmgo.UserGetInfo{}, errors.New("lastfm key或secret为空")
+		return lastfmgo.UserGetInfo{}, errors.New(locale.MustT("lastfm_config_empty"))
 	}
 	if c.api.GetSessionKey() == "" {
 		_, err := c.errorHandle(errors.New("empty session key"))

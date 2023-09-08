@@ -4,6 +4,7 @@ import (
 	"github.com/anhoder/foxful-cli/model"
 	"github.com/go-musicfox/spotifox/internal/storage"
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/go-musicfox/spotifox/utils/locale"
 
 	"github.com/skratchdot/open-golang/open"
 )
@@ -25,7 +26,7 @@ func (m *LastfmAuth) GetMenuKey() string {
 
 func (m *LastfmAuth) MenuViews() []model.MenuItem {
 	return []model.MenuItem{
-		{Title: "已点击，继续授权"},
+		{Title: locale.MustT("already_click")},
 	}
 }
 
@@ -59,28 +60,28 @@ func (m *LastfmAuth) SubMenu(mod_el *model.App, _ int) model.Menu {
 	m.spotifox.lastfmUser.SessionKey, err = m.spotifox.lastfm.GetSession(m.token)
 	if err != nil {
 		loading.Complete()
-		return NewLastfmRes(m.baseMenu, "授权", err, 1)
+		return NewLastfmRes(m.baseMenu, locale.MustT("auth"), err, 1)
 	}
 	user, err := m.spotifox.lastfm.GetUserInfo(map[string]interface{}{})
 	loading.Complete()
 	if err != nil {
-		return NewLastfmRes(m.baseMenu, "授权", err, 1)
+		return NewLastfmRes(m.baseMenu, locale.MustT("auth"), err, 1)
 	}
 	m.spotifox.lastfmUser.Id = user.Id
 	m.spotifox.lastfmUser.Name = user.Name
 	m.spotifox.lastfmUser.RealName = user.RealName
 	m.spotifox.lastfmUser.Url = user.Url
 	m.spotifox.lastfmUser.Store()
-	return NewLastfmRes(m.baseMenu, "授权", nil, 3)
+	return NewLastfmRes(m.baseMenu, locale.MustT("auth"), nil, 3)
 }
 
 func (m *LastfmAuth) FormatMenuItem(item *model.MenuItem) {
 	if m.err != nil {
-		item.Subtitle = "[错误: " + m.err.Error() + "]"
+		item.Subtitle = "[" + locale.MustT("error") + ": " + m.err.Error() + "]"
 		return
 	}
 	if m.url != "" {
-		item.Subtitle = "打开链接进行授权"
+		item.Subtitle = locale.MustT("open_url_to_auth")
 		return
 	}
 	item.Subtitle = ""

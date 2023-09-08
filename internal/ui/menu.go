@@ -10,10 +10,8 @@ import (
 type Menu interface {
 	model.Menu
 
-	// IsPlayable 当前菜单是否可播放？
 	IsPlayable() bool
 
-	// IsLocatable 当前菜单是否支持播放自动定位
 	IsLocatable() bool
 }
 

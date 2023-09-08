@@ -1,6 +1,9 @@
 package ui
 
-import "github.com/anhoder/foxful-cli/model"
+import (
+	"github.com/anhoder/foxful-cli/model"
+	"github.com/go-musicfox/spotifox/utils/locale"
+)
 
 type LastfmRes struct {
 	baseMenu
@@ -26,7 +29,7 @@ func (m *LastfmRes) GetMenuKey() string {
 
 func (m *LastfmRes) MenuViews() []model.MenuItem {
 	return []model.MenuItem{
-		{Title: "返回"},
+		{Title: locale.MustT("back")},
 	}
 }
 
@@ -54,9 +57,9 @@ func (m *LastfmRes) FormatMenuItem(item *model.MenuItem) {
 	m.originTitle = item.Title
 	m.originSubTitle = item.Subtitle
 	if m.err != nil {
-		item.Title = m.opName + "失败"
-		item.Subtitle = "[错误: " + m.err.Error() + "]"
+		item.Title = m.opName + locale.MustT("failed")
+		item.Subtitle = "[" + locale.MustT("error") + ": " + m.err.Error() + "]"
 		return
 	}
-	item.Title = m.opName + "成功"
+	item.Title = m.opName + locale.MustT("success")
 }
