@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-musicfox/spotifox/internal/configs"
 	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/go-musicfox/spotifox/utils"
 	"github.com/go-musicfox/spotifox/utils/locale"
@@ -23,11 +24,11 @@ type Client struct {
 
 func NewClient() *Client {
 	client := &Client{}
-	if types.LastfmKey == "" || types.LastfmSecret == "" {
+	if configs.ConfigRegistry.Main.LastfmKey == "" || configs.ConfigRegistry.Main.LastfmSecret == "" {
 		err := errors.New(locale.MustT("lastfm_config_empty"))
 		_, _ = client.errorHandle(err)
 	} else {
-		client.api = lastfmgo.New(types.LastfmKey, types.LastfmSecret)
+		client.api = lastfmgo.New(configs.ConfigRegistry.Main.LastfmKey, configs.ConfigRegistry.Main.LastfmSecret)
 	}
 	return client
 }
@@ -60,7 +61,7 @@ func (c *Client) GetAuthUrlWithToken() (token, url string, err error) {
 		return
 	}
 
-	url = fmt.Sprintf(types.LastfmAuthUrl, types.LastfmKey, token)
+	url = fmt.Sprintf(types.LastfmAuthUrl, configs.ConfigRegistry.Main.LastfmKey, token)
 	return
 }
 
