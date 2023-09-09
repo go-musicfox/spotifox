@@ -156,7 +156,7 @@ spotifox config
 [Sample](./utils/embed/spotifox.ini)
 
 
-## Similar projects
+## Similar Projects
 
 * [go-musicfox/go-musicfox](https://github.com/go-musicfox/go-musicfox)
 
