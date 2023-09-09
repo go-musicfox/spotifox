@@ -141,40 +141,40 @@ brews:
       system 'echo', '-e', "\033[1;33mStar✨ Please~\033[0m \033[4;36mhttps://github.com/go-musicfox/spotifox \033[0m"
       bin.install 'spotifox'
 
-winget:
-  - name: spotifox
-    publisher: go-musicfox
-    short_description: "Spotifox is yet another spotify CLI client."
-    license: "MIT"
-    publisher_url: https://github.com/go-musicfox/spotifox
-    publisher_support_url: "https://github.com/go-musicfox/spotifox/issues/new"
-    package_identifier: go-musicfox.spotifox
-    url_template: "https://github.com/go-musicfox/spotifox/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    commit_author:
-      name: anhoder
-      email: anhoder@88.com
-    commit_msg_template: "{{ .PackageIdentifier }}: {{ .Tag }}"
-    homepage: "https://github.com/go-musicfox/spotifox"
-    description: "Spotifox is yet another spotify CLI client."
-    skip_upload: auto
-    release_notes: "{{.Changelog}}"
-    tags:
-      - golang
-      - cli
-      - netease music
-      - spotifox
-    repository:
-      owner: go-musicfox
-      name: winget-pkgs
-      branch: "{{.ProjectName}}-{{.Version}}"
-      token: "{{ .Env.GITHUB_TOKEN }}"
-      # pull_request:
-      #   enabled: true
-      #   draft: true
-      #   base:
-      #     owner: microsoft
-      #     name: winget-pkgs
-      #     branch: master
+# winget:
+#   - name: spotifox
+#     publisher: go-musicfox
+#     short_description: "Spotifox is yet another spotify CLI client."
+#     license: "MIT"
+#     publisher_url: https://github.com/go-musicfox/spotifox
+#     publisher_support_url: "https://github.com/go-musicfox/spotifox/issues/new"
+#     package_identifier: go-musicfox.spotifox
+#     url_template: "https://github.com/go-musicfox/spotifox/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+#     commit_author:
+#       name: anhoder
+#       email: anhoder@88.com
+#     commit_msg_template: "{{ .PackageIdentifier }}: {{ .Tag }}"
+#     homepage: "https://github.com/go-musicfox/spotifox"
+#     description: "Spotifox is yet another spotify CLI client."
+#     skip_upload: auto
+#     release_notes: "{{.Changelog}}"
+#     tags:
+#       - golang
+#       - cli
+#       - netease music
+#       - spotifox
+#     repository:
+#       owner: go-musicfox
+#       name: winget-pkgs
+#       branch: "{{.ProjectName}}-{{.Version}}"
+#       token: "{{ .Env.GITHUB_TOKEN }}"
+#       # pull_request:
+#       #   enabled: true
+#       #   draft: true
+#       #   base:
+#       #     owner: microsoft
+#       #     name: winget-pkgs
+#       #     branch: master
 
 release:
   github:
