@@ -33,6 +33,9 @@ func runPlayer(_ *gcli.Command, _ []string) error {
 
 	http.DefaultClient.Timeout = types.AppHttpTimeout
 
+	// i18n
+	locale.SetLang(configs.ConfigRegistry.Main.Language)
+
 	// replace text
 	configs.ConfigRegistry.Main.LoadingText = locale.MustT("loading")
 	model.Submit = locale.MustT("submit_text")

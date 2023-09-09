@@ -1,6 +1,7 @@
 package configs
 
 type MainOptions struct {
+	Language         string
 	ShowTitle        bool
 	LoadingText      string
 	SongFormat       SongFormat

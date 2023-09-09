@@ -62,6 +62,7 @@ func NewRegistryWithDefault() *Registry {
 			},
 		},
 		Main: MainOptions{
+			Language:         "en",
 			ShowTitle:        true,
 			LoadingText:      types.DefaultLoadingText,
 			SongFormat:       Ogg320,
@@ -127,6 +128,7 @@ func NewRegistryFromIniFile(filepath string) *Registry {
 	} else {
 		registry.Main.PrimaryColor = types.AppPrimaryColor
 	}
+	registry.Main.Language = ini.String("main.language", "en")
 	registry.Main.ShowLyric = ini.Bool("main.showLyric", true)
 	registry.Main.LyricOffset = ini.Int("main.lyricOffset", 0)
 	registry.Main.ShowLyricTrans = ini.Bool("main.showLyricTrans", true)

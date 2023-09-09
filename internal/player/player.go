@@ -62,16 +62,17 @@ const (
 	PmRandom
 )
 
-var modeNames = map[Mode]string{
-	PmListLoop:   locale.MustT("list_loop"),
-	PmOrder:      locale.MustT("order"),
-	PmSingleLoop: locale.MustT("single_loop"),
-	PmRandom:     locale.MustT("random"),
-}
-
 func ModeName(mode Mode) string {
-	if name, ok := modeNames[mode]; ok {
-		return name
+	switch mode {
+	case PmListLoop:
+		return locale.MustT("list_loop")
+	case PmOrder:
+		return locale.MustT("order")
+	case PmSingleLoop:
+		return locale.MustT("single_loop")
+	case PmRandom:
+		return locale.MustT("random")
+	default:
+		return locale.MustT("unknown")
 	}
-	return locale.MustT("unknown")
 }

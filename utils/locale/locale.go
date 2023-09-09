@@ -28,8 +28,8 @@ func init() {
 	localizer = i18n.NewLocalizer(bundle, "en")
 }
 
-func SetLocalizer(l *i18n.Localizer) {
-	localizer = l
+func SetLang(lang ...string) {
+	localizer = i18n.NewLocalizer(bundle, lang...)
 }
 
 type Option func(c *i18n.LocalizeConfig)

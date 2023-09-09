@@ -12,7 +12,6 @@ require (
 	github.com/charmbracelet/lipgloss v0.8.0
 	github.com/ebitengine/purego v0.4.0
 	github.com/faiface/beep v1.1.0
-	github.com/go-musicfox/netease-music v1.4.1
 	github.com/go-musicfox/notificator v0.1.0
 	github.com/godbus/dbus/v5 v5.1.0
 	github.com/gookit/gcli/v2 v2.3.4
@@ -24,7 +23,6 @@ require (
 	github.com/raitonoberu/lyricsapi v0.0.0-20230113141433-eded40b42d7c
 	github.com/shkh/lastfm-go v0.0.0-20191215035245-89a801c244e0
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
-	github.com/tosone/minimp3 v1.0.2
 	github.com/zmb3/spotify/v2 v2.3.1
 	go.etcd.io/bbolt v1.3.7
 	golang.org/x/oauth2 v0.7.0
@@ -48,11 +46,8 @@ require (
 require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cnsilvan/UnblockNeteaseMusic v0.0.0-20230310083816-92b59c95a366 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/fogleman/ease v0.0.0-20170301025033-8da417bf1776 // indirect
-	github.com/forgoer/openssl v1.6.0 // indirect
-	github.com/go-musicfox/requests v0.2.0 // indirect
 	github.com/gookit/color v1.5.3 // indirect
 	github.com/gookit/goutil v0.6.10 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
@@ -82,7 +77,7 @@ require (
 )
 
 replace (
-	github.com/arcspace/go-librespot => ../go-librespot
+	github.com/arcspace/go-librespot v0.0.0-20230811173922-2e901b172fbe => github.com/go-musicfox/go-librespot v0.1.0
 	github.com/charmbracelet/bubbletea v0.24.2 => github.com/go-musicfox/bubbletea v0.24.1
 	github.com/cnsilvan/UnblockNeteaseMusic v0.0.0-20230310083816-92b59c95a366 => github.com/go-musicfox/UnblockNeteaseMusic v0.1.2
 	github.com/faiface/beep v1.1.0 => github.com/go-musicfox/beep v1.2.4
