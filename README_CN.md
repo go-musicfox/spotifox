@@ -4,6 +4,8 @@
 
 Spotifox 是一个类似 [go-mousicfox](https://github.com/go-musicfox/spotifox) 的Spotify命令行客户端.
 
+> **网易云版 - [go-musicfox](https://github.com/go-musicfox/go-musicfox)**
+
 > UI 基于 [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea)
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/go-musicfox/spotifox) ![GitHub](https://img.shields.io/github/license/go-musicfox/spotifox) ![Last Tag](https://badgen.net/github/tag/go-musicfox/spotifox) ![GitHub last commit](https://badgen.net/github/last-commit/go-musicfox/spotifox) ![GitHub All Releases](https://img.shields.io/github/downloads/go-musicfox/spotifox/total)
