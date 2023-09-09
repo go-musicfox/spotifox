@@ -4,6 +4,7 @@ INJECT_PACKAGE        ?= github.com/go-musicfox/spotify/pkg/constants
 LDFLAGS               := -s -w
 LASTFM_KEY            ?=
 LASTFM_SECRET         ?=
+SPOTIFY_CLIENT_ID     ?=
 REGISTRY              ?=
 GORELEASER_IMAGE      ?= alanalbert/goreleaser-musicfox:$(GOLANG_CROSS_VERSION)
 
@@ -80,6 +81,7 @@ release-debug-shell:
     	-it \
     	--rm \
     	--privileged \
+		--env-file .release-env \
     	-e CGO_ENABLED=1 \
     	-v /var/run/docker.sock:/var/run/docker.sock \
     	-v `pwd`:/go/src/$(PACKAGE_NAME) \

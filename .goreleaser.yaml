@@ -18,7 +18,7 @@ builds:
     goos:
       - linux
     ldflags:
-      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/constants.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
+      - -s -w -X github.com/go-musicfox/spotifox/internal/types.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/types.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/types.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/types.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
   - id: spotifox-linux-arm64
     main: ./cmd/spotifox.go
     binary: spotifox
@@ -34,7 +34,7 @@ builds:
       - LDFLAGS=-L/usr/aarch64-linux-gnu/lib:$LDFLAGS
       - PKG_CONFIG_PATH=/usr/aarch64-linux-gnu/lib/pkgconfig:$PKG_CONFIG_PATH
     ldflags:
-      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/constants.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
+      - -s -w -X github.com/go-musicfox/spotifox/internal/types.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/types.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/types.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/types.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
   - id: spotifox-linux-arm
     main: ./cmd/spotifox.go
     binary: spotifox
@@ -50,7 +50,7 @@ builds:
       - LDFLAGS=-L/usr/arm-linux-gnueabi/lib:$LDFLAGS
       - PKG_CONFIG_PATH=/usr/arm-linux-gnueabi/lib/pkgconfig:$PKG_CONFIG_PATH
     ldflags:
-      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/constants.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
+      - -s -w -X github.com/go-musicfox/spotifox/internal/types.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/types.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/types.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/types.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
   - id: spotifox-windows-amd64
     main: ./cmd/spotifox.go
     binary: spotifox
@@ -59,7 +59,7 @@ builds:
     goos:
       - windows
     ldflags:
-      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/constants.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
+      - -s -w -X github.com/go-musicfox/spotifox/internal/types.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/types.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/types.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/types.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
     env:
       - CC=/usr/local/mingw/bin/x86_64-w64-mingw32-gcc
       - CXX=/usr/local/mingw/bin/x86_64-w64-mingw32-g++
@@ -74,7 +74,7 @@ builds:
     goos:
       - windows
     ldflags:
-      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/constants.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
+      - -s -w -X github.com/go-musicfox/spotifox/internal/types.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/types.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/types.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/types.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
     env:
       - CC=/usr/local/mingw/bin/aarch64-w64-mingw32-gcc
       - CXX=/usr/local/mingw/bin/aarch64-w64-mingw32-g++
@@ -89,7 +89,7 @@ builds:
     goos:
       - darwin
     ldflags:
-      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/constants.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
+      - -s -w -X github.com/go-musicfox/spotifox/internal/types.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/types.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/types.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/types.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
     env:
       - CC=oa64-clang
       - CXX=oa64-clang++
@@ -101,7 +101,7 @@ builds:
     goos:
       - darwin
     ldflags:
-      - -s -w -X github.com/go-musicfox/spotifox/internal/constants.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/constants.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/constants.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
+      - -s -w -X github.com/go-musicfox/spotifox/internal/types.AppVersion={{.Tag}} -X github.com/go-musicfox/spotifox/internal/types.LastfmKey={{.Env.LASTFM_KEY}} -X github.com/go-musicfox/spotifox/internal/types.LastfmSecret={{.Env.LASTFM_SECRET}} -X github.com/go-musicfox/spotifox/internal/types.SpotifyClientId={{.Env.SPOTIFY_CLIENT_ID}}
     env:
       - CC=o64-clang
       - CXX=o64-clang++

@@ -141,11 +141,11 @@ func NewRegistryFromIniFile(filepath string) *Registry {
 	registry.Main.DualColumn = ini.Bool("main.dualColumn", true)
 
 	registry.Main.LastfmKey = types.LastfmKey
-	if key := ini.Get("main.lastfmKey"); key != "" {
+	if key := ini.String("main.lastfmKey"); key != "" {
 		registry.Main.LastfmKey = key
 	}
 	registry.Main.LastfmSecret = types.LastfmSecret
-	if secret := ini.Get("main.lastfmSecret"); secret != "" {
+	if secret := ini.String("main.lastfmSecret"); secret != "" {
 		registry.Main.LastfmSecret = secret
 	}
 
