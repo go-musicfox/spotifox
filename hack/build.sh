@@ -12,10 +12,11 @@ BUILD_GOOS=${GOOS:-$(go env GOOS)}
 BUILD_GOARCH=${GOARCH:-$(go env GOARCH)}
 GOBINARY=${GOBINARY:-go}
 LDFLAGS=${LDFLAGS:-""}
-INJECT_PACKAGE=${INJECT_PACKAGE:-"github.com/go-musicfox/spotifox/internal/constants"}
+INJECT_PACKAGE=${INJECT_PACKAGE:-"github.com/go-musicfox/spotifox/internal/types"}
 LASTFM_KEY=${LASTFM_KEY:-""}
 LASTFM_SECRET=${LASTFM_SECRET:-""}
 BUILD_TARGET=${BUILD_TARGET:-""}
+SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID:-""}
 
 if [[ "${ACTION}" = "build" ]]; then
     BUILD_TARGET="-o ${ROOT}/bin/spotifox"
@@ -31,6 +32,7 @@ done < "${VERSION_INFO}"
 
 LDFLAGS=${LDFLAGS}" -X ${INJECT_PACKAGE}.LastfmKey=${LASTFM_KEY}"
 LDFLAGS=${LDFLAGS}" -X ${INJECT_PACKAGE}.LastfmSecret=${LASTFM_SECRET}"
+LDFLAGS=${LDFLAGS}" -X ${INJECT_PACKAGE}.SpotifyClientId=${SPOTIFY_CLIENT_ID}"
 
 CGO_ENABLED=1 GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} ${ACTION} \
          -ldflags "${LDFLAGS}" ${BUILD_TARGET} \

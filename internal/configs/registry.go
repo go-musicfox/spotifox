@@ -27,9 +27,8 @@ func (r *Registry) FillToModelOpts(opts *model.Options) {
 
 	opts.AppName = types.AppName
 	opts.WhetherDisplayTitle = r.Main.ShowTitle
-	opts.LoadingText = r.Main.LoadingText
 	opts.PrimaryColor = r.Main.PrimaryColor
-	opts.DualColumn = r.Main.DoubleColumn
+	opts.DualColumn = r.Main.DualColumn
 
 	if r.Main.EnableMouseEvent {
 		opts.TeaOptions = append(opts.TeaOptions, tea.WithMouseCellMotion())
@@ -64,7 +63,6 @@ func NewRegistryWithDefault() *Registry {
 		Main: MainOptions{
 			Language:         "en",
 			ShowTitle:        true,
-			LoadingText:      types.DefaultLoadingText,
 			SongFormat:       Ogg320,
 			PrimaryColor:     types.AppPrimaryColor,
 			ShowLyric:        true,
@@ -94,7 +92,7 @@ func NewRegistryFromIniFile(filepath string) *Registry {
 		return registry
 	}
 
-	registry.Startup.EnableStartup = ini.Bool("startup.show", true)
+	registry.Startup.EnableStartup = ini.Bool("startup.enable", true)
 	registry.Startup.ProgressOutBounce = ini.Bool("startup.progressOutBounce", true)
 	registry.Startup.LoadingDuration = time.Second * time.Duration(ini.Int("startup.loadingSeconds", types.StartupLoadingSeconds))
 	registry.Startup.Welcome = ini.String("startup.welcome", types.AppName)
@@ -114,10 +112,13 @@ func NewRegistryFromIniFile(filepath string) *Registry {
 	lastFullChar := ini.String("progress.lastFullChar", types.ProgressFullChar)
 	registry.Progress.LastFullChar = firstCharOrDefault(lastFullChar, types.ProgressFullChar)
 
-	registry.Spotify.ClientId = ini.Get("main.spotifyClientId", "")
-	registry.Spotify.Cookie = ini.Get("main.spotifyCookie", "")
+	registry.Spotify.ClientId = types.SpotifyClientId
+	if clientId := ini.Get("spotify.clientId"); clientId != "" {
+		registry.Spotify.ClientId = clientId
+	}
+	registry.Spotify.Cookie = ini.Get("spotify.cookie", "")
+
 	registry.Main.ShowTitle = ini.Bool("main.showTitle", true)
-	registry.Main.LoadingText = ini.String("main.loadingText", types.DefaultLoadingText)
 	songFormat := SongFormat(ini.String("main.songFormat", string(Ogg320)))
 	if songFormat.IsValid() {
 		registry.Main.SongFormat = songFormat
@@ -129,15 +130,24 @@ func NewRegistryFromIniFile(filepath string) *Registry {
 		registry.Main.PrimaryColor = types.AppPrimaryColor
 	}
 	registry.Main.Language = ini.String("main.language", "en")
+	registry.Main.NotifyIcon = ini.String("main.notifyIcon", types.DefaultNotifyIcon)
 	registry.Main.ShowLyric = ini.Bool("main.showLyric", true)
 	registry.Main.LyricOffset = ini.Int("main.lyricOffset", 0)
-	registry.Main.ShowLyricTrans = ini.Bool("main.showLyricTrans", true)
-	registry.Main.ShowNotify = ini.Bool("main.showNotify", true)
-	registry.Main.NotifyIcon = ini.String("main.notifyIcon", types.DefaultNotifyIcon)
+	registry.Main.ShowLyricTrans = ini.Bool("main.showLyricTrans", false)
+	registry.Main.ShowNotify = ini.Bool("main.enableNotify", true)
 	registry.Main.PProfPort = ini.Int("main.pprofPort", types.MainPProfPort)
 	registry.Main.AltScreen = ini.Bool("main.altScreen", true)
 	registry.Main.EnableMouseEvent = ini.Bool("main.enableMouseEvent", true)
-	registry.Main.DoubleColumn = ini.Bool("main.doubleColumn", true)
+	registry.Main.DualColumn = ini.Bool("main.dualColumn", true)
+
+	registry.Main.LastfmKey = types.LastfmKey
+	if key := ini.Get("main.lastfmKey"); key != "" {
+		registry.Main.LastfmKey = key
+	}
+	registry.Main.LastfmSecret = types.LastfmSecret
+	if secret := ini.Get("main.lastfmSecret"); secret != "" {
+		registry.Main.LastfmSecret = secret
+	}
 
 	defaultPlayer := types.BeepPlayer
 	if runtime.GOOS == "darwin" {

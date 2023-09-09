@@ -20,7 +20,7 @@ SCOOP_VERSION=${SCOOP_VERSION#v}
 SCOOP_HASH="$(sha256sum "dist/spotifox_${SCOOP_VERSION}_windows_amd64.zip" | awk '{print $1}')"
 
 eval "cat <<EOF
-$(< "$ROOT"/deploy/scoop/spotifox.json.tpl)
+$(< "$ROOT"/deploy/scoop/spotifox.tpl.json)
 EOF
 "  > "$ROOT"/deploy/scoop/spotifox.json
 

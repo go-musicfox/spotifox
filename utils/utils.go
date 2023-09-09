@@ -10,11 +10,10 @@ import (
 	"os"
 	"path"
 
+	"github.com/buger/jsonparser"
 	"github.com/go-musicfox/spotifox/internal/configs"
 	"github.com/go-musicfox/spotifox/internal/types"
 	"github.com/zmb3/spotify/v2"
-
-	"github.com/buger/jsonparser"
 	"golang.org/x/mod/semver"
 )
 

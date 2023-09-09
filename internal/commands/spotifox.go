@@ -36,14 +36,15 @@ func runPlayer(_ *gcli.Command, _ []string) error {
 	// i18n
 	locale.SetLang(configs.ConfigRegistry.Main.Language)
 
-	// replace text
-	configs.ConfigRegistry.Main.LoadingText = locale.MustT("loading")
 	model.Submit = locale.MustT("submit_text")
 	model.SearchPlaceholder = locale.MustT("search_placehoder")
 	model.SearchResult = locale.MustT("search_result")
 
 	var opts = model.DefaultOptions()
 	configs.ConfigRegistry.FillToModelOpts(opts)
+
+	// replace text
+	opts.LoadingText = locale.MustT("loading")
 
 	var (
 		spotifox     = ui.NewSpotifox(model.NewApp(opts))

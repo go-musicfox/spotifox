@@ -6,9 +6,10 @@ import (
 
 var (
 	// AppVersion Inject by -ldflags
-	AppVersion   = "v1.0.0"
-	LastfmKey    = ""
-	LastfmSecret = ""
+	AppVersion      = "v1.0.0"
+	LastfmKey       = ""
+	LastfmSecret    = ""
+	SpotifyClientId = ""
 )
 
 const AppName = "spotifox"
@@ -32,7 +33,6 @@ const AppPrimaryRandom = "random"
 const AppPrimaryColor = "#f90022"
 const AppHttpTimeout = time.Second * 10
 
-const DefaultLoadingText = "[Loading...]"
 const MainPProfPort = 9876
 const DefaultNotifyIcon = "logo.png"
 

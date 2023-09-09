@@ -3,7 +3,6 @@ package configs
 type MainOptions struct {
 	Language         string
 	ShowTitle        bool
-	LoadingText      string
 	SongFormat       SongFormat
 	PrimaryColor     string
 	ShowLyric        bool
@@ -14,5 +13,7 @@ type MainOptions struct {
 	PProfPort        int
 	AltScreen        bool
 	EnableMouseEvent bool
-	DoubleColumn     bool
+	DualColumn       bool
+	LastfmKey        string
+	LastfmSecret     string
 }
