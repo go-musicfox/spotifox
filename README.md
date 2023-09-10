@@ -49,7 +49,7 @@ Spotifox is yet another spotify CLI client similar to [go-mousicfox](https://git
 #### 1. Homebrew
 
 ```sh
-$ brew install anhoder/go-musicfox/spotifox
+$ brew install go-musicfox/go-musicfox/spotifox
 ```
 
 #### 2. Binary
@@ -61,7 +61,7 @@ Download binary file => [Release](https://github.com/go-musicfox/spotifox/releas
 #### 1. Homebrew
 
 ```sh
-$ brew install anhoder/go-musicfox/spotifox
+$ brew install go-musicfox/go-musicfox/spotifox
 ```
 
 #### 2. Binary
