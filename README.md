@@ -160,6 +160,10 @@ spotifox config
 
 * [go-musicfox/go-musicfox](https://github.com/go-musicfox/go-musicfox)
 
+## Donate
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/anhoder)
+
 ## Thanks
 
 Thanks to the following projects and their contributors (but not limited to):
@@ -172,3 +176,4 @@ Thanks to the following projects and their contributors (but not limited to):
 
 
 [![Star History Chart](https://api.star-history.com/svg?repos=go-musicfox/spotifox&type=Date)](https://star-history.com/#go-musicfox/spotifox&Date)
+
