@@ -1,10 +1,10 @@
 {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/go-musicfox/spotifox/releases/download/v1.0.0/spotifox_1.0.0_windows_amd64.zip",
-            "hash": "7696efb6cfb036bf8dce5d2255b183f9fecfd1af96aaec9dd87368ed45c3320b",
-            "extract_dir": "spotifox_1.0.0_windows_amd64"
+            "url": "https://github.com/go-musicfox/spotifox/releases/download/v1.0.1/spotifox_1.0.1_windows_amd64.zip",
+            "hash": "df76d4acff9efdd2a992649bb6eff113783f00961bca7c8c9328025225bd0d06",
+            "extract_dir": "spotifox_1.0.1_windows_amd64"
         }
     },
     "bin": "spotifox.exe",
