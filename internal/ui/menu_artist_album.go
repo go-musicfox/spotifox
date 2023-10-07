@@ -57,8 +57,7 @@ func (m *ArtistAlbumMenu) BeforeEnterMenuHook() model.Hook {
 		}
 
 		res, err := m.spotifox.spotifyClient.GetArtistAlbums(context.Background(), m.artistId, []spotify.AlbumType{AllType}, spotify.Limit(m.limit))
-		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+		if catched, page := m.spotifox.HandleResCode(utils.CheckSpotifyErr(err), EnterMenuCallback(main)); catched {
 			return false, page
 		}
 		if err != nil {
@@ -89,8 +88,7 @@ func (m *ArtistAlbumMenu) BottomOutHook() model.Hook {
 
 		m.offset += m.limit
 		res, err := m.spotifox.spotifyClient.GetArtistAlbums(context.Background(), m.artistId, []spotify.AlbumType{AllType}, spotify.Limit(m.limit), spotify.Offset(m.offset))
-		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
+		if catched, page := m.spotifox.HandleResCode(utils.CheckSpotifyErr(err), BottomOutHookCallback(main, m)); catched {
 			return false, page
 		}
 		if err != nil {

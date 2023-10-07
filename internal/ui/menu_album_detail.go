@@ -47,8 +47,7 @@ func (m *AlbumDetailMenu) BeforeEnterMenuHook() model.Hook {
 		}
 
 		res, err := m.spotifox.spotifyClient.GetAlbumTracks(context.Background(), m.album.ID, spotify.Limit(50))
-		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+		if catched, page := m.spotifox.HandleResCode(utils.CheckSpotifyErr(err), EnterMenuCallback(main)); catched {
 			return false, page
 		}
 		if err != nil {

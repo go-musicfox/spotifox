@@ -371,11 +371,10 @@ func addSongToUserPlaylist(m *Spotifox, isAdd bool) model.Page {
 	playlist := me.playlists[menu.RealDataIndex(main.SelectedIndex())]
 
 	_, err := m.spotifyClient.AddTracksToPlaylist(context.Background(), playlist.ID, me.song.ID)
-	if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-		page, _ := m.ToLoginPage(func() model.Page {
-			addSongToUserPlaylist(m, isAdd)
-			return nil
-		})
+	if catched, page := m.HandleResCode(utils.CheckSpotifyErr(err), func() model.Page {
+		addSongToUserPlaylist(m, isAdd)
+		return nil
+	}); catched {
 		return page
 	}
 	if err != nil {

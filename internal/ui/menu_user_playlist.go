@@ -69,8 +69,7 @@ func (m *UserPlaylistMenu) BeforeEnterMenuHook() model.Hook {
 			res, err = m.spotifox.spotifyClient.GetPlaylistsForUser(context.Background(), m.userId, spotify.Limit(m.limit))
 		}
 
-		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+		if catched, page := m.spotifox.HandleResCode(utils.CheckSpotifyErr(err), EnterMenuCallback(main)); catched {
 			return false, page
 		}
 		if err != nil {
@@ -106,8 +105,7 @@ func (m *UserPlaylistMenu) BottomOutHook() model.Hook {
 			res, err = m.spotifox.spotifyClient.GetPlaylistsForUser(context.Background(), m.userId, spotify.Limit(m.limit), spotify.Offset(m.offset))
 		}
 
-		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
+		if catched, page := m.spotifox.HandleResCode(utils.CheckSpotifyErr(err), BottomOutHookCallback(main, m)); catched {
 			return false, page
 		}
 		if err != nil {

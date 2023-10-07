@@ -16,6 +16,7 @@ const (
 	UnknownError
 	NeedLogin
 	NeedReconnect
+	TokenExpired
 )
 
 func CheckSpotifyErr(err error) ResCode {
@@ -26,7 +27,7 @@ func CheckSpotifyErr(err error) ResCode {
 		return NeedLogin
 	}
 	if errors.Is(err, auth.ErrTokenExpired) {
-		return NeedLogin
+		return TokenExpired
 	}
 	return UnknownError
 }

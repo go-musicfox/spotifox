@@ -157,11 +157,10 @@ func (s *SearchPage) enterHandler() (model.Page, tea.Cmd) {
 	}
 
 	res, err := s.spotifox.spotifyClient.Search(context.Background(), s.wordsInput.Value(), s.searchType, spotify.Limit(types.SearchPageSize))
-	if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-		page, _ := s.spotifox.ToLoginPage(func() model.Page {
-			s.enterHandler()
-			return nil
-		})
+	if catched, page := s.spotifox.HandleResCode(utils.CheckSpotifyErr(err), func() model.Page {
+		s.enterHandler()
+		return nil
+	}); catched {
 		return page, func() tea.Msg { return page.Msg() }
 	}
 	if err != nil {

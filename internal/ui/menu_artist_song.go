@@ -51,8 +51,7 @@ func (m *ArtistSongMenu) BeforeEnterMenuHook() model.Hook {
 			country = m.spotifox.user.Country
 		}
 		res, err := m.spotifox.spotifyClient.GetArtistsTopTracks(context.Background(), m.artistId, country)
-		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(EnterMenuCallback(main))
+		if catched, page := m.spotifox.HandleResCode(utils.CheckSpotifyErr(err), EnterMenuCallback(main)); catched {
 			return false, page
 		}
 		if err != nil {

@@ -92,8 +92,7 @@ func (m *SearchResultMenu) BottomOutHook() model.Hook {
 		m.offset += types.SearchPageSize
 
 		res, err := m.spotifox.spotifyClient.Search(context.Background(), m.keyword, m.searchType, spotify.Limit(types.SearchPageSize), spotify.Offset(m.offset))
-		if utils.CheckSpotifyErr(err) == utils.NeedLogin {
-			page, _ := m.spotifox.ToLoginPage(BottomOutHookCallback(main, m))
+		if catched, page := m.spotifox.HandleResCode(utils.CheckSpotifyErr(err), BottomOutHookCallback(main, m)); catched {
 			return false, page
 		}
 		if err != nil {

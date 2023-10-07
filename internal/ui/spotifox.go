@@ -56,6 +56,21 @@ func NewSpotifox(app *model.App) *Spotifox {
 	return s
 }
 
+func (s *Spotifox) HandleResCode(code utils.ResCode, callback LoginCallback) (bool, model.Page) {
+	utils.Logger().Printf("[INFO] code: %+v", code)
+	switch code {
+	case utils.NeedLogin:
+		page, _ := s.ToLoginPage(callback)
+		return true, page
+	case utils.TokenExpired:
+		// refresh token
+		s.login.AfterLogin = callback
+		page, _ := s.login.handleLoginSuccess()
+		return true, page
+	}
+	return false, nil
+}
+
 func (s *Spotifox) ToLoginPage(callback LoginCallback) (model.Page, tea.Cmd) {
 	s.login.AfterLogin = callback
 	if s.user != nil && s.user.Username != "" && len(s.user.AuthBlob) > 0 {
