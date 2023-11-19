@@ -2,7 +2,7 @@
 
 English | [简体中文](./README_CN.md)
 
-Spotifox is yet another spotify CLI client similar to [go-mousicfox](https://github.com/go-musicfox/spotifox).
+Spotifox is yet another spotify CLI client similar to [go-musicfox](https://github.com/go-musicfox/go-musicfox).
 
 > UI base on [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea)
 
