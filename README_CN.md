@@ -2,7 +2,7 @@
 
 [English](./README.md) | 简体中文
 
-Spotifox 是一个类似 [go-mousicfox](https://github.com/go-musicfox/spotifox) 的Spotify命令行客户端.
+Spotifox 是一个类似 [go-musicfox](https://github.com/go-musicfox/go-musicfox) 的Spotify命令行客户端.
 
 > **网易云版 - [go-musicfox](https://github.com/go-musicfox/go-musicfox)**
 
