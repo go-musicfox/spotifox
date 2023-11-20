@@ -56,17 +56,27 @@ $ brew install anhoder/go-musicfox/spotifox
 
 #### 2. Binary
 
-下载二进制问价 => [Release](https://github.com/go-musicfox/spotifox/releases/latest)
+下载二进制文件 => [Release](https://github.com/go-musicfox/spotifox/releases/latest)
 
 ### Linux
 
-#### 1. Homebrew
+#### 1. 使用发行版软件包 (推荐)
+
+##### Arch Linux
+
+###### 从 [AUR](https://aur.archlinux.org/) 安装
+
+```sh
+$ paru -S spotifox-bin # 下载安装预编译好的二进制
+```
+
+#### 2. Homebrew
 
 ```sh
 $ brew install anhoder/go-musicfox/spotifox
 ```
 
-#### 2. Binary
+#### 3. Binary
 
 下载二进制文件 => [Release](https://github.com/go-musicfox/spotifox/releases/latest)
 
