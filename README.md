@@ -58,13 +58,23 @@ Download binary file => [Release](https://github.com/go-musicfox/spotifox/releas
 
 ### Linux
 
-#### 1. Homebrew
+#### 1. Use Distro Package (Recommend)
+
+##### Arch Linux
+
+###### Install From [AUR](https://aur.archlinux.org/)
+
+```sh
+$ paru -S spotifox-bin # Download and install the precompiled binary file
+```
+
+#### 2. Homebrew
 
 ```sh
 $ brew install go-musicfox/go-musicfox/spotifox
 ```
 
-#### 2. Binary
+#### 3. Binary
 
 Download binary file => [Release](https://github.com/go-musicfox/spotifox/releases/latest)
 
