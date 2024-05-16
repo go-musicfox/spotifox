@@ -71,12 +71,18 @@ func (l *LyricsApi) Get(spotifyID string) (*LyricsResult, error) {
 
 	req, _ := http.NewRequest("GET", lyricsUrl+spotifyID, nil)
 	req.Header = http.Header{
-		"referer":          {"https://open.spotify.com/"},
-		"origin":           {"https://open.spotify.com/"},
-		"accept":           {"application/json"},
-		"accept-language":  {"en"},
-		"app-platform":     {"WebPlayer"},
-		"sec-ch-ua-mobile": {"?0"},
+		"referer":             {"https://open.spotify.com/"},
+		"origin":              {"https://open.spotify.com/"},
+		"accept":              {"application/json"},
+		"accept-language":     {"en"},
+		"app-platform":        {"WebPlayer"},
+		"sec-ch-ua-mobile":    {"?0"},
+		"sec-fetch-dest":      {"empty"},
+		"sec-fetch-mode":      {"cors"},
+		"sec-fetch-site":      {"same-origin"},
+		"spotify-app-version": {"1.1.54.35.ge9dace1d"},
+		"cookie":              {l.cookie},
+		"user-agent":          {"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"},
 
 		"Authorization": {"Bearer " + l.token},
 	}

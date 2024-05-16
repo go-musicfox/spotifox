@@ -154,7 +154,7 @@ func NewPlayer(spotifox *Spotifox) *Player {
 }
 
 func (p *Player) Update(_ tea.Msg, _ *model.App) {
-	var main = p.spotifox.MustMain()
+	main := p.spotifox.MustMain()
 	spaceHeight := p.spotifox.WindowHeight() - 5 - main.MenuBottomRow()
 	if spaceHeight < 3 || !configs.ConfigRegistry.Main.ShowLyric {
 		p.showLyric = false
@@ -253,7 +253,7 @@ func (p *Player) songView() string {
 		main    = p.spotifox.MustMain()
 	)
 
-	var prefixLen = 10
+	prefixLen := 10
 	if main.MenuStartColumn()-4 > 0 {
 		prefixLen += 12
 		builder.WriteString(strings.Repeat(" ", main.MenuStartColumn()-4))
@@ -322,11 +322,10 @@ func (p *Player) progressView() string {
 		times := util.SetFgStyle(fmt.Sprintf("%02d:%02d/%02d:%02d", passedDuration/60, passedDuration%60, allDuration/60, allDuration%60), util.GetPrimaryColor())
 		return progressView + " " + times + " "
 	}
-
 }
 
 func (p *Player) InPlayingMenu() bool {
-	var key = p.spotifox.MustMain().CurMenu().GetMenuKey()
+	key := p.spotifox.MustMain().CurMenu().GetMenuKey()
 	return key == p.playingMenuKey || key == CurPlaylistKey
 }
 
@@ -365,7 +364,7 @@ func (p *Player) LocatePlayingSong() {
 		return
 	}
 
-	var pageDelta = p.curSongIndex/main.PageSize() - (main.CurPage() - 1)
+	pageDelta := p.curSongIndex/main.PageSize() - (main.CurPage() - 1)
 	if pageDelta > 0 {
 		for i := 0; i < pageDelta; i++ {
 			p.spotifox.MustMain().NextPage()
@@ -409,7 +408,7 @@ func (p *Player) PlaySong(song spotify.FullTrack, direction PlayDirection) model
 	var asset arc.MediaAsset
 	err := p.spotifox.ReconnSessionWhenNeed(func() error {
 		var err error
-		asset, err = p.spotifox.sess.PinTrack(string(song.ID), respot.PinOpts{StartInternally: true})
+		asset, err = p.spotifox.sess.PinTrack(string(song.ID), respot.PinOpts{})
 		return err
 	})
 	if err != nil {
@@ -453,7 +452,7 @@ func (p *Player) PlaySong(song spotify.FullTrack, direction PlayDirection) model
 
 func (p *Player) NextSong(isManual bool) model.Page {
 	if len(p.playlist) == 0 || p.curSongIndex >= len(p.playlist)-1 {
-		var main = p.spotifox.MustMain()
+		main := p.spotifox.MustMain()
 		if p.InPlayingMenu() {
 			if main.IsDualColumn() && p.curSongIndex%2 == 0 {
 				p.spotifox.MustMain().MoveRight()
@@ -505,7 +504,7 @@ func (p *Player) NextSong(isManual bool) model.Page {
 
 func (p *Player) PreviousSong(isManual bool) model.Page {
 	if len(p.playlist) == 0 || p.curSongIndex >= len(p.playlist)-1 {
-		var main = p.spotifox.MustMain()
+		main := p.spotifox.MustMain()
 		if p.InPlayingMenu() {
 			if main.IsDualColumn() && p.curSongIndex%2 == 0 {
 				p.spotifox.MustMain().MoveUp()

@@ -9,11 +9,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-musicfox/spotifox/utils"
+	"github.com/arcspace/go-arc-sdk/stdlib/task"
 	"github.com/gopxl/beep"
 	"github.com/gopxl/beep/effects"
 	"github.com/gopxl/beep/speaker"
 	"github.com/zmb3/spotify/v2"
+
+	"github.com/go-musicfox/spotifox/utils"
 )
 
 const (
@@ -72,11 +74,11 @@ func NewBeepPlayer() *beepPlayer {
 func (p *beepPlayer) listen() {
 	var (
 		done       = make(chan struct{})
-		resp       *http.Response
 		reader     io.ReadCloser
 		err        error
 		ctx        context.Context
 		cancel     context.CancelFunc
+		taskCtx    task.Context
 		prevSongId spotify.ID
 		doneHandle = func() {
 			select {
@@ -110,9 +112,15 @@ func (p *beepPlayer) listen() {
 			if cancel != nil {
 				cancel()
 			}
+			if taskCtx != nil {
+				_ = taskCtx.Close()
+			}
 			p.reset()
 			if prevSongId != p.curMusic.SongInfo.ID || !utils.FileOrDirExists(cacheFile) {
 				ctx, cancel = context.WithCancel(context.Background())
+				taskCtx, _ = task.Start(nil)
+
+				p.curMusic.OnStart(taskCtx)
 
 				// FIXME No other optimization methods found
 				if p.cacheReader, err = os.OpenFile(cacheFile, os.O_CREATE|os.O_TRUNC|os.O_RDONLY, 0666); err != nil {
@@ -126,8 +134,6 @@ func (p *beepPlayer) listen() {
 					utils.Logger().Printf("new asset reader err: %+v", err)
 					p.stopNoLock()
 					goto nextLoop
-				} else {
-					reader = resp.Body
 				}
 
 				// 边下载边播放
@@ -168,7 +174,7 @@ func (p *beepPlayer) listen() {
 					}
 				}(ctx, p.cacheWriter, reader)
 
-				var N = 512
+				N := 512
 				if err = utils.WaitForNBytes(p.cacheReader, N, time.Millisecond*100, 50); err != nil {
 					utils.Logger().Printf("WaitForNBytes err: %+v", err)
 					p.stopNoLock()
@@ -442,7 +448,7 @@ func (p *beepPlayer) streamer(samples [][2]float64) (n int, ok bool) {
 	}
 	p.pausedNoLock()
 
-	var retry = 4
+	retry := 4
 	for !ok && retry > 0 {
 		utils.ResetError(p.curStreamer)
 

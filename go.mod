@@ -26,8 +26,8 @@ require (
 	github.com/zmb3/spotify/v2 v2.3.1
 	go.etcd.io/bbolt v1.3.7
 	golang.org/x/mod v0.8.0
-	golang.org/x/oauth2 v0.7.0
-	golang.org/x/text v0.13.0
+	golang.org/x/oauth2 v0.10.0
+	golang.org/x/text v0.14.0
 )
 
 require (
@@ -59,21 +59,22 @@ require (
 	github.com/sahilm/fuzzy v0.1.0 // indirect
 	github.com/vcaesar/keycode v0.10.1 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/crypto v0.12.0 // indirect
-	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
+	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
-	golang.org/x/term v0.17.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/term v0.18.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230807174057-1744710a1577 // indirect
-	google.golang.org/grpc v1.57.0 // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	google.golang.org/grpc v1.58.3 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	zenhack.net/go/util v0.0.0-20230607025951-8b02fee814ae // indirect
 )
 
 replace (
 	capnproto.org/go/capnp/v3 v3.0.0-alpha-29 => capnproto.org/go/capnp/v3 v3.0.0-alpha.29
-	github.com/arcspace/go-librespot v0.0.0-20230811173922-2e901b172fbe => github.com/go-musicfox/go-librespot v0.1.0
+	// github.com/arcspace/go-librespot v0.0.0-20230811173922-2e901b172fbe => github.com/go-musicfox/go-librespot v0.1.0
+	github.com/arcspace/go-librespot v0.0.0-20230811173922-2e901b172fbe => ../go-librespot
 	github.com/charmbracelet/bubbletea v0.25.0 => github.com/go-musicfox/bubbletea v0.25.0-foxful
 	github.com/gookit/gcli/v2 v2.3.4 => github.com/anhoder/gcli/v2 v2.3.5
 	github.com/gopxl/beep v1.4.0 => github.com/go-musicfox/beep v1.4.1

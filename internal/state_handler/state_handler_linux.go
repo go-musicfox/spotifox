@@ -287,7 +287,6 @@ func (s *Handler) SetPlayingInfo(info PlayingInfo) {
 		newVolume := math.Max(0, float64(info.Volume)/100.0)
 		s.setProp("org.mpris.MediaPlayer2.Player", "Volume", dbus.MakeVariant(newVolume))
 	}()
-
 }
 
 func (s *Handler) setProp(iface, name string, value dbus.Variant) {

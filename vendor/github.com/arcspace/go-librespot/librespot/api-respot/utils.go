@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 )
 
@@ -26,7 +25,6 @@ func APResolve() (string, error) {
 	}
 	defer r.Body.Close()
 
-
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return "", err
@@ -41,7 +39,7 @@ func APResolve() (string, error) {
 		return "", errors.New("AP endpoint list is empty")
 	}
 
-	return endpoints.ApList[rand.Intn(len(endpoints.ApList))], nil
+	return endpoints.ApList[0], nil
 }
 
 func GenerateDeviceUID(name string) string {

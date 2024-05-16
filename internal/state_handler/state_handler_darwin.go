@@ -20,7 +20,7 @@ var stateMap = map[player.State]mediaplayer.MPNowPlayingPlaybackState{
 	player.Interrupted: mediaplayer.MPNowPlayingPlaybackStateInterrupted,
 }
 
-type RemoteControl struct {
+type Handler struct {
 	nowPlayingCenter    *mediaplayer.MPNowPlayingInfoCenter
 	remoteCommandCenter *mediaplayer.MPRemoteCommandCenter
 	commandHandler      *remoteCommandHandler
@@ -35,12 +35,12 @@ const (
 	MediaTypeVedio
 )
 
-func NewRemoteControl(p Controller, _ PlayingInfo) *RemoteControl {
+func NewHandler(p Controller, _ PlayingInfo) *Handler {
 	playingCenter := mediaplayer.MPNowPlayingInfoCenter_defaultCenter()
 	commandCenter := mediaplayer.MPRemoteCommandCenter_sharedCommandCenter()
 	commandHandler := remoteCommandHandler_new(p)
 
-	ctrl := &RemoteControl{
+	ctrl := &Handler{
 		nowPlayingCenter:    &playingCenter,
 		remoteCommandCenter: &commandCenter,
 		commandHandler:      &commandHandler,
@@ -50,7 +50,7 @@ func NewRemoteControl(p Controller, _ PlayingInfo) *RemoteControl {
 	return ctrl
 }
 
-func (s *RemoteControl) registerCommands() {
+func (s *Handler) registerCommands() {
 	number := core.NSNumber_numberWithDouble(15.0)
 	defer number.Release()
 	intervals := core.NSArray_arrayWithObject(number.NSObject)
@@ -65,19 +65,19 @@ func (s *RemoteControl) registerCommands() {
 	s.remoteCommandCenter.TogglePlayPauseCommand().AddTargetAction(s.commandHandler.ID, sel_handleTogglePlayPauseCommand)
 	s.remoteCommandCenter.NextTrackCommand().AddTargetAction(s.commandHandler.ID, sel_handleNextTrackCommand)
 	s.remoteCommandCenter.PreviousTrackCommand().AddTargetAction(s.commandHandler.ID, sel_handlePreviousTrackCommand)
-	//s.remoteCommandCenter.ChangeRepeatModeCommand().AddTargetAction(s.commandHandler.ID, sel_handleChangeRepeatModeCommand)
-	//s.remoteCommandCenter.ChangeShuffleModeCommand().AddTargetAction(s.commandHandler.ID, sel_handleChangeShuffleModeCommand)
-	//s.remoteCommandCenter.ChangePlaybackRateCommand().AddTargetAction(s.commandHandler.ID, sel_handleChangePlaybackRateCommand)
-	//s.remoteCommandCenter.SeekBackwardCommand().AddTargetAction(s.commandHandler.ID, sel_handleSeekBackwardCommand)
-	//s.remoteCommandCenter.SeekForwardCommand().AddTargetAction(s.commandHandler.ID, sel_handleSeekForwardCommand)
-	//s.remoteCommandCenter.SkipForwardCommand().AddTargetAction(s.commandHandler.ID, sel_handleSkipForwardCommand)
-	//s.remoteCommandCenter.SkipBackwardCommand().AddTargetAction(s.commandHandler.ID, sel_handleSkipBackwardCommand)
+	// s.remoteCommandCenter.ChangeRepeatModeCommand().AddTargetAction(s.commandHandler.ID, sel_handleChangeRepeatModeCommand)
+	// s.remoteCommandCenter.ChangeShuffleModeCommand().AddTargetAction(s.commandHandler.ID, sel_handleChangeShuffleModeCommand)
+	// s.remoteCommandCenter.ChangePlaybackRateCommand().AddTargetAction(s.commandHandler.ID, sel_handleChangePlaybackRateCommand)
+	// s.remoteCommandCenter.SeekBackwardCommand().AddTargetAction(s.commandHandler.ID, sel_handleSeekBackwardCommand)
+	// s.remoteCommandCenter.SeekForwardCommand().AddTargetAction(s.commandHandler.ID, sel_handleSeekForwardCommand)
+	// s.remoteCommandCenter.SkipForwardCommand().AddTargetAction(s.commandHandler.ID, sel_handleSkipForwardCommand)
+	// s.remoteCommandCenter.SkipBackwardCommand().AddTargetAction(s.commandHandler.ID, sel_handleSkipBackwardCommand)
 	s.remoteCommandCenter.ChangePlaybackPositionCommand().AddTargetAction(s.commandHandler.ID, sel_handleChangePlaybackPositionCommand)
-	//s.remoteCommandCenter.LikeCommand().AddTargetAction(s.commandHandler.ID, sel_handleLikeCommand)
-	//s.remoteCommandCenter.DislikeCommand().AddTargetAction(s.commandHandler.ID, sel_handleDislikeCommand)
-	//s.remoteCommandCenter.BookmarkCommand().AddTargetAction(s.commandHandler.ID, sel_handleBookmarkCommand)
-	//s.remoteCommandCenter.EnableLanguageOptionCommand().AddTargetAction(s.commandHandler.ID, sel_handleEnableLanguageOptionCommand)
-	//s.remoteCommandCenter.DisableLanguageOptionCommand().AddTargetAction(s.commandHandler.ID, sel_handleDisableLanguageOptionCommand)
+	// s.remoteCommandCenter.LikeCommand().AddTargetAction(s.commandHandler.ID, sel_handleLikeCommand)
+	// s.remoteCommandCenter.DislikeCommand().AddTargetAction(s.commandHandler.ID, sel_handleDislikeCommand)
+	// s.remoteCommandCenter.BookmarkCommand().AddTargetAction(s.commandHandler.ID, sel_handleBookmarkCommand)
+	// s.remoteCommandCenter.EnableLanguageOptionCommand().AddTargetAction(s.commandHandler.ID, sel_handleEnableLanguageOptionCommand)
+	// s.remoteCommandCenter.DisableLanguageOptionCommand().AddTargetAction(s.commandHandler.ID, sel_handleDisableLanguageOptionCommand)
 
 	workspaceNC := cocoa.NSWorkspace_sharedWorkspace().NotificationCenter()
 	workspaceNC.AddObserverSelectorNameObject(s.commandHandler.ID, sel_handleWillSleepOrPowerOff, core.String("NSWorkspaceWillSleepNotification"), core.NSObject{})
@@ -85,7 +85,7 @@ func (s *RemoteControl) registerCommands() {
 	workspaceNC.AddObserverSelectorNameObject(s.commandHandler.ID, sel_handleDidWake, core.String("NSWorkspaceDidWakeNotification"), core.NSObject{})
 }
 
-func (s *RemoteControl) SetPlayingInfo(info PlayingInfo) {
+func (s *Handler) SetPlayingInfo(info PlayingInfo) {
 	total := info.TotalDuration.Seconds()
 	ur := info.PassedDuration.Seconds()
 
@@ -113,7 +113,7 @@ func (s *RemoteControl) SetPlayingInfo(info PlayingInfo) {
 		picUrl := info.PicUrl
 		s.l.Lock()
 		if s.curArtworkUrl != picUrl {
-			var lastArtwork = s.curArtwork
+			lastArtwork := s.curArtwork
 			defer lastArtwork.Release()
 
 			s.curArtworkUrl = picUrl
@@ -136,10 +136,10 @@ func (s *RemoteControl) SetPlayingInfo(info PlayingInfo) {
 	s.nowPlayingCenter.SetNowPlayingInfo(dic.NSDictionary)
 }
 
-func (s *RemoteControl) SetPosition(time.Duration) {
+func (s *Handler) SetPosition(time.Duration) {
 }
 
-func (s *RemoteControl) Release() {
+func (s *Handler) Release() {
 	s.nowPlayingCenter.Release()
 	s.remoteCommandCenter.Release()
 }

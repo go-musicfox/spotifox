@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"slices"
 	"time"
 
 	"github.com/anhoder/foxful-cli/model"
@@ -136,7 +137,7 @@ func (h *EventHandler) enterKeyHandle() (stopPropagation bool, newPage model.Pag
 	loading.Start()
 	defer loading.Complete()
 
-	var menu = h.spotifox.MustMain().CurMenu()
+	menu := h.spotifox.MustMain().CurMenu()
 	if _, ok := menu.(*AddToUserPlaylistMenu); ok {
 		addSongToUserPlaylist(h.spotifox, menu.(*AddToUserPlaylistMenu).action)
 		return true, h.spotifox.MustMain(), h.spotifox.Tick(time.Nanosecond)
@@ -188,7 +189,7 @@ func (h *EventHandler) spaceKeyHandle() model.Page {
 		player.playingMenu = me
 	}
 
-	var newPlaylists = make([]spotify.FullTrack, len(songs))
+	newPlaylists := make([]spotify.FullTrack, len(songs))
 	copy(newPlaylists, songs)
 	player.playlist = newPlaylists
 
@@ -201,8 +202,8 @@ func (h *EventHandler) MouseMsgHandle(msg tea.MouseMsg, a *model.App) (stopPropa
 		player = h.spotifox.player
 		main   = a.MustMain()
 	)
-	switch msg.Type {
-	case tea.MouseLeft:
+	switch {
+	case msg.Button == tea.MouseButtonLeft && slices.Contains([]tea.MouseAction{tea.MouseActionPress, tea.MouseActionMotion}, msg.Action):
 		x, y := msg.X, msg.Y
 		w := len(player.progressRamp)
 		if y+1 == a.WindowHeight() && x+1 <= len(player.progressRamp) {
@@ -216,9 +217,9 @@ func (h *EventHandler) MouseMsgHandle(msg tea.MouseMsg, a *model.App) (stopPropa
 				player.Resume()
 			}
 		}
-	case tea.MouseWheelDown:
+	case msg.Button == tea.MouseButtonWheelDown && msg.Action == tea.MouseActionPress:
 		player.DownVolume()
-	case tea.MouseWheelUp:
+	case msg.Button == tea.MouseButtonWheelUp && msg.Action == tea.MouseActionPress:
 		player.UpVolume()
 	}
 
