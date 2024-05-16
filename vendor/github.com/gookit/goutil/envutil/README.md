@@ -14,8 +14,6 @@ go get github.com/gookit/goutil/envutil
 
 ## Functions API
 
-> **Note**: doc by run `go doc ./envutil`
-
 ```go
 func Environ() map[string]string
 func GetBool(name string, def ...bool) bool

@@ -12,14 +12,12 @@ import (
 // Style a 16 color style. can add: fg color, bg color, color options
 //
 // Example:
-//
-//	color.Style{color.FgGreen}.Print("message")
+// 	color.Style{color.FgGreen}.Print("message")
 type Style []Color
 
 // New create a custom style
 //
 // Usage:
-//
 //	color.New(color.FgGreen).Print("message")
 //	equals to:
 //	color.Style{color.FgGreen}.Print("message")
@@ -39,45 +37,43 @@ func (s *Style) Add(cs ...Color) {
 
 // Render render text
 // Usage:
-//
-//	color.New(color.FgGreen).Render("text")
-//	color.New(color.FgGreen, color.BgBlack, color.OpBold).Render("text")
-func (s Style) Render(a ...any) string {
+//  color.New(color.FgGreen).Render("text")
+//  color.New(color.FgGreen, color.BgBlack, color.OpBold).Render("text")
+func (s Style) Render(a ...interface{}) string {
 	return RenderCode(s.String(), a...)
 }
 
 // Renderln render text line.
 // like Println, will add spaces for each argument
 // Usage:
-//
-//	color.New(color.FgGreen).Renderln("text", "more")
-//	color.New(color.FgGreen, color.BgBlack, color.OpBold).Render("text", "more")
-func (s Style) Renderln(a ...any) string {
+//  color.New(color.FgGreen).Renderln("text", "more")
+//  color.New(color.FgGreen, color.BgBlack, color.OpBold).Render("text", "more")
+func (s Style) Renderln(a ...interface{}) string {
 	return RenderWithSpaces(s.String(), a...)
 }
 
 // Sprint is alias of the 'Render'
-func (s Style) Sprint(a ...any) string {
+func (s Style) Sprint(a ...interface{}) string {
 	return RenderCode(s.String(), a...)
 }
 
 // Sprintf format and render message.
-func (s Style) Sprintf(format string, a ...any) string {
+func (s Style) Sprintf(format string, a ...interface{}) string {
 	return RenderString(s.String(), fmt.Sprintf(format, a...))
 }
 
 // Print render and Print text
-func (s Style) Print(a ...any) {
+func (s Style) Print(a ...interface{}) {
 	doPrintV2(s.String(), fmt.Sprint(a...))
 }
 
 // Printf render and print text
-func (s Style) Printf(format string, a ...any) {
+func (s Style) Printf(format string, a ...interface{}) {
 	doPrintV2(s.Code(), fmt.Sprintf(format, a...))
 }
 
 // Println render and print text line
-func (s Style) Println(a ...any) {
+func (s Style) Println(a ...interface{}) {
 	doPrintlnV2(s.String(), a)
 }
 
@@ -119,20 +115,20 @@ func (t *Theme) Save() {
 }
 
 // Tips use name as title, only apply style for name
-func (t *Theme) Tips(format string, a ...any) {
+func (t *Theme) Tips(format string, a ...interface{}) {
 	// only apply style for name
 	t.Print(strings.ToUpper(t.Name) + ": ")
 	Printf(format+"\n", a...)
 }
 
 // Prompt use name as title, and apply style for message
-func (t *Theme) Prompt(format string, a ...any) {
+func (t *Theme) Prompt(format string, a ...interface{}) {
 	title := strings.ToUpper(t.Name) + ":"
 	t.Println(title, fmt.Sprintf(format, a...))
 }
 
 // Block like Prompt, but will wrap a empty line
-func (t *Theme) Block(format string, a ...any) {
+func (t *Theme) Block(format string, a ...interface{}) {
 	title := strings.ToUpper(t.Name) + ":\n"
 
 	t.Println(title, fmt.Sprintf(format, a...))
@@ -144,11 +140,10 @@ func (t *Theme) Block(format string, a ...any) {
 
 // internal themes(like bootstrap style)
 // Usage:
-//
-//	color.Info.Print("message")
-//	color.Info.Printf("a %s message", "test")
-//	color.Warn.Println("message")
-//	color.Error.Println("message")
+// 	color.Info.Print("message")
+// 	color.Info.Printf("a %s message", "test")
+// 	color.Warn.Println("message")
+// 	color.Error.Println("message")
 var (
 	// Info color style
 	Info = &Theme{"info", Style{OpReset, FgGreen}}
@@ -180,8 +175,7 @@ var (
 
 // Themes internal defined themes.
 // Usage:
-//
-//	color.Themes["info"].Println("message")
+// 	color.Themes["info"].Println("message")
 var Themes = map[string]*Theme{
 	"info":  Info,
 	"note":  Note,
@@ -217,8 +211,7 @@ func GetTheme(name string) *Theme {
 
 // Styles internal defined styles, like bootstrap styles.
 // Usage:
-//
-//	color.Styles["info"].Println("message")
+// 	color.Styles["info"].Println("message")
 var Styles = map[string]Style{
 	"info":  {OpReset, FgGreen},
 	"note":  {OpBold, FgLightCyan},
@@ -292,31 +285,31 @@ func (s *Scheme) Style(name string) Style {
 }
 
 // Infof message print
-func (s *Scheme) Infof(format string, a ...any) {
+func (s *Scheme) Infof(format string, a ...interface{}) {
 	s.Styles["info"].Printf(format, a...)
 }
 
 // Infoln message print
-func (s *Scheme) Infoln(v ...any) {
+func (s *Scheme) Infoln(v ...interface{}) {
 	s.Styles["info"].Println(v...)
 }
 
 // Warnf message print
-func (s *Scheme) Warnf(format string, a ...any) {
+func (s *Scheme) Warnf(format string, a ...interface{}) {
 	s.Styles["warn"].Printf(format, a...)
 }
 
 // Warnln message print
-func (s *Scheme) Warnln(v ...any) {
+func (s *Scheme) Warnln(v ...interface{}) {
 	s.Styles["warn"].Println(v...)
 }
 
 // Errorf message print
-func (s *Scheme) Errorf(format string, a ...any) {
+func (s *Scheme) Errorf(format string, a ...interface{}) {
 	s.Styles["error"].Printf(format, a...)
 }
 
 // Errorln message print
-func (s *Scheme) Errorln(v ...any) {
+func (s *Scheme) Errorln(v ...interface{}) {
 	s.Styles["error"].Println(v...)
 }

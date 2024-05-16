@@ -27,6 +27,7 @@ func (as *Aliases) AddAlias(real, alias string) {
 	if rn, ok := as.mapping[alias]; ok {
 		panic(fmt.Sprintf("The alias '%s' is already used by '%s'", alias, rn))
 	}
+
 	as.mapping[alias] = real
 }
 

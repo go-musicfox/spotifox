@@ -9,6 +9,7 @@ import (
 
 	"github.com/ebitengine/purego"
 	"github.com/ebitengine/purego/objc"
+
 	"github.com/go-musicfox/spotifox/internal/macdriver"
 )
 
@@ -23,7 +24,7 @@ var (
 func importFramework() {
 	importOnce.Do(func() {
 		var err error
-		if _, err = purego.Dlopen("Foundation.framework/Foundation", purego.RTLD_GLOBAL); err != nil {
+		if _, err = purego.Dlopen("/System/Library/Frameworks/Foundation.framework/Foundation", purego.RTLD_GLOBAL); err != nil {
 			panic(err)
 		}
 		if objcLib, err = purego.Dlopen("/usr/lib/libobjc.A.dylib", purego.RTLD_GLOBAL); err != nil {
@@ -38,8 +39,10 @@ func init() {
 	purego.RegisterLibFunc(&objc_autoreleasePoolPop, objcLib, "objc_autoreleasePoolPop")
 }
 
-type NSUInteger = uint32
-type NSInteger = int32
+type (
+	NSUInteger = uint32
+	NSInteger  = int32
+)
 
 type NSObject struct {
 	objc.ID

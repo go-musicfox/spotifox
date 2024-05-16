@@ -388,8 +388,8 @@ func TryToString(val any, defaultAsErr bool) (str string, err error) {
 	case float64:
 		str = strconv.FormatFloat(value, 'f', -1, 64)
 	case time.Duration:
-		str = strconv.FormatInt(int64(value), 10)
-	case fmt.Stringer:
+		str = strconv.FormatUint(uint64(value.Nanoseconds()), 10)
+	case json.Number:
 		str = value.String()
 	default:
 		if defaultAsErr {

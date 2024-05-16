@@ -245,16 +245,9 @@ func (d Data) String() string {
 	return ToString(d)
 }
 
-// Load other data to current data map
+// Load data to current data map
 func (d Data) Load(sub map[string]any) {
 	for name, val := range sub {
-		d[name] = val
-	}
-}
-
-// LoadSMap to data
-func (d Data) LoadSMap(smp map[string]string) {
-	for name, val := range smp {
 		d[name] = val
 	}
 }

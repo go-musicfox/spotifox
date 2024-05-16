@@ -5,16 +5,20 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/go-musicfox/spotifox/utils"
+	"github.com/gopxl/beep"
+	"github.com/gopxl/beep/effects"
+	"github.com/gopxl/beep/speaker"
 	"github.com/zmb3/spotify/v2"
+)
 
-	"github.com/faiface/beep"
-	"github.com/faiface/beep/effects"
-	"github.com/faiface/beep/speaker"
+const (
+	sampleRate       = beep.SampleRate(44100)
+	resampleQuiality = 4
 )
 
 type beepPlayer struct {
@@ -41,7 +45,7 @@ type beepPlayer struct {
 	close chan struct{}
 }
 
-func NewBeepPlayer() Player {
+func NewBeepPlayer() *beepPlayer {
 	p := &beepPlayer{
 		state: Stopped,
 
@@ -64,9 +68,11 @@ func NewBeepPlayer() Player {
 	return p
 }
 
+// listen 开始监听
 func (p *beepPlayer) listen() {
 	var (
 		done       = make(chan struct{})
+		resp       *http.Response
 		reader     io.ReadCloser
 		err        error
 		ctx        context.Context
@@ -80,7 +86,11 @@ func (p *beepPlayer) listen() {
 		}
 	)
 
-	cacheFile := path.Join(utils.GetLocalDataDir(), "music_cache")
+	if err = speaker.Init(sampleRate, sampleRate.N(time.Millisecond*200)); err != nil {
+		panic(err)
+	}
+
+	cacheFile := filepath.Join(utils.GetLocalDataDir(), "music_cache")
 	for {
 		select {
 		case <-p.close:
@@ -96,7 +106,7 @@ func (p *beepPlayer) listen() {
 			if p.timer != nil {
 				p.timer.SetPassed(0)
 			}
-			// clean pre
+			// 清理上一轮
 			if cancel != nil {
 				cancel()
 			}
@@ -115,9 +125,12 @@ func (p *beepPlayer) listen() {
 				if reader, err = p.curMusic.NewAssetReader(); err != nil {
 					utils.Logger().Printf("new asset reader err: %+v", err)
 					p.stopNoLock()
-					continue
+					goto nextLoop
+				} else {
+					reader = resp.Body
 				}
 
+				// 边下载边播放
 				go func(ctx context.Context, cacheWFile *os.File, read io.ReadCloser) {
 					defer func() {
 						if utils.Recover(true) {
@@ -138,7 +151,7 @@ func (p *beepPlayer) listen() {
 						cacheReader, _ := os.OpenFile(cacheFile, os.O_RDONLY, 0666)
 						// 使用新的文件后需手动Seek到上次播放处
 						lastStreamer := p.curStreamer
-						defer lastStreamer.Close()
+						defer func() { _ = lastStreamer.Close() }()
 						pos := lastStreamer.Position()
 						if p.curStreamer, p.curFormat, err = DecodeSong(p.curMusic.SongType(), cacheReader); err != nil {
 							p.stopNoLock()
@@ -151,7 +164,7 @@ func (p *beepPlayer) listen() {
 							pos = 1
 						}
 						_ = p.curStreamer.Seek(pos)
-						p.ctrl.Streamer = beep.Seq(beep.StreamerFunc(p.streamer), beep.Callback(doneHandle))
+						p.ctrl.Streamer = beep.Seq(p.resampleStreamer(p.curFormat.SampleRate), beep.Callback(doneHandle))
 					}
 				}(ctx, p.cacheWriter, reader)
 
@@ -159,7 +172,7 @@ func (p *beepPlayer) listen() {
 				if err = utils.WaitForNBytes(p.cacheReader, N, time.Millisecond*100, 50); err != nil {
 					utils.Logger().Printf("WaitForNBytes err: %+v", err)
 					p.stopNoLock()
-					continue
+					goto nextLoop
 				}
 			} else {
 				// 单曲循环以及歌单只有一首歌时不再请求网络
@@ -170,14 +183,12 @@ func (p *beepPlayer) listen() {
 
 			if p.curStreamer, p.curFormat, err = DecodeSong(p.curMusic.SongType(), p.cacheReader); err != nil {
 				p.stopNoLock()
-				break
+				goto nextLoop
 			}
 
-			if err = speaker.Init(p.curFormat.SampleRate, p.curFormat.SampleRate.N(time.Millisecond*200)); err != nil {
-				panic(err)
-			}
+			utils.Logger().Printf("current song sample rate: %d", p.curFormat.SampleRate)
 
-			p.ctrl.Streamer = beep.Seq(beep.StreamerFunc(p.streamer), beep.Callback(doneHandle))
+			p.ctrl.Streamer = beep.Seq(p.resampleStreamer(p.curFormat.SampleRate), beep.Callback(doneHandle))
 			p.volume.Streamer = p.ctrl
 			speaker.Play(p.volume)
 
@@ -197,6 +208,8 @@ func (p *beepPlayer) listen() {
 			})
 			p.resumeNoLock()
 			prevSongId = p.curMusic.SongInfo.ID
+
+		nextLoop:
 			p.l.Unlock()
 		}
 	}
@@ -204,9 +217,11 @@ func (p *beepPlayer) listen() {
 
 // Play 播放音乐
 func (p *beepPlayer) Play(music MediaAsset) {
+	timer := time.NewTimer(time.Second)
+	defer timer.Stop()
 	select {
 	case p.musicChan <- music:
-	default:
+	case <-timer.C:
 	}
 }
 
@@ -256,7 +271,7 @@ func (p *beepPlayer) Seek(duration time.Duration) {
 	}
 	if p.state == Playing || p.state == Paused {
 		speaker.Lock()
-		newPos := p.curFormat.SampleRate.N(duration)
+		newPos := sampleRate.N(duration)
 
 		if newPos < 0 {
 			newPos = 0
@@ -277,6 +292,7 @@ func (p *beepPlayer) Seek(duration time.Duration) {
 	}
 }
 
+// UpVolume 调大音量
 func (p *beepPlayer) UpVolume() {
 	if p.volume.Volume >= 0 {
 		return
@@ -288,6 +304,7 @@ func (p *beepPlayer) UpVolume() {
 	p.volume.Volume += 0.25
 }
 
+// DownVolume 调小音量
 func (p *beepPlayer) DownVolume() {
 	if p.volume.Volume <= -5 {
 		return
@@ -303,7 +320,7 @@ func (p *beepPlayer) DownVolume() {
 }
 
 func (p *beepPlayer) Volume() int {
-	return int((p.volume.Volume + 5) * 100 / 5) // to 0~100
+	return int((p.volume.Volume + 5) * 100 / 5) // 转为0~100存储
 }
 
 func (p *beepPlayer) SetVolume(volume int) {
@@ -328,6 +345,7 @@ func (p *beepPlayer) pausedNoLock() {
 	p.setState(Paused)
 }
 
+// Paused 暂停播放
 func (p *beepPlayer) Paused() {
 	p.l.Lock()
 	defer p.l.Unlock()
@@ -343,6 +361,7 @@ func (p *beepPlayer) resumeNoLock() {
 	p.setState(Playing)
 }
 
+// Resume 继续播放
 func (p *beepPlayer) Resume() {
 	p.l.Lock()
 	defer p.l.Unlock()
@@ -358,21 +377,26 @@ func (p *beepPlayer) stopNoLock() {
 	p.setState(Stopped)
 }
 
+// Stop 停止
 func (p *beepPlayer) Stop() {
 	p.l.Lock()
 	defer p.l.Unlock()
 	p.stopNoLock()
 }
 
+// Toggle 切换状态
 func (p *beepPlayer) Toggle() {
 	switch p.State() {
 	case Paused, Stopped:
 		p.Resume()
 	case Playing:
 		p.Paused()
+	default:
+		p.Resume()
 	}
 }
 
+// Close 关闭
 func (p *beepPlayer) Close() {
 	p.l.Lock()
 	defer p.l.Unlock()
@@ -382,12 +406,11 @@ func (p *beepPlayer) Close() {
 	}
 	close(p.close)
 	speaker.Clear()
+	speaker.Close()
 }
 
 func (p *beepPlayer) reset() {
-	speaker.Clear()
-	speaker.Close()
-	// close pre timer
+	// 关闭旧计时器
 	if p.timer != nil {
 		p.timer.Stop()
 	}
@@ -402,9 +425,16 @@ func (p *beepPlayer) reset() {
 		p.curStreamer = nil
 	}
 	p.cacheDownloaded = false
+	speaker.Clear()
 }
 
 func (p *beepPlayer) streamer(samples [][2]float64) (n int, ok bool) {
+	defer func() {
+		if err := recover(); err != nil {
+			utils.Logger().Printf("streamer panic: %+v", err)
+			p.Stop()
+		}
+	}()
 	n, ok = p.curStreamer.Stream(samples)
 	err := p.curStreamer.Err()
 	if err == nil && (ok || p.cacheDownloaded) {
@@ -426,4 +456,11 @@ func (p *beepPlayer) streamer(samples [][2]float64) (n int, ok bool) {
 	}
 	p.resumeNoLock()
 	return
+}
+
+func (p *beepPlayer) resampleStreamer(old beep.SampleRate) beep.Streamer {
+	if old == sampleRate {
+		return beep.StreamerFunc(p.streamer)
+	}
+	return beep.Resample(resampleQuiality, old, sampleRate, beep.StreamerFunc(p.streamer))
 }

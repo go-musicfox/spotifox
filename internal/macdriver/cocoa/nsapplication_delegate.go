@@ -4,57 +4,52 @@ package cocoa
 
 import (
 	"github.com/ebitengine/purego/objc"
+
 	"github.com/go-musicfox/spotifox/internal/macdriver"
 	"github.com/go-musicfox/spotifox/internal/macdriver/core"
+)
+
+var (
+	class_DefaultAppDelegate                            objc.Class
+	sel_applicationDidFinishLaunching                   = objc.RegisterName("applicationDidFinishLaunching:")
+	sel_applicationShouldTerminateAfterLastWindowClosed = objc.RegisterName("applicationShouldTerminateAfterLastWindowClosed:")
+
+	defaultDelegate *defaultAppDelegate
 )
 
 func init() {
 	importFramework()
 
 	var err error
-	class_DefaultAppDelegate, err = objc.RegisterClass(&defaultAppDelegateBinding{})
+	class_DefaultAppDelegate, err = objc.RegisterClass(
+		"NSDefaultAppDelegate",
+		objc.GetClass("NSObject"),
+		[]*objc.Protocol{objc.GetProtocol("NSApplicationDelegate")},
+		[]objc.FieldDef{},
+		[]objc.MethodDef{
+			{
+				Cmd: sel_applicationDidFinishLaunching,
+				Fn:  applicationDidFinishLaunching,
+			},
+			{
+				Cmd: sel_applicationShouldTerminateAfterLastWindowClosed,
+				Fn:  applicationShouldTerminateAfterLastWindowClosed,
+			},
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
 }
 
-var (
-	class_DefaultAppDelegate objc.Class
-)
-
-var (
-	sel_applicationDidFinishLaunching                   = objc.RegisterName("applicationDidFinishLaunching:")
-	sel_applicationShouldTerminateAfterLastWindowClosed = objc.RegisterName("applicationShouldTerminateAfterLastWindowClosed:")
-)
-
-var (
-	defaultDelegate *defaultAppDelegate
-)
-
-type defaultAppDelegateBinding struct {
-	//nolint:golint,unused
-	isa objc.Class `objc:"NSDefaultAppDelegate : NSObject <NSApplicationDelegate>"`
-}
-
-func (defaultAppDelegateBinding) ApplicationDidFinishLaunching(_ objc.SEL, notification objc.ID) {
+func applicationDidFinishLaunching(id objc.ID, cmd objc.SEL, notification objc.ID) {
 	if defaultDelegate != nil && defaultDelegate.didFinishLaunchingCallback != nil {
 		defaultDelegate.didFinishLaunchingCallback(notification)
 	}
 }
 
-func (defaultAppDelegateBinding) ApplicationShouldTerminateAfterLastWindowClosed(_ objc.SEL, _ objc.ID) bool {
+func applicationShouldTerminateAfterLastWindowClosed(id objc.ID, cmd objc.SEL, notification objc.ID) bool {
 	return true
-}
-
-func (defaultAppDelegateBinding) Selector(metName string) objc.SEL {
-	switch metName {
-	case "ApplicationDidFinishLaunching":
-		return sel_applicationDidFinishLaunching
-	case "ApplicationShouldTerminateAfterLastWindowClosed":
-		return sel_applicationShouldTerminateAfterLastWindowClosed
-	default:
-		return 0
-	}
 }
 
 type defaultAppDelegate struct {

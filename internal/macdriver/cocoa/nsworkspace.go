@@ -4,6 +4,7 @@ package cocoa
 
 import (
 	"github.com/ebitengine/purego/objc"
+
 	"github.com/go-musicfox/spotifox/internal/macdriver/core"
 )
 

@@ -7,7 +7,7 @@ package timex
 import (
 	"time"
 
-	"github.com/gookit/goutil/basefn"
+	"github.com/gookit/goutil/fmtutil"
 	"github.com/gookit/goutil/strutil"
 )
 
@@ -19,18 +19,20 @@ const (
 	OneDaySec  = 86400
 	OneWeekSec = 7 * 86400
 
-	Microsecond = time.Microsecond
-	Millisecond = time.Millisecond
-
 	Second  = time.Second
 	OneMin  = time.Minute
-	Minute  = time.Minute
 	OneHour = time.Hour
-	Hour    = time.Hour
 	OneDay  = 24 * time.Hour
-	Day     = OneDay
 	OneWeek = 7 * 24 * time.Hour
-	Week    = OneWeek
+
+	DatetimeLayout = "2006-01-02 15:04:05"
+	DateOnlyLayout = "2006-01-02"
+	TimeOnlyLayout = "15:04:05"
+)
+
+var (
+	// DefaultLayout template for format time
+	DefaultLayout = "2006-01-02 15:04:05"
 )
 
 // TimeX alias of Time
@@ -85,12 +87,14 @@ func FromDate(s string, template ...string) (*Time, error) {
 	return FromString(s)
 }
 
-// FromString create from datetime string. see strutil.ToTime()
+// FromString create from datetime string.
+// see strutil.ToTime()
 func FromString(s string, layouts ...string) (*Time, error) {
 	t, err := strutil.ToTime(s, layouts...)
 	if err != nil {
 		return nil, err
 	}
+
 	return New(t), nil
 }
 
@@ -129,25 +133,12 @@ func (t *Time) Datetime() string {
 }
 
 // TplFormat use input template format time to date.
-//
-// alias of DateFormat()
 func (t *Time) TplFormat(template string) string {
 	return t.DateFormat(template)
 }
 
 // DateFormat use input template format time to date.
-//
-// Example:
-//
-//	tn := timex.Now()
-//	tn.DateFormat("Y-m-d H:i:s") // Output: 2019-01-01 12:12:12
-//	tn.DateFormat("Y-m-d H:i") // Output: 2019-01-01 12:12
-//	tn.DateFormat("Y-m-d") // Output: 2019-01-01
-//	tn.DateFormat("Y-m") // Output: 2019-01
-//	tn.DateFormat("y-m-d") // Output: 19-01-01
-//	tn.DateFormat("ymd") // Output: 190101
-//
-// see ToLayout() for convert template to layout.
+// see ToLayout()
 func (t *Time) DateFormat(template string) string {
 	return t.Format(ToLayout(template))
 }
@@ -181,29 +172,6 @@ func (t *Time) Tomorrow() *Time {
 // alias of Time.AddDay()
 func (t *Time) DayAfter(day int) *Time {
 	return t.AddDay(day)
-}
-
-// AddDur some duration time
-func (t *Time) AddDur(dur time.Duration) *Time {
-	return &Time{
-		Time:   t.Add(dur),
-		Layout: DefaultLayout,
-	}
-}
-
-// AddString add duration time string.
-//
-// Example:
-//
-//	tn := timex.Now() // example as "2019-01-01 12:12:12"
-//	nt := tn.AddString("1h")
-//	nt.Datetime() // Output: 2019-01-01 13:12:12
-func (t *Time) AddString(dur string) *Time {
-	d, err := ToDuration(dur)
-	if err != nil {
-		panic(err)
-	}
-	return t.AddDur(d)
 }
 
 // AddHour add some hour time
@@ -325,14 +293,14 @@ func (t *Time) IsAfterUnix(ux int64) bool {
 	return t.After(time.Unix(ux, 0))
 }
 
-// Timestamp value. alias of t.Unix()
+// Timestamp value. alias t.Unix()
 func (t Time) Timestamp() int64 {
 	return t.Unix()
 }
 
 // HowLongAgo format diff time to string.
 func (t Time) HowLongAgo(before time.Time) string {
-	return basefn.HowLongAgo(t.Unix() - before.Unix())
+	return fmtutil.HowLongAgo(t.Unix() - before.Unix())
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.

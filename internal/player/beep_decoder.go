@@ -3,9 +3,9 @@ package player
 import (
 	"io"
 
-	"github.com/faiface/beep"
-	"github.com/faiface/beep/mp3"
-	"github.com/faiface/beep/vorbis"
+	"github.com/gopxl/beep"
+	"github.com/gopxl/beep/mp3"
+	"github.com/gopxl/beep/vorbis"
 	"github.com/pkg/errors"
 )
 

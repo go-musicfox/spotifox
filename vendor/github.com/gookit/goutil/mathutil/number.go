@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gookit/goutil/basefn"
+	"github.com/gookit/goutil/fmtutil"
 )
 
 // IsNumeric returns true if the given character is a numeric, otherwise false.
@@ -17,6 +17,7 @@ func Percent(val, total int) float64 {
 	if total == 0 {
 		return float64(0)
 	}
+
 	return (float64(val) / float64(total)) * 100
 }
 
@@ -25,13 +26,12 @@ func ElapsedTime(startTime time.Time) string {
 	return fmt.Sprintf("%.3f", time.Since(startTime).Seconds()*1000)
 }
 
-// DataSize format value to data size string. eg: 1024 => 1KB, 1024*1024 => 1MB
-// alias format.DataSize()
+// DataSize format value. alias format.DataSize()
 func DataSize(size uint64) string {
-	return basefn.DataSize(size)
+	return fmtutil.DataSize(size)
 }
 
 // HowLongAgo calc time. alias format.HowLongAgo()
 func HowLongAgo(sec int64) string {
-	return basefn.HowLongAgo(sec)
+	return fmtutil.HowLongAgo(sec)
 }

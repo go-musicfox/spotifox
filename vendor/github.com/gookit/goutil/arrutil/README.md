@@ -12,8 +12,6 @@ go get github.com/gookit/goutil/arrutil
 
 ## Functions API
 
-> **Note**: doc by run `go doc ./arrutil`
-
 ```go
 func AnyToString(arr any) string
 func CloneSlice(data any) interface{}

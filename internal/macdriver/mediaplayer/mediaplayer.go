@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/ebitengine/purego"
+
 	"github.com/go-musicfox/spotifox/internal/macdriver/core"
 )
 
@@ -13,7 +14,7 @@ var importOnce sync.Once
 
 func importFramework() {
 	importOnce.Do(func() {
-		_, err := purego.Dlopen("MediaPlayer.framework/MediaPlayer", purego.RTLD_GLOBAL)
+		_, err := purego.Dlopen("/System/Library/Frameworks/MediaPlayer.framework/MediaPlayer", purego.RTLD_GLOBAL)
 		if err != nil {
 			panic(err)
 		}

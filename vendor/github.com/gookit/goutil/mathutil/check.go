@@ -1,8 +1,6 @@
 package mathutil
 
-import "github.com/gookit/goutil/comdef"
-
-// Compare any intX,floatX value by given op. returns `srcVal op(=,!=,<,<=,>,>=) dstVal`
+// Compare intX,floatX value by given op. returns `srcVal op(=,!=,<,<=,>,>=) dstVal`
 //
 // Usage:
 //
@@ -44,54 +42,40 @@ func Compare(srcVal, dstVal any, op string) (ok bool) {
 	return CompInt64(srcInt, dstInt, op)
 }
 
-// CompInt compare int,uint value. returns `srcVal op(=,!=,<,<=,>,>=) dstVal`
-func CompInt[T comdef.Xint](srcVal, dstVal T, op string) (ok bool) {
-	return CompValue(srcVal, dstVal, op)
-}
-
-// CompInt64 compare int64 value. returns `srcVal op(=,!=,<,<=,>,>=) dstVal`
-func CompInt64(srcVal, dstVal int64, op string) bool {
-	return CompValue(srcVal, dstVal, op)
-}
-
-// CompFloat compare float64,float32 value. returns `srcVal op(=,!=,<,<=,>,>=) dstVal`
-func CompFloat[T comdef.Float](srcVal, dstVal T, op string) (ok bool) {
-	return CompValue(srcVal, dstVal, op)
-}
-
-// CompValue compare intX,uintX,floatX value. returns `srcVal op(=,!=,<,<=,>,>=) dstVal`
-func CompValue[T comdef.XintOrFloat](srcVal, dstVal T, op string) (ok bool) {
+// CompInt64 compare int64, returns the srcI64 op dstI64
+func CompInt64(srcI64, dstI64 int64, op string) (ok bool) {
 	switch op {
 	case "<", "lt":
-		ok = srcVal < dstVal
+		ok = srcI64 < dstI64
 	case "<=", "lte":
-		ok = srcVal <= dstVal
+		ok = srcI64 <= dstI64
 	case ">", "gt":
-		ok = srcVal > dstVal
+		ok = srcI64 > dstI64
 	case ">=", "gte":
-		ok = srcVal >= dstVal
+		ok = srcI64 >= dstI64
 	case "=", "eq":
-		ok = srcVal == dstVal
+		ok = srcI64 == dstI64
 	case "!=", "ne", "neq":
-		ok = srcVal != dstVal
+		ok = srcI64 != dstI64
 	}
 	return
 }
 
-// InRange check if val in int/float range [min, max]
-func InRange[T comdef.IntOrFloat](val, min, max T) bool {
-	return val >= min && val <= max
-}
-
-// OutRange check if val not in int/float range [min, max]
-func OutRange[T comdef.IntOrFloat](val, min, max T) bool {
-	return val < min || val > max
-}
-
-// InUintRange check if val in unit range [min, max]
-func InUintRange[T comdef.Uint](val, min, max T) bool {
-	if max == 0 {
-		return val >= min
+// CompFloat compare float64
+func CompFloat(srcF64, dstF64 float64, op string) (ok bool) {
+	switch op {
+	case "<", "lt":
+		ok = srcF64 < dstF64
+	case "<=", "lte":
+		ok = srcF64 <= dstF64
+	case ">", "gt":
+		ok = srcF64 > dstF64
+	case ">=", "gte":
+		ok = srcF64 >= dstF64
+	case "=", "eq":
+		ok = srcF64 == dstF64
+	case "!=", "ne", "neq":
+		ok = srcF64 != dstF64
 	}
-	return val >= min && val <= max
+	return
 }

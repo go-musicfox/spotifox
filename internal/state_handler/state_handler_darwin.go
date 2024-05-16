@@ -4,6 +4,7 @@ package state_handler
 
 import (
 	"sync"
+	"time"
 
 	"github.com/go-musicfox/spotifox/internal/macdriver/cocoa"
 	"github.com/go-musicfox/spotifox/internal/macdriver/core"
@@ -19,7 +20,7 @@ var stateMap = map[player.State]mediaplayer.MPNowPlayingPlaybackState{
 	player.Interrupted: mediaplayer.MPNowPlayingPlaybackStateInterrupted,
 }
 
-type Handler struct {
+type RemoteControl struct {
 	nowPlayingCenter    *mediaplayer.MPNowPlayingInfoCenter
 	remoteCommandCenter *mediaplayer.MPRemoteCommandCenter
 	commandHandler      *remoteCommandHandler
@@ -34,22 +35,22 @@ const (
 	MediaTypeVedio
 )
 
-func NewHandler(p Controller, _ PlayingInfo) *Handler {
+func NewRemoteControl(p Controller, _ PlayingInfo) *RemoteControl {
 	playingCenter := mediaplayer.MPNowPlayingInfoCenter_defaultCenter()
 	commandCenter := mediaplayer.MPRemoteCommandCenter_sharedCommandCenter()
 	commandHandler := remoteCommandHandler_new(p)
 
-	handler := &Handler{
+	ctrl := &RemoteControl{
 		nowPlayingCenter:    &playingCenter,
 		remoteCommandCenter: &commandCenter,
 		commandHandler:      &commandHandler,
 	}
-	handler.registerCommands()
-	handler.nowPlayingCenter.SetPlaybackState(mediaplayer.MPNowPlayingPlaybackStateStopped)
-	return handler
+	ctrl.registerCommands()
+	ctrl.nowPlayingCenter.SetPlaybackState(mediaplayer.MPNowPlayingPlaybackStateStopped)
+	return ctrl
 }
 
-func (s *Handler) registerCommands() {
+func (s *RemoteControl) registerCommands() {
 	number := core.NSNumber_numberWithDouble(15.0)
 	defer number.Release()
 	intervals := core.NSArray_arrayWithObject(number.NSObject)
@@ -84,7 +85,7 @@ func (s *Handler) registerCommands() {
 	workspaceNC.AddObserverSelectorNameObject(s.commandHandler.ID, sel_handleDidWake, core.String("NSWorkspaceDidWakeNotification"), core.NSObject{})
 }
 
-func (s *Handler) SetPlayingInfo(info PlayingInfo) {
+func (s *RemoteControl) SetPlayingInfo(info PlayingInfo) {
 	total := info.TotalDuration.Seconds()
 	ur := info.PassedDuration.Seconds()
 
@@ -135,7 +136,10 @@ func (s *Handler) SetPlayingInfo(info PlayingInfo) {
 	s.nowPlayingCenter.SetNowPlayingInfo(dic.NSDictionary)
 }
 
-func (s *Handler) Release() {
+func (s *RemoteControl) SetPosition(time.Duration) {
+}
+
+func (s *RemoteControl) Release() {
 	s.nowPlayingCenter.Release()
 	s.remoteCommandCenter.Release()
 }

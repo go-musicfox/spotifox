@@ -38,8 +38,6 @@ func NewApp(options *Options) (a *App) {
 	return
 }
 
-type WithOption func(options *Options)
-
 func (a *App) With(w ...WithOption) *App {
 	for _, item := range w {
 		if item != nil {
@@ -47,20 +45,6 @@ func (a *App) With(w ...WithOption) *App {
 		}
 	}
 	return a
-}
-
-func WithHook(init, close func(a *App)) WithOption {
-	return func(opts *Options) {
-		opts.InitHook = init
-		opts.CloseHook = close
-	}
-}
-
-func WithMainMenu(mainMenu Menu, mainMenuTitle *MenuItem) WithOption {
-	return func(opts *Options) {
-		opts.MainMenu = mainMenu
-		opts.MainMenuTitle = mainMenuTitle
-	}
 }
 
 func (a *App) Init() tea.Cmd {
@@ -153,6 +137,11 @@ func (a *App) Run() error {
 		}
 		a.page = a.options.InitPage
 	}
+
+	if len(a.options.GlobalKeyHandlers) > 0 {
+		ListenGlobalKeys(a, a.options.GlobalKeyHandlers)
+	}
+
 	a.program = tea.ReplaceWithFoxfulRenderer(tea.NewProgram(a, a.options.TeaOptions...))
 	_, err := a.program.Run()
 	return err

@@ -8,14 +8,8 @@ import (
 	"strings"
 )
 
-// Workdir get
-func Workdir() string {
-	dir, _ := os.Getwd()
-	return dir
-}
-
-// ExpandHome will parse first `~` as user home dir path.
-func ExpandHome(pathStr string) string {
+// ExpandPath will parse first `~` as user home dir path.
+func ExpandPath(pathStr string) string {
 	if len(pathStr) == 0 {
 		return pathStr
 	}
@@ -32,6 +26,7 @@ func ExpandHome(pathStr string) string {
 	if err != nil {
 		return pathStr
 	}
+
 	return homeDir + pathStr[1:]
 }
 
@@ -78,26 +73,23 @@ var curShell string
 //
 // eg "/bin/zsh" "/bin/bash".
 // if onlyName=true, will return "zsh", "bash"
-func CurrentShell(onlyName bool) (binPath string) {
+func CurrentShell(onlyName bool) (path string) {
 	var err error
 	if curShell == "" {
-		binPath = os.Getenv("SHELL")
-		if len(binPath) == 0 {
-			binPath, err = ShellExec("echo $SHELL")
-			if err != nil {
-				return ""
-			}
+		path, err = ShellExec("echo $SHELL")
+		if err != nil {
+			return ""
 		}
 
-		binPath = strings.TrimSpace(binPath)
+		path = strings.TrimSpace(path)
 		// cache result
-		curShell = binPath
+		curShell = path
 	} else {
-		binPath = curShell
+		path = curShell
 	}
 
-	if onlyName && len(binPath) > 0 {
-		binPath = filepath.Base(binPath)
+	if onlyName && len(path) > 0 {
+		path = filepath.Base(path)
 	}
 	return
 }
@@ -114,5 +106,6 @@ func HasShellEnv(shell string) bool {
 	if err != nil {
 		return false
 	}
+
 	return strings.TrimSpace(out) == "OK"
 }

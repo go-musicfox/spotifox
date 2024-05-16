@@ -21,13 +21,16 @@ type Cmd struct {
 	Name string
 	// DryRun if True, not real execute command
 	DryRun bool
-	// Vars mapping
-	Vars map[string]string
 
 	// BeforeRun hook
 	BeforeRun func(c *Cmd)
 	// AfterRun hook
 	AfterRun func(c *Cmd, err error)
+}
+
+// WrapGoCmd instance
+func WrapGoCmd(cmd *exec.Cmd) *Cmd {
+	return &Cmd{Cmd: cmd}
 }
 
 // NewGitCmd instance
@@ -40,6 +43,7 @@ func NewGitCmd(subCmd string, args ...string) *Cmd {
 // see exec.Command
 func NewCmdline(line string) *Cmd {
 	bin, args := cmdline.NewParser(line).WithParseEnv().BinAndArgs()
+
 	return NewCmd(bin, args...)
 }
 
@@ -47,21 +51,17 @@ func NewCmdline(line string) *Cmd {
 //
 // see exec.Command
 func NewCmd(bin string, args ...string) *Cmd {
-	return WrapGoCmd(exec.Command(bin, args...))
+	return &Cmd{
+		Cmd: exec.Command(bin, args...),
+	}
 }
 
 // CmdWithCtx create new instance with context.
 //
 // see exec.CommandContext
 func CmdWithCtx(ctx context.Context, bin string, args ...string) *Cmd {
-	return WrapGoCmd(exec.CommandContext(ctx, bin, args...))
-}
-
-// WrapGoCmd instance
-func WrapGoCmd(cmd *exec.Cmd) *Cmd {
 	return &Cmd{
-		Cmd:  cmd,
-		Vars: make(map[string]string),
+		Cmd: exec.CommandContext(ctx, bin, args...),
 	}
 }
 
@@ -257,20 +257,6 @@ func (c *Cmd) WithArgsIf(args []string, exprOk bool) *Cmd {
 	if exprOk && len(args) > 0 {
 		c.Args = append(c.Args, args...)
 	}
-	return c
-}
-
-// WithVars add vars and returns the current object
-func (c *Cmd) WithVars(vs map[string]string) *Cmd {
-	if len(vs) > 0 {
-		c.Vars = vs
-	}
-	return c
-}
-
-// SetVar add var and returns the current object
-func (c *Cmd) SetVar(name, val string) *Cmd {
-	c.Vars[name] = val
 	return c
 }
 
